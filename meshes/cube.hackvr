@@ -1,0 +1,13 @@
+cube addtriangle -3 0 -3 -3 6 -3 -3 0 -3
+cube addtriangle 3 6 3 3 6 -3 3 6 3
+cube addtriangle 3 6 3 -3 6 3 3 6 3
+cube addtriangle 3 6 3 3 0 3 3 6 3
+cube addtriangle -3 0 3 -3 6 3 -3 0 3
+cube addtriangle -3 6 -3 -3 6 3 -3 6 -3
+cube addtriangle -3 6 -3 3 6 -3 -3 6 -3
+cube addtriangle 3 0 -3 3 6 -3 3 0 -3
+
+cube addtriangle -3 0 3 3 0 3 -3 0 3
+cube addtriangle 3 0 3 3 0 -3 3 0 3
+cube addtriangle 3 0 -3 -3 0 -3 3 0 -3
+cube addtriangle -3 0 -3 -3 0 3 -3 0 -3
