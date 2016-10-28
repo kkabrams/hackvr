@@ -21,6 +21,7 @@ int fps=0;
 
 //TODO: use different patterns on triangles for different shading.
 //TODO: don't forget to remake gophervr with this.
+//TODO: line and triangle intersection for finding what object was clicked on
 
 #define CAMERA_SEPARATION 4
 
@@ -320,6 +321,12 @@ c3_t rotate_c3_zr(c3_t p1,c3_t p2,real zr) {//rotate x and y around camera based
   return (c3_t){tmp.x,tmp.y,p1.z};
 }
 
+void rotate_triangle_yr(struct c3_triangle *t) {//changes input value!
+ t->p1=rotate_c3_yr(t->p1,camera.p,camera.yr);
+ t->p2=rotate_c3_yr(t->p2,camera.p,camera.yr);
+ t->p3=rotate_c3_yr(t->p3,camera.p,camera.yr);
+}
+
 c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
   c2_t p2;
 //  c3_t tmp1;
@@ -327,8 +334,8 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
 //  c3_t tmp3;
   int colori=100;
   c3_t final;
-//  final=rotate_c3_yr(p3,camera.p,d2r(camera.yr));
-  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));
+  final=rotate_c3_yr(p3,camera.p,d2r(camera.yr));//rotate everything around the camera's location.
+//  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
 //  tmp2=rotate_c3_xr(tmp1,camera.p,d2r(camera.xr));
 //  final=rotate_c3_zr(tmp2,camera.p,d2r(camera.zr));
   real delta_x=(camera.p.x - final.x);
@@ -336,8 +343,8 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
   real delta_z=(camera.p.z - final.z);
 //  XSetForeground(global.dpy, global.gc, global.green.pixel);
   if(global.greyscale) {
-   if(delta_z*10 > 0) {
-    if(delta_z*10 < 100) {
+   if(delta_z*2 > 0) {
+    if(delta_z*2 < 100) {
      colori=delta_z*10;
     }
    }
@@ -350,17 +357,19 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
 }
 
 void draw_c3_line(c3_t p1,c3_t p2) {
-  if(global.drawminimap == 1) {
-   draw_c2_line((c2_t){(camera.p.x-2)*global.mmz,(camera.p.z+2)*global.mmz},(c2_t){(camera.p.x+2)*global.mmz,(camera.p.z-2)*global.mmz});
-   draw_c2_line((c2_t){(camera.p.x+2)*global.mmz,(camera.p.z+2)*global.mmz},(c2_t){(camera.p.x-2)*global.mmz,(camera.p.z-2)*global.mmz});
-   draw_c2_line((c2_t){p1.x*global.mmz,p1.z*global.mmz},(c2_t){p2.x*global.mmz,p2.z*global.mmz});
-  }
-  if(global.drawminimap == 2) {//map rotates.
-   c3_t t1=rotate_c3_yr(p1,camera.p,d2r(camera.yr));
-   c3_t t2=rotate_c3_yr(p2,camera.p,d2r(camera.yr));
-   draw_c2_line((c2_t){t1.x*global.mmz,t1.z*global.mmz},(c2_t){t2.x*global.mmz,t2.z*global.mmz});
-  }
-  if(global.draw3d != 0) draw_c2_line(c3_to_c2(p1),c3_to_c2(p2));
+ if(!between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p1.x,p1.z}),0,90) ||
+    !between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p2.x,p2.z}),0,90)) return;
+ if(global.drawminimap == 1) {
+  draw_c2_line((c2_t){(camera.p.x-2)*global.mmz,(camera.p.z+2)*global.mmz},(c2_t){(camera.p.x+2)*global.mmz,(camera.p.z-2)*global.mmz});
+  draw_c2_line((c2_t){(camera.p.x+2)*global.mmz,(camera.p.z+2)*global.mmz},(c2_t){(camera.p.x-2)*global.mmz,(camera.p.z-2)*global.mmz});
+  draw_c2_line((c2_t){p1.x*global.mmz,p1.z*global.mmz},(c2_t){p2.x*global.mmz,p2.z*global.mmz});
+ }
+ if(global.drawminimap == 2) {//map rotates.
+  c3_t t1=rotate_c3_yr(p1,camera.p,d2r(camera.yr));
+  c3_t t2=rotate_c3_yr(p2,camera.p,d2r(camera.yr));
+  draw_c2_line((c2_t){t1.x*global.mmz,t1.z*global.mmz},(c2_t){t2.x*global.mmz,t2.z*global.mmz});
+ }
+ if(global.draw3d != 0) draw_c2_line(c3_to_c2(p1),c3_to_c2(p2));
 }
 
 cs_t c3_to_cs(c3_t p) {
@@ -387,13 +396,61 @@ void XDrawFilledTriangle(cs_t p1,cs_t p2,cs_t p3) {
  XFillPolygon(global.dpy,global.backbuffer,global.backgc,p,3,Convex,CoordModeOrigin);
 }
 
+real shitdist2(c3_t p1,c3_t p2) {
+ return sqrtl(((p1.x - p2.x) * (p1.x - p2.x)) +
+        ((p1.y - p2.y) * (p1.y - p2.y)) +
+        ((p1.z - p2.z) * (p1.z - p2.z)));
+}
+
+real shitdist(struct c3_triangle t,c3_t p) {
+// apply rotation then find distance?
+ struct c3_triangle t_;
+ t_=t;
+ rotate_triangle_yr(&t_);
+ return (shitdist2(t_.p1,p) + shitdist2(t_.p2,p) + shitdist2(t_.p3,p)) / 3.0l;
+}
+
+//^ subdivision algorithm for display purposes only.
+//black out the rest of the triangle first?
+//sounds alright to me...
+
+
+void HatchLines(c2_t p1,c2_t p2,c2_t p3,int density) {
+ real i=0;
+ for(i=1;i<density;i=i+1) {//only need 1/2, not 0/2 and 2/2, those are edges of the triangle.
+  draw_c2_line(
+   (c2_t){((i*p1.x)+((density-i)*p3.x))/density,
+          ((i*p1.y)+((density-i)*p3.y))/density},
+   (c2_t){((i*p2.x)+((density-i)*p3.x))/density,
+          ((i*p2.y)+((density-i)*p3.y))/density}
+  );
+ }
+}
+
+void DrawHatchedTriangle(struct c3_triangle t,int d) {
+ c2_t p1,p2,p3;
+ p1=c3_to_c2(t.p1);
+ p2=c3_to_c2(t.p2);
+ p3=c3_to_c2(t.p3);
+ HatchLines(p1,p2,p3,d);
+ HatchLines(p2,p3,p1,d);
+ HatchLines(p1,p3,p2,d);
+}
+
+
 void draw_c3_triangle(struct c3_triangle t) {
- draw_c3_line(t.p1,t.p2);
- draw_c3_line(t.p2,t.p3);
- draw_c3_line(t.p3,t.p1);
  if(global.draw3d == 2) { //draw it filled in
   XDrawFilledTriangle(c3_to_cs(t.p1),c3_to_cs(t.p2),c3_to_cs(t.p3));
  }
+ if(global.draw3d == 3) { //hashed
+  XSetForeground(global.dpy, global.backgc, global.colors[0].pixel);
+  //XDrawFilledTriangle(c3_to_cs(t.p1),c3_to_cs(t.p2),c3_to_cs(t.p3));//clear out this triangle.
+  XSetForeground(global.dpy, global.backgc, global.green.pixel);
+  DrawHatchedTriangle(t,10 - (shitdist(t,camera.p) / 10));//how to get density?
+ }
+ draw_c3_line(t.p1,t.p2);
+ draw_c3_line(t.p2,t.p3);
+ draw_c3_line(t.p3,t.p1);
 }
 
 //is basing this all on triangles best, or should I use polygons?
@@ -406,16 +463,6 @@ void draw_c3_triangle(struct c3_triangle t) {
 //  pushTriangle();
 //  pushTriangle();
 //}
-real shitdist2(c3_t p1,c3_t p2) {
- return ((p1.x - p2.x) * (p1.x - p2.x)) +
-        ((p1.y - p2.y) * (p1.y - p2.y)) +
-        ((p1.z - p2.z) * (p1.z - p2.z));
-}
-
-real shitdist(struct c3_triangle t,c3_t p) {
- return (shitdist2(t.p1,p) + shitdist2(t.p2,p) + shitdist2(t.p3,p)) / 3.0l;
-}
-
 
 typedef struct {
  struct c3_triangle *t;
@@ -423,11 +470,11 @@ typedef struct {
 } zsort_t;
 
 int compar(zsort_t *a,zsort_t *b) {
- return (a->d > b->d);
+ return (a->d < b->d);
 }
 
 void draw_screen(Display *dpy,Window w,GC gc) {
-  int i;
+  int i,j;
   int cn=0;//camera number.
   XFontStruct *font=XLoadQueryFont(global.dpy,"fixed");
   XCharStruct overall;
@@ -515,19 +562,22 @@ void draw_screen(Display *dpy,Window w,GC gc) {
 */
 
    //floor grid
-/*   for(i=-21;i<21;i+=3) {
+   for(i=-21;i<21;i+=3) {
     for(j=-21;j<21;j+=3) {
      //draw_c3_triangle((struct c3_triangle){"id",(c3_t){i,0,j},(c3_t){i,0,j+3},(c3_t){i+3,0,j}});
      draw_c3_line((c3_t){i,0,j},(c3_t){i,0,j+3});
      draw_c3_line((c3_t){i,0,j},(c3_t){i+3,0,j});
     }
-   }*/
+   }
 
-   //zsort (only if I don't do wireframe)
+   //apply rotation?
+
+   // load up the triangles to render... after applying rotation?
    for(i=0;global.triangle[i];i++) {
     zs[i].t=global.triangle[i];
-    //zs[i].d=shitdist(*(zs[i].t),camera.p);
+    //rotate_triangle(zs[i].t);
    }
+   //
    if(global.zsort) {
     for(i=0;global.triangle[i];i++) {
      zs[i].d=shitdist(*(zs[i].t),camera.p);
@@ -577,6 +627,7 @@ void draw_screen(Display *dpy,Window w,GC gc) {
 //  XCopyPlane(global.dpy,global.backbuffer,w,gc,0,0,global.width,global.height,0,0,0x000100);//move backbuffer to window
 }
 
+/* does not return the newline. */
 char *read_line_hack(FILE *fp,int len) {
  short in;
  char *t;
@@ -591,11 +642,40 @@ char *read_line_hack(FILE *fp,int len) {
  return t;
 }
 
+//warning: clobbers input
+//compresses multiple spaces to one.
+char **line_splitter(char *line) {
+ char **a;
+ int len,i;
+ len=1;
+ for(i=0;line[i];i++) {
+  if(line[i] != ' ') {
+   len++;
+   for(;line[i] != ' ';i++);
+  }
+ }
+
+ a=malloc(sizeof(char *) * len);
+ a[len]=0;
+ len=0;//reuse!
+ for(i=0;line[i];i++) {
+  if(line[i] != ' ') {
+   a[len]=line+i;
+   len++;
+   for(;line[i] != ' ';i++);
+  }
+ }
+ return a;//only the returned value needs to be free()d
+}
+
+
 int load_file(FILE *fp) {
  struct c3_triangle *to;
  struct c3_triangle t;
 // struct c3_line l;
  char *command;
+ char *line;
+ char **a;
  int ret=0;
  int j,k;
  static int i=0;//used to store the last triangle.
@@ -605,11 +685,15 @@ int load_file(FILE *fp) {
 
  for(;;) {
   if(feof(fp))  {
-   //printf("resetting EOF\n");
    clearerr(fp);
   }
   //REWRITE THIS SHIT TO BE AN ACTUAL PARSER INSTEAD OF FSCANF!!!!
   //read a line...
+  //line=read_line_hack(fp,0);
+  //split on spaces and mangle the line.
+  //if(*line == '#') break;
+  //a=line_splitter(line);
+  //t.p1.x=strtod("",0);//second arg is just for a return value. set to 0 if you don't want it.
   if(fscanf(fp,"%ms %ms %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf",&(t.id),&command,&(t.p1.x),&(t.p1.y),&(t.p1.z),&(t.p2.x),&(t.p2.y),&(t.p2.z),&(t.p3.x),&(t.p3.y),&(t.p3.z)) > 0) {
 //  if(fscanf(fp,"%ms %ms %f %f %f %f %f %f %f %f %f",&(t.id),&command,&(t.p1.x),&(t.p1.y),&(t.p1.z),&(t.p2.x),&(t.p2.y),&(t.p2.z),&(t.p3.x),&(t.p3.y),&(t.p3.z)) > 0) {
    ret=1;
@@ -671,13 +755,21 @@ int load_file(FILE *fp) {
      }
     }
    }
+/*   if(!strcmp(command,"rotate")) {
+    for(i=0;global.triangle[i];i++) {
+     global.triangle[i]->p1=rotate_c3_about()
+     global.triangle[i]->p2=
+     global.triangle[i]->p3=
+    }
+   }*/
    i++;
    global.triangles=i;
    global.triangle[i]=0;
   } else {
    break;
   }
-  //draw_screen(global.dpy,global.w,global.gc);
+  //free(a);
+  //free(line);
  }
  return ret;
 }
@@ -779,7 +871,7 @@ int keypress_handler(int sym) {
     break;
    case XK_3:
     global.draw3d += 1;
-    global.draw3d %= 3;
+    global.draw3d %= 4;
     break;
    case XK_Escape:
     return -1;
@@ -888,7 +980,7 @@ int main(int argc,char *argv[]) {
   camera.zr=0;
   global.mmz=1;
   camera.p.x=0;
-  camera.p.z=0;
+  camera.p.z=7;
   camera.p.y=5;
   for(;;) {
     redraw=0;
