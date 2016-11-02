@@ -713,6 +713,7 @@ int load_stdin() {
  // if(FD_ISSET(0,&readfs)) {
  while((line=read_line_hack(stdin,0))) {//load as long there's something to load
    if(*line == '#') return 0;
+   printf("# read command: %s\n",line);
    a=line_splitter(line,&len);
    if(len > 1) {
     id=a[0];
@@ -726,7 +727,7 @@ int load_stdin() {
 //   fflush(stdout);
    ret=1;
    if(!strcmp(command,"deletegroup")) {
-    for(j=0;j<i;j++) {//really shitty algorithm!!!! :D
+    for(j=0;global.triangle[j];j++) {//really shitty algorithm!!!! :D
      if(!strcmp(global.triangle[j]->id,t.id)) {
       for(k=j;k<=(i+1);k++) {
        global.triangle[k]=global.triangle[k+1];
@@ -782,17 +783,35 @@ int load_stdin() {
    }
 
    if(!strcmp(command,"move")) {// extra fun if the arguments are different.
+    t.id=strdup(id);
+    t.p1.x=strtold(a[2],0);//second arg is just for a return value. set to 0 if you don't want it.
+    t.p1.y=strtold(a[3],0);
+    t.p1.z=strtold(a[4],0);
+    t.p2.x=strtold(a[5],0);
+    t.p2.y=strtold(a[6],0);
+    t.p2.z=strtold(a[7],0);
+    t.p3.x=strtold(a[8],0);
+    t.p3.y=strtold(a[9],0);
+    t.p3.z=strtold(a[10],0);
     for(i=0;global.triangle[i];i++) {
      if(!strcmp(global.triangle[i]->id,t.id)) {
       global.triangle[i]->p1.x+=t.p1.x;
       global.triangle[i]->p1.y+=t.p1.y;
       global.triangle[i]->p1.z+=t.p1.z;
+      global.triangle[i]->p2.x+=t.p1.x;
+      global.triangle[i]->p2.y+=t.p1.y;
+      global.triangle[i]->p2.z+=t.p1.z;
+      global.triangle[i]->p3.x+=t.p1.x;
+      global.triangle[i]->p3.y+=t.p1.y;
+      global.triangle[i]->p3.z+=t.p1.z;
+/*
       global.triangle[i]->p2.x+=t.p2.x;
       global.triangle[i]->p2.y+=t.p2.y;
       global.triangle[i]->p2.z+=t.p2.z;
       global.triangle[i]->p3.x+=t.p3.x;
       global.triangle[i]->p3.y+=t.p3.y;
       global.triangle[i]->p3.z+=t.p3.z;
+*/
      }
     }
     continue;
@@ -823,8 +842,20 @@ int export_file(FILE *fp) {//not used yet. maybe export in obj optionally?
  return 0;
 }
 
+//push a string back into stdin so it can be read by the file loader. :P
+int selfcommand(char *s) {
+ char t;
+ if(!strlen(s)) return 0;
+ ungetc(s[strlen(s)-1],stdin);
+ t=s[strlen(s)-1];
+ s[strlen(s)-1]=0;
+ selfcommand(s);
+ putchar(t);
+ return 0;
+}
 
 int keypress_handler(int sym) {
+  char line[1024];
   real tmpx;
 //  real tmpy; //unused atm
   real tmpz;
@@ -834,36 +865,42 @@ int keypress_handler(int sym) {
     tmpz=WALK_SPEED*cosl(d2r(camera.yr+90));
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
-    printf("%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    selfcommand(line);
     break;
    case XK_Down:
     tmpx=WALK_SPEED*sinl(d2r(camera.yr+270));
     tmpz=WALK_SPEED*cosl(d2r(camera.yr+270));
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
-    printf("%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    selfcommand(line);
     break;
    case XK_Left:
     tmpx=WALK_SPEED*sinl(d2r(camera.yr));
     tmpz=WALK_SPEED*cosl(d2r(camera.yr));
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
-    printf("%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    selfcommand(line);
     break;
    case XK_Right:
     tmpx=WALK_SPEED*sinl(d2r(camera.yr+180));
     tmpz=WALK_SPEED*cosl(d2r(camera.yr+180));
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
-    printf("%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    selfcommand(line);
     break;
    case XK_w:
     camera.p.y+=1;
-    printf("%s move 0 1 0 0 0 0 0 0 0\n",global.user);
+    snprintf(line,sizeof(line)-1,"%s move 0 1 0 0 0 0 0 0 0\n",global.user);
+    selfcommand(line);
     break;
    case XK_s:
     camera.p.y-=1;
-    printf("%s move 0 -1 0 0 0 0 0 0 0\n",global.user);
+    snprintf(line,sizeof(line)-1,"%s move 0 -1 0 0 0 0 0 0 0\n",global.user);
+    selfcommand(line);
     break;
    case XK_r:
     camera.xr+=5;
