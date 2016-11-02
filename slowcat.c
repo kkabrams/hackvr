@@ -7,8 +7,8 @@ int main(int argc,char *argv[]) {
  short in;
  FILE *fp=stdin;
  if(argc < 2) {
-  printf("usage: slowcat delay [file1] [file2] [...]\n");
-  return -1;
+  fprintf(stderr,"usage: slowcat delay [file1] [file2] [...]\n");
+  return 1;
  }
  if(argc > 2) {
   fp=fopen(argv[2],"r");
