@@ -2,6 +2,8 @@
 
 use strict;
 
+die "usage: obj2hackvr.pl name\n" unless $ARGV[0];
+
 my $i;
 my $j;
 my $com;
@@ -12,7 +14,7 @@ my @parts;
 my @points;
 my @tmp;
 my $tmp;
-while(<>) {
+while(<stdin>) {
  chomp;
  @linepart=split(/ /,$_,2);
  $com=$linepart[0];
@@ -34,7 +36,8 @@ foreach $tmp (@faces) {
  @points = map { $_ =~ s/\/.+$//g; $_; } @points;
 # print @points;
  for($i=2;$i<(@points);$i++) {
-  print "deer addtriangle ";
+  print $ARGV[0];
+  print " addtriangle ";
   print $vertices[$points[0]-1];
   print " ";
   print $vertices[$points[$i-1]-1];
