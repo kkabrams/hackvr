@@ -20,9 +20,9 @@ int oldtime=0;
 int oldfps=0;
 int fps=0;
 
-//TODO: use different patterns on triangles for different shading.
 //TODO: don't forget to remake gophervr with this.
 //TODO: line and triangle intersection for finding what object was clicked on
+//if I don't do hiliting I only need to calculate that upon click.
 
 #define WALK_SPEED 1
 #define SPLIT_SCREEN 1
@@ -141,6 +141,7 @@ struct mainwin {
   char debug;//flag
   char drawsky;//flag
   char zsort;
+  char selected_object[256];//meh
   real mmz;
   XColor green;
   Colormap color_map;
@@ -224,9 +225,11 @@ C    b     A (x1,y1)
 
 /*
 c2_t get_c2_intersection(c2_t p1,real theta,c2_t p2) {
-
+  real c;
+  c=distance2(p1,p2);
+  theta_a=C A B
+  b = (c/1) * (theta_a + theta_offset)
 }
-
 int get_2D_intersection_X(x1,y1,theta_offset,x2,y2) {
  int x3a,y3a,x3b,y3b;
  int a,b,c;//lenght of sides.
@@ -236,6 +239,7 @@ int get_2D_intersection_X(x1,y1,theta_offset,x2,y2) {
  theta_a=
 // x1,y1,x2,y2
 
+//what are these d1 and d2?
  if(d1==d2) return global.math_error=1;
  c=dist(x1,y1,x2,y2);
  b = (c/1) * (theta_a + theta_offset);
@@ -335,7 +339,6 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
 //  c3_t tmp1;
 //  c3_t tmp2;
 //  c3_t tmp3;
-  int colori=100;
   c3_t final;
   final=rotate_c3_yr(p3,camera.p,d2r(camera.yr));//rotate everything around the camera's location.
 //  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
@@ -344,15 +347,6 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
   real delta_x=(camera.p.x - final.x);
   real delta_y=(camera.p.y - final.y);
   real delta_z=(camera.p.z - final.z);
-//  XSetForeground(global.dpy, global.gc, global.green.pixel);
-  if(global.greyscale) {
-   if(delta_z*2 > 0) {
-    if(delta_z*2 < 100) {
-     colori=delta_z*2;
-    }
-   }
-   XSetForeground(global.dpy,global.backgc,global.colors[100-colori].pixel);
-  }
 //  real d=distance3(camera.p,final);
   p2.y=camera.zoom * (delta_y * MAGIC(delta_z) - delta_y);
   p2.x=camera.zoom * (delta_x * MAGIC(delta_z) - delta_x);
@@ -360,8 +354,8 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
 }
 
 void draw_c3_line(c3_t p1,c3_t p2) {
- if(!between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p1.x,p1.z}),0,90) ||
-    !between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p2.x,p2.z}),0,90)) return;
+// if(!between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p1.x,p1.z}),0,90) ||
+//    !between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p2.x,p2.z}),0,90)) return;
  if(global.drawminimap == 1) {
   draw_c2_line((c2_t){(camera.p.x-2)*global.mmz,(camera.p.z+2)*global.mmz},(c2_t){(camera.p.x+2)*global.mmz,(camera.p.z-2)*global.mmz});
   draw_c2_line((c2_t){(camera.p.x+2)*global.mmz,(camera.p.z+2)*global.mmz},(c2_t){(camera.p.x-2)*global.mmz,(camera.p.z-2)*global.mmz});
@@ -373,6 +367,9 @@ void draw_c3_line(c3_t p1,c3_t p2) {
   draw_c2_line((c2_t){t1.x*global.mmz,t1.z*global.mmz},(c2_t){t2.x*global.mmz,t2.z*global.mmz});
  }
  if(global.draw3d != 0) draw_c2_line(c3_to_c2(p1),c3_to_c2(p2));
+ if(global.debug) {
+  
+ }
 }
 
 cs_t c3_to_cs(c3_t p) {
@@ -417,7 +414,6 @@ real shitdist(struct c3_triangle t,c3_t p) {
 //black out the rest of the triangle first?
 //sounds alright to me...
 
-
 void HatchLines(c2_t p1,c2_t p2,c2_t p3,int density) {
  real i=0;
  for(i=1;i<density;i=i+1) {//only need 1/2, not 0/2 and 2/2, those are edges of the triangle.
@@ -440,6 +436,25 @@ void DrawHatchedTriangle(struct c3_triangle t,int d) {
  HatchLines(p1,p3,p2,d);
 }
 
+void draw_cs_text(cs_t p,char *text) {
+ char t[256];
+ int direction,ascent,descent;
+ XFontStruct *font=XLoadQueryFont(global.dpy,"fixed");
+ XCharStruct overall;
+ snprintf(t,sizeof(t)-1,"%s",text);
+ XTextExtents(font,text,strlen(text),&direction,&ascent,&descent,&overall);
+ XDrawString(global.dpy,global.backbuffer,global.backgc,p.x,p.y+(descent+ascent),text,strlen(text));
+}
+
+void draw_c2_text(c2_t p,char *text) {
+ cs_t p2=c2_to_cs(p);
+ draw_cs_text(p2,text);
+}
+
+void draw_c3_text(c3_t p,char *text) {
+ cs_t p2=c3_to_cs(p);
+ draw_cs_text(p2,text);
+}
 
 void draw_c3_triangle(struct c3_triangle t) {
  if(global.draw3d == 2) { //draw it filled in
@@ -454,6 +469,7 @@ void draw_c3_triangle(struct c3_triangle t) {
  draw_c3_line(t.p1,t.p2);
  draw_c3_line(t.p2,t.p3);
  draw_c3_line(t.p3,t.p1);
+ draw_c3_text(t.p1,t.id);
 }
 
 //is basing this all on triangles best, or should I use polygons?
@@ -473,11 +489,24 @@ typedef struct {
 } zsort_t;
 
 int compar(zsort_t *a,zsort_t *b) {
- return (a->d < b->d);
+ return ((a->d) > (b->d));
 }
 
+
+/*
+void draw_c3_point_text(c3_t p,char *text) {
+ char coords[256];
+ int direction,ascent,descent;
+ cs_t p2;
+ p2=c3_to_cs(p);
+ snprintf(coords,sizeof(coords)-1,"(%Lf,%Lf,%Lf)",p.x,p.y,p.z);
+ XTextExtents(font,text,strlen(text),&direction,&ascent,&descent,&overall);
+ XDrawString(global.dpy,global.backbuffer,global.backgc,p2.x,p2.y+(descent+ascent),coords,strlen(coords));
+}*/
+
 void draw_screen(Display *dpy,Window w,GC gc) {
-  int i,j;
+  int i;
+  int colori=100;
   int cn=0;//camera number.
   XFontStruct *font=XLoadQueryFont(global.dpy,"fixed");
   XCharStruct overall;
@@ -517,6 +546,7 @@ void draw_screen(Display *dpy,Window w,GC gc) {
      oldfps=fps;
      fps=0;
     }
+    XSetForeground(global.dpy, global.backgc, global.green.pixel);
     snprintf(coords,sizeof(coords)-1,"debug: %s minimap: %d 3d: %d fps: %d triangles: %d",global.debug?"on":"off",global.drawminimap,global.draw3d,oldfps,global.triangles);
     XTextExtents(font,coords,strlen(coords),&direction,&ascent,&descent,&overall);
     XDrawString(global.dpy,global.backbuffer,global.backgc,global.xoff,global.height/2+(descent+0+ascent)*1,coords,strlen(coords));
@@ -563,7 +593,7 @@ void draw_screen(Display *dpy,Window w,GC gc) {
    draw_c3_line((c3_t){3,0,-3},(c3_t){3,0,3});
    draw_c3_line((c3_t){3,0,-3},(c3_t){3,6,-3});
 */
-
+/*
    //floor grid
    for(i=-21;i<21;i+=3) {
     for(j=-21;j<21;j+=3) {
@@ -572,28 +602,53 @@ void draw_screen(Display *dpy,Window w,GC gc) {
      draw_c3_line((c3_t){i,0,j},(c3_t){i+3,0,j});
     }
    }
-
+*/
    //apply rotation?
-
    // load up the triangles to render... after applying rotation?
    for(i=0;global.triangle[i];i++) {
     zs[i].t=global.triangle[i];
     //rotate_triangle(zs[i].t);
    }
    //
-   if(global.zsort) {
+   if(1) {//global.zsort) {
     for(i=0;global.triangle[i];i++) {
      zs[i].d=shitdist(*(zs[i].t),camera.p);
     }
     qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
    }
    //draw all triangles
+   if(zs[0].t) {
+    strcpy(global.selected_object,zs[0].t->id);
+   }
    for(i=0;global.triangle[i];i++) {
+    //now we pick the color of this triangle!
+
+    if(!strcmp(global.selected_object,zs[i].t->id)) {
+     XSetForeground(global.dpy,global.backgc,global.green.pixel);
+    } else {
+     if(global.greyscale) {
+      if(zs[i].d > 0) {
+       if(zs[i].d < 100) {
+        colori=zs[i].d;
+       }
+      }
+      XSetForeground(global.dpy,global.backgc,global.colors[100-colori].pixel);
+     }
+    }
+
     draw_c3_triangle(*(zs[i].t));
    }
+   XSetForeground(global.dpy, global.backgc, global.green.pixel);
+   snprintf(coords,sizeof(coords)-1,"selected object: %s",global.selected_object);
+   XTextExtents(font,coords,strlen(coords),&direction,&ascent,&descent,&overall);
+   XDrawString(global.dpy,global.backbuffer,global.backgc,global.xoff,global.height/2+(descent+0+ascent)*5,coords,strlen(coords));
+
    camera.p.z+=(global.split_flip)*(global.split*cosl(d2r(camera.yr+180)));
    camera.p.x+=(global.split_flip)*(global.split*sinl(d2r(camera.yr+180)));
+
+
   }
+
 
 //DONT USE WIDTH for shit.
 /*
@@ -625,7 +680,7 @@ void draw_screen(Display *dpy,Window w,GC gc) {
 */
   camera.p.x = oldx;
   camera.p.z = oldz; //-= cn*CAMERA_SEPARATION;
-  XClearWindow(global.dpy, w);
+//  XClearWindow(global.dpy, w);
   XCopyArea(global.dpy,global.backbuffer,w,gc,0,0,global.width,global.height,0,0);//move backbuffer to window
 //  XCopyPlane(global.dpy,global.backbuffer,w,gc,0,0,global.width,global.height,0,0,0x000100);//move backbuffer to window
 }
@@ -690,15 +745,17 @@ int load_stdin() {
  char **a;
  int len;
  int ret=0;
- int j,k;
+ int j,k,l;
  //struct timeval timeout;
  //fd_set master;
  //fd_set readfs;
  //FD_ZERO(&master);
  //FD_ZERO(&readfs);
  //FD_SET(0,&master);//just stdin.
- static int i=0;//used to store the last triangle.
- for(;global.triangle[i];i++) ;//hop to the end.
+ int i;//used to store the last triangle.
+
+// printf("# entering load_stdin()\n");
+ for(i=0;global.triangle[i];i++) ;//hop to the end.
  fcntl(0,F_SETFL,O_NONBLOCK);
  if(feof(stdin))  {
   clearerr(stdin);
@@ -712,8 +769,9 @@ int load_stdin() {
  // }
  // if(FD_ISSET(0,&readfs)) {
  while((line=read_line_hack(stdin,0))) {//load as long there's something to load
+// while((line=read_line_hack(stdin,0))) {//load as long there's something to load
    if(*line == '#') return 0;
-   printf("# read command: %s\n",line);
+   //printf("# read command: %s\n",line);
    a=line_splitter(line,&len);
    if(len > 1) {
     id=a[0];
@@ -726,16 +784,46 @@ int load_stdin() {
 //   }
 //   fflush(stdout);
    ret=1;
+   if(!strcmp(command,"deleteallexcept")) {
+    for(j=0;global.triangle[j];j++) {//mark first. compress later.
+     if(strcmp(global.triangle[j]->id,t.id)) {
+     // free(global.triangle[j]->id);
+     // free(global.triangle[j]);
+      global.triangle[j]=0;
+     }
+    }
+    l=0;
+    for(k=0;k<j;k++) {
+     while(global.triangle[l] == 0 && l < j) l++;
+     global.triangle[k]=global.triangle[l];
+    }
+    continue;
+   }
    if(!strcmp(command,"deletegroup")) {
-    for(j=0;global.triangle[j];j++) {//really shitty algorithm!!!! :D
+    for(j=0;global.triangle[j];j++) {//mark first. compress later.
      if(!strcmp(global.triangle[j]->id,t.id)) {
-      for(k=j;k<=(i+1);k++) {
-       global.triangle[k]=global.triangle[k+1];
-       i--;
-       j=-1;//restart!
+      free(global.triangle[j]->id);
+      free(global.triangle[j]);
+      global.triangle[j]=0;
+     }
+    }
+    l=0;
+    for(k=0;k<j;k++) {
+     while(global.triangle[l] == 0 && l < j) l++;
+     global.triangle[k]=global.triangle[l];
+    }
+    continue;
+   }
+   if(!strcmp(command,"assimilate")) {
+    if(len == 3) {
+     for(j=0;global.triangle[j];j++) {
+      if(!strcmp(global.triangle[j]->id,a[2])) {
+       free(global.triangle[j]->id);
+       global.triangle[j]->id=strdup(id);
       }
      }
     }
+    continue;
    }
    if(!strcmp(command,"addtriangle")) {
     if(len == 11) {
@@ -784,40 +872,45 @@ int load_stdin() {
 
    if(!strcmp(command,"move")) {// extra fun if the arguments are different.
     t.id=strdup(id);
-    t.p1.x=strtold(a[2],0);//second arg is just for a return value. set to 0 if you don't want it.
-    t.p1.y=strtold(a[3],0);
-    t.p1.z=strtold(a[4],0);
-    t.p2.x=strtold(a[5],0);
-    t.p2.y=strtold(a[6],0);
-    t.p2.z=strtold(a[7],0);
-    t.p3.x=strtold(a[8],0);
-    t.p3.y=strtold(a[9],0);
-    t.p3.z=strtold(a[10],0);
-    for(i=0;global.triangle[i];i++) {
-     if(!strcmp(global.triangle[i]->id,t.id)) {
-      global.triangle[i]->p1.x+=t.p1.x;
-      global.triangle[i]->p1.y+=t.p1.y;
-      global.triangle[i]->p1.z+=t.p1.z;
-      global.triangle[i]->p2.x+=t.p1.x;
-      global.triangle[i]->p2.y+=t.p1.y;
-      global.triangle[i]->p2.z+=t.p1.z;
-      global.triangle[i]->p3.x+=t.p1.x;
-      global.triangle[i]->p3.y+=t.p1.y;
-      global.triangle[i]->p3.z+=t.p1.z;
+    if(len == 11) {
+     t.p1.x=strtold(a[2],0);//second arg is just for a return value. set to 0 if you don't want it.
+     t.p1.y=strtold(a[3],0);
+     t.p1.z=strtold(a[4],0);
+     t.p2.x=strtold(a[5],0);
+     t.p2.y=strtold(a[6],0);
+     t.p2.z=strtold(a[7],0);
+     t.p3.x=strtold(a[8],0);
+     t.p3.y=strtold(a[9],0);
+     t.p3.z=strtold(a[10],0);
+     for(i=0;global.triangle[i];i++) {
+      if(!strcmp(global.triangle[i]->id,t.id)) {
+       global.triangle[i]->p1.x+=t.p1.x;
+       global.triangle[i]->p1.y+=t.p1.y;
+       global.triangle[i]->p1.z+=t.p1.z;
+       global.triangle[i]->p2.x+=t.p1.x;
+       global.triangle[i]->p2.y+=t.p1.y;
+       global.triangle[i]->p2.z+=t.p1.z;
+       global.triangle[i]->p3.x+=t.p1.x;
+       global.triangle[i]->p3.y+=t.p1.y;
+       global.triangle[i]->p3.z+=t.p1.z;
 /*
-      global.triangle[i]->p2.x+=t.p2.x;
-      global.triangle[i]->p2.y+=t.p2.y;
-      global.triangle[i]->p2.z+=t.p2.z;
-      global.triangle[i]->p3.x+=t.p3.x;
-      global.triangle[i]->p3.y+=t.p3.y;
-      global.triangle[i]->p3.z+=t.p3.z;
+       global.triangle[i]->p2.x+=t.p2.x;
+       global.triangle[i]->p2.y+=t.p2.y;
+       global.triangle[i]->p2.z+=t.p2.z;
+       global.triangle[i]->p3.x+=t.p3.x;
+       global.triangle[i]->p3.y+=t.p3.y;
+       global.triangle[i]->p3.z+=t.p3.z;
 */
+      }
      }
+    }
+    else {
+     printf("# ERROR: wrong amount of parts for move. got: %d expected: 11\n",len);
     }
     continue;
     //return ret;
    }
-   printf("# I don't know what you're talking about.");
+   printf("# I don't know what command you're talking about. %s\n",command);
 /*   if(!strcmp(command,"rotate")) {
      for(i=0;global.triangle[i];i++) {
       global.triangle[i]->p1=rotate_c3_about()
@@ -829,6 +922,7 @@ int load_stdin() {
    if(a) free(a);
 //  }
  }
+// printf("# leaving load_stdin()\n");
  return ret;
 }
 
@@ -860,6 +954,10 @@ int keypress_handler(int sym) {
 //  real tmpy; //unused atm
   real tmpz;
   switch(sym) {
+   case XK_Return:
+    snprintf(line,sizeof(line)-1,"%s action %s\n",global.user,global.selected_object);
+    selfcommand(line);
+    break;
    case XK_Up:
     tmpx=WALK_SPEED*sinl(d2r(camera.yr+90));
     tmpz=WALK_SPEED*cosl(d2r(camera.yr+90));
@@ -975,13 +1073,18 @@ int main(int argc,char *argv[]) {
   } else {
    global.user=strdup(argv[1]);
   }
-  global.dpy = XOpenDisplay(0);
+  fcntl(1,F_SETFL,O_NONBLOCK);//won't work
+  printf("# Opening X Display... (%s)\n",getenv("DISPLAY"));
+  if((global.dpy = XOpenDisplay(0)) == NULL) return printf("# failure.\n"),2;
+  else printf("# done.\n");
   global.color_map=DefaultColormap(global.dpy, DefaultScreen(global.dpy));
 
+  printf("# generating grays...\n");
   for(i=0;i<=100;i++) {
    snprintf(tmp,sizeof(tmp),"gray%d",i);
    XAllocNamedColor(global.dpy,global.color_map,tmp,&global.colors[i],&global.colors[i]);
   }
+  printf("# done.\n");
   setbuf(stdin,0);
   setbuf(stdout,0);
   assert(global.dpy);
@@ -997,8 +1100,6 @@ int main(int argc,char *argv[]) {
   } else {
    w = XCreateWindow(global.dpy,DefaultRootWindow(global.dpy),0,0,WIDTH*global.split_screen,HEIGHT,1,DefaultDepth(global.dpy,DefaultScreen(global.dpy)),InputOutput,DefaultVisual(global.dpy,DefaultScreen(global.dpy))\
                     ,CWBackPixel, &attributes);
-  }
-  if(!global.root_window) {
    XSizeHints *hints=XAllocSizeHints();
    hints->min_aspect.x=4*global.split_screen;
    hints->min_aspect.y=3;
@@ -1022,16 +1123,24 @@ int main(int argc,char *argv[]) {
   global.backbuffer=XCreatePixmap(global.dpy,w,global.width,global.height,DefaultDepth(global.dpy,DefaultScreen(global.dpy)));
   global.cleanbackbuffer=XCreatePixmap(global.dpy,w,global.width,global.height,DefaultDepth(global.dpy,DefaultScreen(global.dpy)));
 
+//backbuffer is uninitialized
   global.backgc=XCreateGC(global.dpy,global.backbuffer,0,0);
-
 
   cursor=XCreateFontCursor(global.dpy,XC_crosshair);
   XDefineCursor(global.dpy, w, cursor);
 
   XAllocNamedColor(global.dpy, global.color_map, "green", &global.green, &global.green);
   XSetForeground(global.dpy, global.gc, global.green.pixel);
+  XSetForeground(global.dpy, global.backgc, global.colors[0].pixel);//black. we're about to draw the blank background using this.
+  XSetBackground(global.dpy, global.gc, global.colors[160].pixel);
+  XSetBackground(global.dpy, global.backgc, global.colors[140].pixel);
+
+  XFillRectangle(global.dpy,global.cleanbackbuffer,global.backgc,0,0,global.width,global.height);
   XSetForeground(global.dpy, global.backgc, global.green.pixel);
+
 //  XSetForeground(global.dpy, gc, whiteColor);
+// this was taking a "long" time.
+  printf("# generating sky... ");
   skypixmap=XCreatePixmap(global.dpy,w,SKYW,SKYH,DefaultDepth(global.dpy,DefaultScreen(global.dpy)));
   for(i=0;i<SKYH;i++) {
    for(j=0;j<SKYW;j++) {
@@ -1044,6 +1153,7 @@ int main(int argc,char *argv[]) {
     }
    }
   }
+  printf("done.\n");
 
   global.mapxoff=global.width/2;
   global.mapyoff=global.height/2;
@@ -1058,14 +1168,16 @@ int main(int argc,char *argv[]) {
   camera.p.x=0;
   camera.p.z=6;
   camera.p.y=5;
+  printf("# entering main loop\n");
   for(;;) {
     redraw=0;
-    while(XPending(global.dpy)) {
+    while(XPending(global.dpy)) {//these are taking too long?
      XNextEvent(global.dpy, &e);
+     printf("# handling event with type: %d\n",e.type);
      switch(e.type) {
-       case Expose:
-         if(e.xexpose.count == 0) redraw=1;
-         break;
+//       case Expose:
+//         if(e.xexpose.count == 0) redraw=1;
+//         break;
        case MotionNotify:
          redraw=1;
          XQueryPointer(global.dpy,w,&root,&child,&global.rmousex,&global.rmousey,&global.mousex,&global.mousey,&mask);
@@ -1082,7 +1194,10 @@ int main(int argc,char *argv[]) {
          redraw=1;
          XGetGeometry(global.dpy,w,&root,&global.x,&global.y,&global.width,&global.height,&global.border_width,&global.depth);
          if(global.width / global.split_screen / 4 * 3 != global.height) {
-          printf("# DERPY WM CANT TAKE A HINT\n");
+          if(global.height * 3 / 4 == global.height) {
+           printf("math doesn't work.\n");
+          }
+          printf("# DERPY WM CANT TAKE A HINT %d / %d / 4 * 3 = %d != %d\n",global.width,global.split_screen,global.width /global.split_screen /4 * 3,global.height);
           if(global.width / global.split_screen / 4 * 3 < global.height) {
            global.height=global.width / global.split_screen / 4 * 3;
           } else {
@@ -1097,11 +1212,14 @@ int main(int argc,char *argv[]) {
          if(keypress_handler(XLookupKeysym(&e.xkey,0)) == -1) return 0;
          break;
        default:
+         printf("# received event with type: %d\n",e.type);
          break;
      }
     }
     if(load_stdin() || redraw) {
+     printf("# entering draw_screen\n");
      draw_screen(global.dpy,w,global.gc);
+     printf("# returned from draw_screen\n");
     }
     //usleep(10000);
   }

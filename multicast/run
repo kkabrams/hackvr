@@ -1,0 +1,11 @@
+#run hackvr with multicast program I made.
+#receive commands from the multicast group
+#then send some of my own to everyone else.
+#not sure how well this will work over long distances.
+
+mcast 234.5.6.7 31337 \
+ | sed -u 's/ /_/' \
+ | grep --line-buffered -v "$1" \
+ | ./hackvr "$1" \
+ | grep --line-buffered -v '^#' \
+ | ncat -u 234.5.6.7 31337

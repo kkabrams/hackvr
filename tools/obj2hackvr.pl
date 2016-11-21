@@ -2,7 +2,7 @@
 
 use strict;
 
-die "usage: obj2hackvr.pl name\n" unless $ARGV[0];
+die "usage: obj2hackvr.pl name file\n" unless $ARGV[0];
 
 my $i;
 my $j;
@@ -14,7 +14,8 @@ my @parts;
 my @points;
 my @tmp;
 my $tmp;
-while(<stdin>) {
+open(FILE,$ARGV[1]) if $ARGV[1];
+while(<FILE>) {
  chomp;
  @linepart=split(/ /,$_,2);
  $com=$linepart[0];
