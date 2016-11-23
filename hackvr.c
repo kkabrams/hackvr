@@ -25,10 +25,8 @@ int fps=0;
 //if I don't do hiliting I only need to calculate that upon click.
 
 #define WALK_SPEED 1
-#define SPLIT_SCREEN 1
+#define SPLIT_SCREEN 2
 #define CAMERA_SEPARATION 4
-
-#define DEPTH_FACTOR 0.965
 
 #define TRIANGLES 16386
 
@@ -141,9 +139,14 @@ struct mainwin {
   char debug;//flag
   char drawsky;//flag
   char zsort;
+  char red_and_blue;
+  char force_redraw;
   char selected_object[256];//meh
   real mmz;
   XColor green;
+  XColor red;
+  XColor blue;
+  XColor redblue[2];
   Colormap color_map;
   Display *dpy;
   Window w;
@@ -165,8 +168,8 @@ struct mainwin {
 #define RIGHT   320.0
 #define LEFT    -320.0
 
-int c2sX(long double x) { return (global.width/global.split_screen) * ((x + RIGHT) / (RIGHT *2)) + global.xoff; }
-int s2cX(long double x) { return (x/(global.width/global.split_screen))*(RIGHT*2)-RIGHT; }
+int c2sX(long double x) { return (global.width/(global.split_screen / (global.red_and_blue ? global.split_screen: 1))) * ((x + RIGHT) / (RIGHT *2)) + global.xoff; }
+int s2cX(long double x) { return (x/(global.width/(global.split_screen / (global.red_and_blue?global.split_screen :1))))*(RIGHT*2)-RIGHT; }
 
 int c2sY(long double y) { return global.height * ((TOP-y) / (TOP*2)); }
 int s2cY(long double y) { return -((y/global.height) * (TOP*2) - TOP); }
@@ -469,7 +472,7 @@ void draw_c3_triangle(struct c3_triangle t) {
  draw_c3_line(t.p1,t.p2);
  draw_c3_line(t.p2,t.p3);
  draw_c3_line(t.p3,t.p1);
- draw_c3_text(t.p1,t.id);
+ //draw_c3_text(t.p1,t.id);
 }
 
 //is basing this all on triangles best, or should I use polygons?
@@ -512,6 +515,7 @@ void draw_screen(Display *dpy,Window w,GC gc) {
   XCharStruct overall;
   int direction,ascent,descent;
   char coords[256];
+  XGCValues gcval;
   zsort_t zs[TRIANGLES];
   XCopyArea(global.dpy,global.cleanbackbuffer,global.backbuffer,gc,0,0,global.width,global.height,0,0);//clear the backbuffer.
 //  XCopyPlane(global.dpy,global.cleanbackbuffer,global.backbuffer,gc,0,0,global.width,global.height,0,0,1);//clear the backbuffer.
@@ -529,8 +533,16 @@ void draw_screen(Display *dpy,Window w,GC gc) {
    camera.p.x-=(global.split_flip)*((global.split/global.split_screen)*sinl(d2r(camera.yr+180)));
   }
   for(cn=0;cn<global.split_screen;cn++) {
-    global.xoff=(global.width/global.split_screen)*cn;
-    XSetClipRectangles(global.dpy,global.backgc,global.xoff,0,&cliprect,1,Unsorted);
+    if(global.red_and_blue) {
+     global.xoff=0;
+     gcval.function=GXor;
+     //set color for left half to red and right half to blue 
+     //and draw mode for the gc to GXOr
+     XChangeGC(global.dpy,global.backgc,GCFunction,&gcval);
+    } else {
+     global.xoff=(global.width/global.split_screen)*cn;
+    }
+  //  XSetClipRectangles(global.dpy,global.backgc,global.xoff,0,&cliprect,1,Unsorted);
     //if(global.drawminimap == 3) { draw_graph(magic); continue; }
     if(global.drawsky) {
      XCopyArea(global.dpy,skypixmap,global.backbuffer,global.backgc,((camera.yr*5)+SKYW)%SKYW,0,WIDTH,global.height/2,0,0);
@@ -622,20 +634,26 @@ void draw_screen(Display *dpy,Window w,GC gc) {
    }
    for(i=0;global.triangle[i];i++) {
     //now we pick the color of this triangle!
-
-    if(!strcmp(global.selected_object,zs[i].t->id)) {
-     XSetForeground(global.dpy,global.backgc,global.green.pixel);
+    if(global.red_and_blue) {
+     if(cn==0) {
+      XSetForeground(global.dpy,global.backgc,global.red.pixel);
+     } else {
+      XSetForeground(global.dpy,global.backgc,global.blue.pixel);
+     }
     } else {
-     if(global.greyscale) {
-      if(zs[i].d > 0) {
-       if(zs[i].d < 100) {
-        colori=zs[i].d;
+     if(!strcmp(global.selected_object,zs[i].t->id)) {
+      XSetForeground(global.dpy,global.backgc,global.green.pixel);
+     } else {
+      if(global.greyscale) {
+       if(zs[i].d > 0) {
+        if(zs[i].d < 100) {
+         colori=zs[i].d;
+        }
        }
+       XSetForeground(global.dpy,global.backgc,global.colors[100-colori].pixel);
       }
-      XSetForeground(global.dpy,global.backgc,global.colors[100-colori].pixel);
      }
     }
-
     draw_c3_triangle(*(zs[i].t));
    }
    XSetForeground(global.dpy, global.backgc, global.green.pixel);
@@ -1092,18 +1110,19 @@ int main(int argc,char *argv[]) {
   global.split_flip=-1;
   global.split=5;
   global.root_window=0;
+  global.red_and_blue=0;
   //global.colors[0]=BlackPixel(global.dpy,DefaultScreen(global.dpy));
 //  int whiteColor = //WhitePixel(global.dpy, DefaultScreen(global.dpy));
   attributes.background_pixel=global.colors[0].pixel;
   if(global.root_window) {
    w = DefaultRootWindow(global.dpy); //this is still buggy.
   } else {
-   w = XCreateWindow(global.dpy,DefaultRootWindow(global.dpy),0,0,WIDTH*global.split_screen,HEIGHT,1,DefaultDepth(global.dpy,DefaultScreen(global.dpy)),InputOutput,DefaultVisual(global.dpy,DefaultScreen(global.dpy))\
+   w = XCreateWindow(global.dpy,DefaultRootWindow(global.dpy),0,0,WIDTH*(global.split_screen / (global.red_and_blue ? global.split_screen : 1)),HEIGHT,1,DefaultDepth(global.dpy,DefaultScreen(global.dpy)),InputOutput,DefaultVisual(global.dpy,DefaultScreen(global.dpy))\
                     ,CWBackPixel, &attributes);
    XSizeHints *hints=XAllocSizeHints();
-   hints->min_aspect.x=4*global.split_screen;
+   hints->min_aspect.x=4*(global.split_screen / (global.red_and_blue ? global.split_screen : 1));
    hints->min_aspect.y=3;
-   hints->max_aspect.x=4*global.split_screen;
+   hints->max_aspect.x=4*(global.split_screen / (global.red_and_blue ? global.split_screen : 1));
    hints->max_aspect.y=3;
    hints->flags=PAspect;
    XSelectInput(global.dpy, w, PointerMotionMask|StructureNotifyMask|ButtonPressMask|ButtonReleaseMask|KeyPressMask|ExposureMask);
@@ -1117,7 +1136,11 @@ int main(int argc,char *argv[]) {
   global.triangle[0]=0;//we'll allocate as we need more.
   global.gc=XCreateGC(global.dpy, w, 0, 0);
 
-  global.width=WIDTH*global.split_screen;
+  if(global.red_and_blue) {
+   global.width=WIDTH;
+  } else {
+   global.width=WIDTH*global.split_screen;
+  }
   global.height=HEIGHT;
 
   global.backbuffer=XCreatePixmap(global.dpy,w,global.width,global.height,DefaultDepth(global.dpy,DefaultScreen(global.dpy)));
@@ -1130,6 +1153,10 @@ int main(int argc,char *argv[]) {
   XDefineCursor(global.dpy, w, cursor);
 
   XAllocNamedColor(global.dpy, global.color_map, "green", &global.green, &global.green);
+  XAllocNamedColor(global.dpy, global.color_map, "red", &global.red, &global.red);
+  XAllocNamedColor(global.dpy, global.color_map, "blue", &global.blue, &global.blue);
+  XAllocNamedColor(global.dpy, global.color_map, "red", &global.redblue[0], &global.redblue[0]);
+  XAllocNamedColor(global.dpy, global.color_map, "blue", &global.redblue[1], &global.redblue[1]);
   XSetForeground(global.dpy, global.gc, global.green.pixel);
   XSetForeground(global.dpy, global.backgc, global.colors[0].pixel);//black. we're about to draw the blank background using this.
   XSetBackground(global.dpy, global.gc, global.colors[160].pixel);
@@ -1160,6 +1187,7 @@ int main(int argc,char *argv[]) {
   global.drawminimap=0;
   global.draw3d=1;
   global.debug=0;
+  global.force_redraw=0;//use this for checking proper fps I guess.
   camera.zoom=30.0l;
   camera.xr=270;
   camera.yr=90;
@@ -1170,7 +1198,7 @@ int main(int argc,char *argv[]) {
   camera.p.y=5;
   printf("# entering main loop\n");
   for(;;) {
-    redraw=0;
+    redraw=global.force_redraw;
     while(XPending(global.dpy)) {//these are taking too long?
      XNextEvent(global.dpy, &e);
      printf("# handling event with type: %d\n",e.type);
@@ -1193,18 +1221,18 @@ int main(int argc,char *argv[]) {
        case ConfigureNotify:
          redraw=1;
          XGetGeometry(global.dpy,w,&root,&global.x,&global.y,&global.width,&global.height,&global.border_width,&global.depth);
-         if(global.width / global.split_screen / 4 * 3 != global.height) {
+         if(global.width / (global.split_screen / (global.red_and_blue ? global.split_screen : 1 )) / 4 * 3 != global.height) {
           if(global.height * 3 / 4 == global.height) {
            printf("math doesn't work.\n");
           }
           printf("# DERPY WM CANT TAKE A HINT %d / %d / 4 * 3 = %d != %d\n",global.width,global.split_screen,global.width /global.split_screen /4 * 3,global.height);
-          if(global.width / global.split_screen / 4 * 3 < global.height) {
-           global.height=global.width / global.split_screen / 4 * 3;
+          if(global.width / (global.split_screen / (global.red_and_blue ? global.split_screen : 1)) / 4 * 3 < global.height) {
+           global.height=global.width / (global.split_screen / (global.red_and_blue ? global.split_screen : 1)) / 4 * 3;
           } else {
-           global.width=global.height * 3 / 4 * global.split_screen;
+           global.width=global.height * 3 / 4 * (global.split_screen / (global.red_and_blue ? global.split_screen : 1));
           }
          }
-         global.mapxoff=global.width/global.split_screen/2;
+         global.mapxoff=global.width/(global.split_screen / (global.red_and_blue ? global.split_screen : 1))/2;
          global.mapyoff=global.height/2;
          break;
        case KeyPress:
