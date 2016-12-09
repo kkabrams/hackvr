@@ -1,0 +1,7 @@
+epoch set camera.p.x -0.000000
+epoch set camera.p.y 5.000000
+epoch set camera.p.z -12.000000
+epoch set camera.xr 270
+epoch set camera.yr 270
+epoch set camera.zr 0
+epoch set camera.zoom 2.000000
