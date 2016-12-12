@@ -28,9 +28,9 @@ int fps=0;
 //if I don't do hiliting I only need to calculate that upon click.
 
 #define WALK_SPEED 1
-#define SPLIT_SCREEN 2
+#define SPLIT_SCREEN 1
 #define CAMERA_SEPARATION 4
-#define RED_AND_BLUE 1
+#define RED_AND_BLUE 0
 
 #define SHAPES 16386
 #define MAX_SIDES 8
@@ -334,7 +334,7 @@ c3_t rotate_c3_zr(c3_t p1,c3_t p2,real zr) {//rotate x and y around camera based
 
 void rotate_shape_yr(struct c3_shape *s) {//changes input value!
  int i=0;
- for(i=0;i<s->len;i++) s->p[0]=rotate_c3_yr(s->p[0],camera.p,camera.yr);
+ for(i=0;i<s->len+(s->len==1);i++) s->p[0]=rotate_c3_yr(s->p[0],camera.p,camera.yr);
 }
 
 c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
@@ -344,8 +344,8 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
 //  c3_t tmp3;
   c3_t final;
 //these rotations need to be about the previous axis after the axis itself has been rotated.
-  final=rotate_c3_yr(p3,camera.p,d2r(camera.yr));//rotate everything around the camera's location.
-//  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
+//  final=rotate_c3_yr(p3,camera.p,d2r(camera.yr));//rotate everything around the camera's location.
+  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
 //  tmp2=rotate_c3_xr(tmp1,camera.p,d2r(camera.xr));
 //  final=rotate_c3_zr(tmp2,camera.p,d2r(camera.zr));
   real delta_x=(camera.p.x - final.x);
@@ -393,15 +393,12 @@ real shitdist(struct c3_shape s,c3_t p) {
  real total;
  s_=s;
  rotate_shape_yr(&s_);
- for(i=0;i<s_.len;i++) {
+ for(i=0;i<s_.len+(s_.len==1);i++) {
   total+=shitdist2(s_.p[i],camera.p);
  }
- return (total) / 3.0l;
+ return (total) / (real)(s_.len+(s_.len==1));
 }
 
-//^ subdivision algorithm for display purposes only.
-//black out the rest of the triangle first?
-//sounds alright to me...
 
 void HatchLines(c2_t p1,c2_t p2,c2_t p3,int density) {
  real i=0;
@@ -424,6 +421,10 @@ void HatchLines(c2_t p1,c2_t p2,c2_t p3,int density) {
  HatchLines(p2,p3,p1,d);
  HatchLines(p1,p3,p2,d);
 }*/
+
+//^ subdivision algorithm for display purposes only.
+//black out the rest of the triangle first?
+//sounds alright to me...
 
 void draw_cs_text(cs_t p,char *text) {
  char t[256];
@@ -456,33 +457,64 @@ cs_t *c3s_to_css(c3_t *p3,int len) {
 void draw_c3_shape(struct c3_shape s) {
 // char line[1024];
  int i=0;
- XPoint p[s.len];
+ int w,h;
+ XPoint p[s.len+(s.len==1)];
  cs_t tmp;
- if(global.draw3d == 2) { //draw it filled in
-  for(i=0;i<s.len;i++) {
-   tmp=c3_to_cs(s.p[i]);
-   p[i]=(XPoint){tmp.x,tmp.y};
+ for(i=0;i<s.len+(s.len==1);i++) {
+  tmp=c3_to_cs(s.p[i]);
+  p[i]=(XPoint){tmp.x,tmp.y};
+ }
+ if(global.draw3d == 1) { // wireframe
+  switch(s.len) {
+   case 1:
+    w=max(p[0].x,p[1].x)-min(p[0].x,p[1].x);
+    h=max(p[0].y,p[1].y)-min(p[0].y,p[1].y);
+    p[0].x-=h;
+    p[0].y-=h;
+    XDrawArc(global.dpy,global.backbuffer,global.backgc,p[0].x,p[0].y,h*2,h*2,0,360*64);
+    break;
+   case 2:
+    XDrawLine(global.dpy,global.backbuffer,global.backgc,p[0].x,p[0].y,p[1].x,p[1].y);
+    break;
+   default:
+    for(i=0;i<s.len;i++) {
+     XDrawLines(global.dpy,global.backbuffer,global.backgc,p,s.len,CoordModeOrigin);
+    }
+    break;
   }
-  XFillPolygon(global.dpy,global.backbuffer,global.backgc,p,s.len,Convex,CoordModeOrigin);
  }
- if(global.draw3d == 3) { //hashed
-  XSetForeground(global.dpy, global.backgc, global.colors[0].pixel);
+ if(global.draw3d == 2) { //draw it filled in
+  switch(s.len) {
+   case 1:
+    w=max(p[0].x,p[1].x)-min(p[0].x,p[1].x);
+    h=max(p[0].y,p[1].y)-min(p[0].y,p[1].y);
+    p[0].x-=h;
+    p[0].y-=h;
+    XFillArc(global.dpy,global.backbuffer,global.backgc,p[0].x,p[0].y,h*2,h*2,0,360*64);
+    break;
+   case 2:
+    XDrawLine(global.dpy,global.backbuffer,global.backgc,p[0].x,p[0].y,p[1].x,p[1].y);
+    break;
+   default:
+    XFillPolygon(global.dpy,global.backbuffer,global.backgc,p,s.len,Convex,CoordModeOrigin);
+    break;
+  }
+ }
+// if(global.draw3d == 3) { //hashed
+//  XSetForeground(global.dpy, global.backgc, global.colors[0].pixel);
   //XDrawFilledShape(c3_to_cs(t.p1),c3_to_cs(t.p2),c3_to_cs(t.p3));//clear out this triangle.
-  XSetForeground(global.dpy, global.backgc, global.green.pixel);
+//  XSetForeground(global.dpy, global.backgc, global.green.pixel);
   //upgrade me! DrawHatchedTriangle(t,10 - (shitdist(t,camera.p) / 10));//how to get density?
- }
- for(i=0;i<s.len;i++) {
-  draw_c3_line(s.p[i],s.p[(i+1)%s.len]);
- }
- if(global.debug) {
-/*  snprintf(line,sizeof(line)-1,"(%Lf,%Lf,%Lf)",t.p1.x,t.p1.y,t.p1.z);
+// }
+/* if(global.debug) {
+  snprintf(line,sizeof(line)-1,"(%Lf,%Lf,%Lf)",t.p1.x,t.p1.y,t.p1.z);
   draw_c3_text(t.p1,line);
   snprintf(line,sizeof(line)-1,"(%Lf,%Lf,%Lf)",t.p2.x,t.p2.y,t.p2.z);
   draw_c3_text(t.p2,line);
   snprintf(line,sizeof(line)-1,"(%Lf,%Lf,%Lf)",t.p3.x,t.p3.y,t.p3.z);
   draw_c3_text(t.p3,line);
 */
- }
+// }
 }
 
 typedef struct {
@@ -557,7 +589,7 @@ void draw_screen(Display *dpy,Window w,GC gc) {
      oldfps=fps;
      fps=0;
     }
-    XSetForeground(global.dpy, global.backgc, global.green.pixel);
+    //XSetForeground(global.dpy, global.backgc, global.green.pixel);
     if(global.debug) {
       snprintf(coords,sizeof(coords)-1,"debug: %s minimap: %d 3d: %d fps: %d shapes: %d",global.debug?"on":"off",global.drawminimap,global.draw3d,oldfps,global.shapes);
       XTextExtents(font,coords,strlen(coords),&direction,&ascent,&descent,&overall);
@@ -640,15 +672,16 @@ void draw_screen(Display *dpy,Window w,GC gc) {
 //     draw_c3_triangle(*(zs[i].t));
     } else {
      if(!strcmp(global.selected_object,zs[i].s->id)) {
-      XSetForeground(global.dpy,global.backgc,global.green.pixel);
+      //XSetForeground(global.dpy,global.backgc,global.green.pixel);
      } else {
       if(global.greyscale) {
        if(zs[i].d > 0) {
-        if(zs[i].d < 10) {
+        if(zs[i].d < 100) {
          colori=zs[i].d;
         }
        }
-       XSetForeground(global.dpy,global.backgc,global.colors[(int)(100.0-(colori * 10.0))].pixel);
+       colori=(int)(zs[i].d)%100;
+       XSetForeground(global.dpy,global.backgc,global.colors[(int)(100.0-(colori))].pixel);//picking the color here only works if...
       }
      }
     }
@@ -907,7 +940,7 @@ int load_stdin() {
     global.shape[i]=malloc(sizeof(struct c3_shape));
     global.shape[i]->id=strdup(id);
     global.shape[i]->len=strtold(a[2],0);
-    for(j=0;j < global.shape[i]->len;j++) {
+    for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
      global.shape[i]->p[j].x=strtold(a[(j*3)+3],0);//second arg is just for a return value. set to 0 if you don't want it.
      global.shape[i]->p[j].y=strtold(a[(j*3)+4],0);
      global.shape[i]->p[j].z=strtold(a[(j*3)+5],0);
@@ -923,7 +956,7 @@ int load_stdin() {
   if(!strcmp(command,"scaleup")) {//should this scale separately so it can be a deform too?
    for(i=0;global.shape[i];i++) {
     if(!strcmp(global.shape[i]->id,id)) {
-     for(j=0;j < global.shape[i]->len;j++) {
+     for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
       global.shape[i]->p[j].x*=strtold(a[2],0);
       global.shape[i]->p[j].y*=strtold(a[2],0);
       global.shape[i]->p[j].z*=strtold(a[2],0);
@@ -937,7 +970,7 @@ int load_stdin() {
    if(len > 4) {
     for(i=0;global.shape[i];i++) {
      if(!strcmp(global.shape[i]->id,id)) {
-      for(j=0;j < global.shape[i]->len;j++) {
+      for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
        global.shape[i]->p[j].x+=strtold(a[2],0);
        global.shape[i]->p[j].y+=strtold(a[3],0);
        global.shape[i]->p[j].z+=strtold(a[4],0);

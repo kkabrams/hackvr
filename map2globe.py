@@ -16,6 +16,8 @@ z="0"
 # / 90 * math.pi
 #they need to be in the range 0 to 2pi?
 
+print("globe addshape 1 0 0 0 1 -1 0")
+
 while(1):
  #print (plat,plon,lat,lon)
  try:
