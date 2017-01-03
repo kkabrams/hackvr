@@ -31,68 +31,43 @@ struct camera {
   real zoom;
 } camera;
 
-struct c3_line {
+typedef struct c3_line {
  char *id;
  c3_t p1;
  c3_t p2;
-};
+} cs_l_t;
 
-struct c3_shape {//use array or linked list?
+typedef struct cs_shape {
+  char *id;
+  unsigned char len;
+  cs_t p[MAX_SIDES];
+} cs_s_t;
+
+typedef struct c2_shape {
+  char *id;
+  unsigned char len;
+  c2_t p[MAX_SIDES];
+} c2_s_t;
+
+typedef struct c3_shape {//use array or linked list?
   char *id;
   unsigned char len;
   c3_t p[MAX_SIDES];
-};
+} c3_s_t;
 
-struct mainwin {
+struct global {
   int x;
   int y;
-  unsigned int depth;
-  int mousex;
-  int mousey;
-  int rmousex;
-  int rmousey;
-  int buttonpressed;
-  unsigned int width;
-  unsigned int height;
-  unsigned int border_width;
-  XColor colors[256];
-  int xoff;
   int math_error;
-  int mapxoff;
-  int mapyoff;
-  int split_screen;
-  int split_flip;//1 or -1
   char *user;
-  char greyscale;
   char headless;
-  char drawminimap;//flag
-  char draw3d;//flag
   char debug;//flag
-  char drawsky;//flag
-  char zsort;
-  char red_and_blue;
-  char force_redraw;
   char selected_object[256];//meh
   real mmz;
-  XColor green;
-  XColor red;
-  XColor blue;
-  XColor redblue[2];
-  Colormap color_map;
-  Display *dpy;
-  Window w;
-  Pixmap backbuffer;
-  Pixmap cleanbackbuffer;
-  GC gc;
-  GC backgc;
   struct c3_shape *shape[SHAPES];
   int shapes;
   int derp;
-  int root_window;
   real split;
-  int oldfps;
-  int fps;
-  int oldtime;
 };
 
 #endif

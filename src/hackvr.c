@@ -8,10 +8,6 @@
 #include <dirent.h>
 #include <stdlib.h>
 //#include <sys/select.h> //code to use select instead of non-blocking is commented out. might decide to use it later.
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-#include <X11/cursorfont.h>
-#include <X11/Xutil.h> //for size hints
 #include <time.h>
 #define __USE_GNU //for longer math constants
 #include <math.h>
@@ -20,6 +16,7 @@
 #include "common.h"
 #ifdef GRAPHICAL
 #include "graphics.h"
+extern struct gra_global gra_global;
 #endif
 
 //TODO: optimizations
@@ -32,7 +29,7 @@
 //TODO: will have to make some pixmaps get resized when the window does.
 //for now set them to be as big as you think you'll ever resize the window to.
 
-struct mainwin global;
+struct global global;
 
 /* does not return the newline. */
 char *read_line_hack(FILE *fp,int len) {
@@ -117,8 +114,12 @@ int load_stdin() {
  // if(FD_ISSET(0,&readfs)) {
  while((line=read_line_hack(stdin,0))) {//load as long there's something to load
   if(*line == '#') return 0;
-  //printf("# read command: %s\n",line);
+//  printf("# read command: %s\n",line);
   a=line_splitter(line,&len);
+//  for(i=0;i<len;i++) {
+//   printf("\"%s\" ",a[i]);
+//  }
+//  printf("\n");
   id=a[0];
   if(len > 1) {
    command=a[1];
@@ -230,9 +231,9 @@ int load_stdin() {
     else printf("# unknown variable: %s\n",a[2]);
     continue;
    }
-   if(!strcmp(a[2],"force_redraw")) global.force_redraw^=1;
 #ifdef GRAPHICAL
-   else if(!strcmp(a[2],"red_and_blue")) { global.red_and_blue^=1; set_aspect_ratio(); }
+   if(!strcmp(a[2],"force_redraw")) gra_global.force_redraw^=1;
+   else if(!strcmp(a[2],"red_and_blue")) { gra_global.red_and_blue^=1; set_aspect_ratio(); }
 #endif
    else { printf("# unknown variable: %s\n",a[2]); continue; }
    printf("# %s toggled!\n",a[2]);
@@ -240,9 +241,13 @@ int load_stdin() {
   }
   if(!strcmp(command,"addshape")) {
    if(len > 3) {
+    if(len != (strtold(a[2],0)*3)+3) {
+     printf("# ERROR: wrong amount of parts for addshape. got: %d expected %d\n",len,((int)strtold(a[2],0))*3+3);
+     continue;
+    }
     global.shape[i]=malloc(sizeof(struct c3_shape));
-    global.shape[i]->id=strdup(id);
     global.shape[i]->len=strtold(a[2],0);
+    global.shape[i]->id=strdup(id);
     for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
      global.shape[i]->p[j].x=strtold(a[(j*3)+3],0);//second arg is just for a return value. set to 0 if you don't want it.
      global.shape[i]->p[j].y=strtold(a[(j*3)+4],0);
@@ -251,8 +256,6 @@ int load_stdin() {
     i++;
     global.shapes=i;
     global.shape[i]=0;
-   } else {
-    printf("# ERROR: wrong amount of parts for addshape. got: %d expected: 11\n",len);
    }
    continue;
   }
@@ -334,20 +337,20 @@ int main(int argc,char *argv[]) {
   fcntl(1,F_SETFL,O_NONBLOCK);//won't work
   setbuf(stdin,0);
   setbuf(stdout,0);
-  global.debug=0;
+  global.debug=DEBUG;
 #ifdef GRAPHICAL
   int redraw;
-  x11_init();
+  graphics_init();
 #endif
   printf("# entering main loop\n");
   for(;;) {
 #ifdef GRAPHICAL
-    redraw=global.force_redraw;
-    if((redraw=x11_event_handler()) == -1) {
+    redraw=gra_global.force_redraw;
+    if((redraw=graphics_event_handler()) == -1) {
      return 0;
     }
     if(redraw && !global.headless) {
-     draw_screen(global.dpy,global.w,global.gc);
+     draw_screen();
     }
 #endif
     switch(load_stdin()) {
