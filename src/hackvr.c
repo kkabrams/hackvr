@@ -241,8 +241,8 @@ int load_stdin() {
   }
   if(!strcmp(command,"addshape")) {
    if(len > 3) {
-    if(len != (strtold(a[2],0)*3)+3) {
-     printf("# ERROR: wrong amount of parts for addshape. got: %d expected %d\n",len,((int)strtold(a[2],0))*3+3);
+    if(len != ((strtold(a[2],0)+(strtold(a[2],0)==1))*3)+3) {
+     printf("# ERROR: wrong amount of parts for addshape. got: %d expected %d\n",len,((int)strtold(a[2],0)+(strtold(a[2],0)==1))*3+3);
      continue;
     }
     global.shape[i]=malloc(sizeof(struct c3_shape));
