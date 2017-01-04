@@ -43,7 +43,7 @@ void set_aspect_ratio();
 int selfcommand(char *s);
 cs_t c3_to_cs(c3_t p);
 real d2r(int d);
-real shitdist(struct c3_shape s,c3_t p);
+real shitdist(struct c3_shape *s,c3_t p);
 
 
 int compar(zsort_t *a,zsort_t *b);
