@@ -39,6 +39,11 @@ struct x11_global x11_global;
 
 #ifdef GRAPHICAL
 
+void set_color_based_on_distance(real d) {
+  int i=100-((int)((d+100.0) * 16.0) % 100);
+  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[i].pixel);
+}
+
 void draw_cs_line(cs_t p1,cs_t p2) {
   XDrawLine(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p1.x,p1.y,p2.x,p2.y);
 }
@@ -54,86 +59,39 @@ void draw_cs_text(cs_t p,char *text) {
 }
 
 void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it could be moved up to graphics.c? probl no.
-  int i;
-  if(gra_global.draw3d == 1) { //wireframe
+  int h;
+  int i;//all cs shapes can have 1, 2, or 3+ points. guess I gotta do that logic here too.
+  switch(s.len) {
+   case 1:
+    //cicle
+    h=max(s.p[0].y,s.p[1].y)-min(s.p[0].y,s.p[1].y);
+    XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
+    break;
+   default:
     for(i=0;i<s.len+(s.len==1);i++) {//this shape is closed!
       draw_cs_line(s.p[i],s.p[(i+1)%(s.len+(s.len==1))]);
     }
-  }
-  if(gra_global.draw3d == 2) { //filled in
-    XPoint Xp[s.len+(s.len==1)];
-    for(i=0;i<s.len+(s.len==1);i++) {
-     Xp[i]=(XPoint){s.p[i].x,s.p[i].y};
-    }
-    XFillPolygon(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,Xp,s.len,Convex,CoordModeOrigin);
+    break;
   }
 }
 
-//this needs to be taken out of this file and left to graphics.c
-#if 0
-void draw_c3_shape(c3_s_t s) {
-// char line[1024];
- int i=0;
- int h;//,w
- XPoint p[s.len+(s.len==1)];
- cs_t tmp;
- for(i=0;i<s.len+(s.len==1);i++) {
-  tmp=c3_to_cs(s.p[i]);
-  p[i]=(XPoint){tmp.x,tmp.y};
- }
- if(global.draw3d == 1) { // wireframe
+void draw_cs_filled_shape(cs_s_t s) {
+  int h;
+  int i;
+  XPoint Xp[s.len+(s.len==1)];
+  for(i=0;i<s.len+(s.len==1);i++) {
+    Xp[i]=(XPoint){s.p[i].x,s.p[i].y};
+  }
   switch(s.len) {
    case 1:
-    //w=max(p[0].x,p[1].x)-min(p[0].x,p[1].x);
-    h=max(p[0].y,p[1].y)-min(p[0].y,p[1].y);
-    p[0].x-=h;
-    p[0].y-=h;
-    XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p[0].x,p[0].y,h*2,h*2,0,360*64);
-    break;
-   case 2:
-    XDrawLine(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p[0].x,p[0].y,p[1].x,p[1].y);
+    h=max(s.p[0].y,s.p[1].y)-min(s.p[0].y,s.p[1].y);
+    XFillArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
     break;
    default:
-    for(i=0;i<s.len;i++) {
-     XDrawLines(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p,s.len,CoordModeOrigin);
-    }
+    XFillPolygon(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,Xp,s.len,Convex,CoordModeOrigin);
     break;
   }
- }
- if(global.draw3d == 2) { //draw it filled in
-  switch(s.len) {
-   case 1:
-    //w=max(p[0].x,p[1].x)-min(p[0].x,p[1].x);
-    h=max(p[0].y,p[1].y)-min(p[0].y,p[1].y);
-    p[0].x-=h;
-    p[0].y-=h;
-    XFillArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p[0].x,p[0].y,h*2,h*2,0,360*64);
-    break;
-   case 2:
-    XDrawLine(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p[0].x,p[0].y,p[1].x,p[1].y);
-    break;
-   default:
-    XFillPolygon(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p,s.len,Convex,CoordModeOrigin);
-    break;
-  }
- }
-// if(global.draw3d == 3) { //hashed
-//  XSetForeground(x11_global.dpy, x11_global.backgc, global.colors[0].pixel);
-  //XDrawFilledShape(c3_to_cs(t.p1),c3_to_cs(t.p2),c3_to_cs(t.p3));//clear out this triangle.
-//  XSetForeground(x11_global.dpy, x11_global.backgc, global.green.pixel);
-  //upgrade me! DrawHatchedTriangle(t,10 - (shitdist(t,camera.p) / 10));//how to get density?
-// }
-/* if(global.debug) {
-  snprintf(line,sizeof(line)-1,"(%Lf,%Lf,%Lf)",t.p1.x,t.p1.y,t.p1.z);
-  draw_c3_text(t.p1,line);
-  snprintf(line,sizeof(line)-1,"(%Lf,%Lf,%Lf)",t.p2.x,t.p2.y,t.p2.z);
-  draw_c3_text(t.p2,line);
-  snprintf(line,sizeof(line)-1,"(%Lf,%Lf,%Lf)",t.p3.x,t.p3.y,t.p3.z);
-  draw_c3_text(t.p3,line);
-*/
-// }
 }
-#endif
 
 //should I do clipping in each graphics lib or make graphics.c just have clipping stuff?
 void clear_backbuffer() {
@@ -174,7 +132,6 @@ void set_aspect_ratio() {
  hints->max_aspect.x=AR_W*(gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1));
  hints->max_aspect.y=AR_H;
  hints->flags=PAspect;
-
  XSetWMNormalHints(x11_global.dpy,x11_global.w,hints);
 }
 

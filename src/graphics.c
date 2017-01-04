@@ -156,15 +156,24 @@ void draw_c2_line(c2_t p1,c2_t p2) {
   draw_cs_line(c2_to_cs(p1),c2_to_cs(p2));
 }
 
-void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled?
+void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shit in here too? probably...
   int i;
   cs_s_t ss;
   ss.id=s.id;//it shouldn't disappear and we shouldn't need to make a copy.
   ss.len=s.len;
   for(i=0;i<s.len+(s.len==1);i++) {
-   ss.p[i]=c3_to_cs(s.p[i]);
+    ss.p[i]=c3_to_cs(s.p[i]);
   }
-  draw_cs_shape(ss);
+  if(gra_global.draw3d == 1) {
+    draw_cs_shape(ss);
+  }
+  if(gra_global.draw3d == 2) {
+    //set foreground to a gray based on distance
+    //between 0 to 100
+//    color_based_on_distance();//I don't have the distance in here. :/
+//foreground_set();
+    draw_cs_filled_shape(ss);
+  }
 }
 
 #define MAGIC(x) (1.0l-(1.0l/powl(1.01l,(x)))) //??? might want to have some changables in here
@@ -212,11 +221,6 @@ c3_t rotate_c3_zr(c3_t p1,c3_t p2,real zr) {//rotate x and y around camera based
   c2_t tmp;
   tmp=rotate_c2((c2_t){p1.x,p1.y},(c2_t){p2.x,p2.y},zr);
   return (c3_t){tmp.x,tmp.y,p1.z};
-}
-
-void rotate_shape_yr(struct c3_shape *s) {//changes input value!
- int i=0;
- for(i=0;i<s->len+(s->len==1);i++) s->p[0]=rotate_c3_yr(s->p[0],camera.p,camera.yr);
 }
 
 c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
@@ -268,17 +272,14 @@ real shitdist2(c3_t p1,c3_t p2) {
         ((p1.z - p2.z) * (p1.z - p2.z)));
 }
 
-real shitdist(struct c3_shape s,c3_t p) {
+real shitdist(struct c3_shape *s,c3_t p) {
 // apply rotation then find distance?
  int i;
- struct c3_shape s_;
- real total;
- s_=s;
- rotate_shape_yr(&s_);
- for(i=0;i<s_.len+(s_.len==1);i++) {
-  total+=shitdist2(s_.p[i],camera.p);
+ real total=0;
+ for(i=0;i< s->len+(s->len==1);i++) {
+  total=total+shitdist2(rotate_c3_yr(s->p[i],(c3_t){0,0,0},d2r(camera.yr)),camera.p);
  }
- return (total) / (real)(s_.len+(s_.len==1));
+ return (total) / (real)(s->len+(s->len==1));
 }
 
 
@@ -327,7 +328,7 @@ cs_t *c3s_to_css(c3_t *p3,int len) {
 }*/
 
 int compar(zsort_t *a,zsort_t *b) {
- return ((a->d) > (b->d));
+ return ((a->d) < (b->d));
 }
 
 
@@ -357,7 +358,6 @@ int selfcommand(char *s) {
 
 void draw_screen() {
   int i;
-  int colori=100;
   int cn=0;//camera number.
   char tmp[256];
   zsort_t zs[SHAPES];
@@ -456,7 +456,7 @@ void draw_screen() {
    //
    if(1) {//global.zsort) {
     for(i=0;global.shape[i];i++) {
-     zs[i].d=shitdist(*(zs[i].s),camera.p);
+     zs[i].d=shitdist(zs[i].s,camera.p);
     }
     qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
    }
@@ -478,18 +478,11 @@ void draw_screen() {
      if(!strcmp(global.selected_object,zs[i].s->id)) {
       //XSetForeground(global.dpy,global.backgc,global.green.pixel);
      } else {
-      if(gra_global.greyscale) {
-       if(zs[i].d > 0) {
-        if(zs[i].d < 100) {
-         colori=zs[i].d;
-        }
-       }
-       colori=(int)(zs[i].d)%100;
-//       XSetForeground(global.dpy,global.backgc,global.colors[(int)(100.0-(colori))].pixel);//picking the color here only works if...
-      }
+//      set_color_based_on_distance(zs[i].d);
      }
     }
-    set_color();
+//    set_color();
+    set_color_based_on_distance(zs[i].d);
     draw_c3_shape(*(zs[i].s));
    }
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
