@@ -172,7 +172,12 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
     //between 0 to 100
 //    color_based_on_distance();//I don't have the distance in here. :/
 //foreground_set();
+//how... I want to draw the outline as one color and the fill as another.
     draw_cs_filled_shape(ss);
+    set_color();//resets it to the default color.
+    if(!strcmp(global.selected_object,ss.id)) {
+      draw_cs_shape(ss);
+    }
   }
 }
 
@@ -460,10 +465,10 @@ void draw_screen() {
     }
     qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
    }
-   //draw all triangles
-   if(zs[0].s) {
-    strcpy(global.selected_object,zs[0].s->id);
+   if(zs[i-1].s) {
+    strcpy(global.selected_object,zs[i-1].s->id);//0th is farthest. fixme.
    }
+   //draw all triangles
    for(i=0;global.shape[i];i++) {
     //now we pick the color of this triangle!
     if(gra_global.red_and_blue) {
