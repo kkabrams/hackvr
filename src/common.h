@@ -1,3 +1,5 @@
+#include "config.h"
+
 #ifndef _HACKVR_COMMON_H_
 #include <X11/Xlib.h>
 #define _HACKVR_COMMON_H_
