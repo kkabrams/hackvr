@@ -235,8 +235,8 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
 //  c3_t tmp3;
   c3_t final;
 //these rotations need to be about the previous axis after the axis itself has been rotated.
-//  final=rotate_c3_yr(p3,camera.p,d2r(camera.yr));//rotate everything around the camera's location.
-  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
+  final=rotate_c3_yr(p3,camera.p,d2r(camera.yr));//rotate everything around the camera's location.
+//  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
 //  tmp2=rotate_c3_xr(tmp1,camera.p,d2r(camera.xr));
 //  final=rotate_c3_zr(tmp2,camera.p,d2r(camera.zr));
   real delta_x=(camera.p.x - final.x);
@@ -282,7 +282,8 @@ real shitdist(struct c3_shape *s,c3_t p) {
  int i;
  real total=0;
  for(i=0;i< s->len+(s->len==1);i++) {
-  total=total+shitdist2(rotate_c3_yr(s->p[i],(c3_t){0,0,0},d2r(camera.yr)),camera.p);
+//  total=total+shitdist2(rotate_c3_yr(s->p[i],(c3_t){0,0,0},d2r(camera.yr)),camera.p);
+  total=total+shitdist2(rotate_c3_yr(s->p[i],camera.p,d2r(camera.yr)),camera.p);
  }
  return (total) / (real)(s->len+(s->len==1));
 }
@@ -362,13 +363,11 @@ int selfcommand(char *s) {
 #endif
 
 void draw_screen() {
-  int i;
+  int i,j;
   int cn=0;//camera number.
   char tmp[256];
   zsort_t zs[SHAPES];
-
   clear_backbuffer();
-
   real oldx=camera.p.x;
   real oldz=camera.p.z;
   if(gra_global.split_screen > 1) {
@@ -387,7 +386,7 @@ void draw_screen() {
     if(!gra_global.red_and_blue) {
      set_clipping_rectangle(gra_global.xoff,0,gra_global.width/gra_global.split_screen,gra_global.height);//
     }
-    //if(global.drawminimap == 3) { draw_graph(magic); continue; }
+    if(gra_global.drawminimap == 3) { draw_graph(magic); continue; }
     if(gra_global.drawsky) {
      //XCopyArea(global.dpy,skypixmap,global.backbuffer,global.backgc,((camera.yr*5)+SKYW)%SKYW,0,WIDTH,global.height/2,0,0);
     }
@@ -442,16 +441,16 @@ void draw_screen() {
    draw_c3_line((c3_t){3,0,-3},(c3_t){3,0,3});
    draw_c3_line((c3_t){3,0,-3},(c3_t){3,6,-3});
 */
-/*
+
    //floor grid
-   for(i=-21;i<21;i+=3) {
+/*   for(i=-21;i<21;i+=3) {
     for(j=-21;j<21;j+=3) {
      //draw_c3_triangle((struct c3_triangle){"id",(c3_t){i,0,j},(c3_t){i,0,j+3},(c3_t){i+3,0,j}});
      draw_c3_line((c3_t){i,0,j},(c3_t){i,0,j+3});
      draw_c3_line((c3_t){i,0,j},(c3_t){i+3,0,j});
     }
-   }
-*/
+   }*/
+
    //apply rotation?
    // load up the triangles to render... after applying rotation?
    for(i=0;global.shape[i];i++) {
@@ -487,8 +486,10 @@ void draw_screen() {
      }
     }
 //    set_color();
-    set_color_based_on_distance(zs[i].d);
-    draw_c3_shape(*(zs[i].s));
+    //if(between_angles(points_to_angle((c2_t){zs[i].s->p[0].x,zs[i].s->p[0].z},(c2_t){camera.p.x,camera.p.z}),d2r(camera.yr+45),d2r(camera.yr+135))) {
+     set_color_based_on_distance(zs[i].d);
+     draw_c3_shape(*(zs[i].s));
+    //}
    }
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
    if(global.debug) {
