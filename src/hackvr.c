@@ -345,11 +345,10 @@ int main(int argc,char *argv[]) {
   printf("# entering main loop\n");
   for(;;) {
 #ifdef GRAPHICAL
-    redraw=gra_global.force_redraw;
     if((redraw=graphics_event_handler()) == -1) {
      return 0;
     }
-    if(redraw && !global.headless) {
+    if((redraw || gra_global.force_redraw) && !global.headless) {
      draw_screen();
     }
 #endif
