@@ -333,16 +333,18 @@ int graphics_init() {
 
  gra_global.mapxoff=gra_global.width/2;
  gra_global.mapyoff=gra_global.height/2;
- gra_global.drawminimap=0;
+ gra_global.drawminimap=DEFAULT_MINIMAP;
  gra_global.draw3d=1;
  gra_global.force_redraw=FORCE_REDRAW;//use this for checking proper fps I guess.
+
+//this should be in graphics.c ?
  camera.zoom=30.0l;
  camera.xr=270;
- camera.yr=270;
+ camera.yr=90;
  camera.zr=0;
  global.mmz=1;
  camera.p.x=0;
- camera.p.z=6;
+ camera.p.z=-6;
  camera.p.y=5;
  return 0;
 }
@@ -361,27 +363,30 @@ int graphics_event_handler() {
 //         if(e.xexpose.count == 0) redraw=1;
 //         break;
     case MotionNotify:
+      printf("# MotionNotify\n");
       XQueryPointer(x11_global.dpy,x11_global.w,&root,&child,&gra_global.rmousex,&gra_global.rmousey,&gra_global.mousex,&gra_global.mousey,&mask);
       redraw=1;
       break;
     case ButtonPress:
+      printf("# ButtonPress\n");
       redraw=1;
       gra_global.buttonpressed=e.xbutton.button;//what's this for? mouse?
       break;
     case ButtonRelease:
+      printf("# ButtonRelease\n");
       redraw=1;
       gra_global.buttonpressed=0;//what's this for???
       break;
     case ConfigureNotify:
+      printf("# ConfigureNotify\n");
       redraw=1;
       XGetGeometry(x11_global.dpy,x11_global.w,&root,&global.x,&global.y,&gra_global.width,&gra_global.height,&gra_global.border_width,&gra_global.depth);
-      if(gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1 )) / AR_W * AR_H != gra_global.height) {
-       if(gra_global.width / AR_W * AR_H == gra_global.height) {
-        printf("math doesn't work.\n");
-       }
-       printf("# DERPY WM CANT TAKE A HINT %d / %d / %d * %d = %d != %d\n",gra_global.width,gra_global.split_screen,gra_global.width / (gra_global.red_and_blue ? gra_global.split_screen : 1) / AR_W * AR_H,AR_W,AR_H,gra_global.height);
-       if(gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)) / AR_W * AR_H < gra_global.height) {
-        gra_global.height=gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)) / AR_W * AR_H;
+      if(gra_global.height * AR_W / AR_H != gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1))) {
+       // height / AR_H * AR_W = width / (ss / (rab ? ss : 1))
+       printf("# %d != %d for some reason. probably your WM not respecting aspect ratio hints or calculating based on them differently. (would cause an off-by-one or so)\n",gra_global.height * AR_W / AR_H , gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)));
+
+       if(gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)) * AR_H / AR_W < gra_global.height) {
+        gra_global.height=gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)) * AR_H / AR_W;
        } else {
         gra_global.width=gra_global.height * AR_H / AR_W * (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1));
        }
@@ -390,6 +395,7 @@ int graphics_event_handler() {
       gra_global.mapyoff=gra_global.height/2;
       break;
     case KeyPress:
+      printf("# KeyPress\n");
       redraw=1;
       if(keypress_handler(XLookupKeysym(&e.xkey,0)) == -1) {
        printf("# exiting\n");
@@ -397,7 +403,7 @@ int graphics_event_handler() {
       }
       break;
     default:
-      //printf("# received event with type: %d\n",e.type);
+//      printf("# received unknown event with type: %d\n",e.type);
       break;
   }
  }

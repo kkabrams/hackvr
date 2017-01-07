@@ -15,6 +15,7 @@
 #define MAX_SIDES 8
 #define WIDTH 1024
 #define HEIGHT 768
+#define DEFAULT_MINIMAP 0
 #define FORCE_REDRAW 1
 
 #endif
