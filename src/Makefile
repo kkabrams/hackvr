@@ -1,12 +1,8 @@
-### if you want X11: CFLAGS=-Wall -pedantic -std=c99 -DGRAPHICAL
-### and add graphics.o to hackvr build target.
-### fuck it. I'll fix it later.
 CFLAGS=-Wall -pedantic -std=c99 -DGRAPHICAL -ffast-math
 
 all: hackvr_headless hackvr_x11 hackvr_opengl slowcat
 
 hackvr_headless: LDLIBS=-lm
-hackvr_headless: CFLAGS=-Wall -pedantic -std=c99 -ffast-math
 hackvr_headless: hackvr_headless.o math.o
 
 hackvr_x11: LDLIBS=-lm -lX11
@@ -17,6 +13,8 @@ hackvr_opengl: hackvr_opengl.o graphics.o graphics_opengl.o math.o
 
 hackvr_opengl.o: LDLIBS=-lm -lGL -lGLU -lglut
 hackvr_x11.o: LDLIBS=-lm -lX11
+
+hackvr_headless.o: CFLAGS=-Wall -pedantic -std=c99 -ffast-math
 hackvr_headless.o: LDLIBS=-lm
 
 graphics.o: LDLIBS=-lm -lX11
