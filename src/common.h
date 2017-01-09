@@ -10,6 +10,14 @@
 typedef double long real;
 
 typedef struct {
+ real r;
+} radians;
+
+typedef struct {
+ int d;
+} degrees;
+
+typedef struct {
  real x;
  real y;
  real z;
@@ -27,9 +35,9 @@ typedef struct {
 
 struct camera {
   c3_t p;
-  int xr;//rotations
-  int yr;
-  int zr;
+  degrees xr;//rotations
+  degrees yr;
+  degrees zr;
   real zoom;
 } camera;
 

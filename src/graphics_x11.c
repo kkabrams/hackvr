@@ -39,6 +39,26 @@ struct x11_global x11_global;
 
 #ifdef GRAPHICAL
 
+/*
+struct plane {
+ c3_t p;
+ real xr;
+ real yr;
+ real zr;
+}
+
+void calculate_shape_color(c3_s_t s,real d) {
+//given: at least 3 points on a plane.
+//needed: angles of the plane.
+//
+ xa=
+ ya=
+ za=
+ for(i=0;i<;i++) {
+   s.p.x
+ }
+}
+*/
 void set_color_based_on_distance(real d) {
   int i=100-((int)((d+100.0) * 16.0) % 100);
   XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[i].pixel);
@@ -114,7 +134,7 @@ void red_and_blue_magic() {
 }
 
 void draw_sky() {
-  XCopyArea(x11_global.dpy,skypixmap,x11_global.backbuffer,x11_global.backgc,((camera.yr*5)+SKYW)%SKYW,0,WIDTH,gra_global.height/2,0,0);
+  XCopyArea(x11_global.dpy,skypixmap,x11_global.backbuffer,x11_global.backgc,((camera.yr.d*5)+SKYW)%SKYW,0,WIDTH,gra_global.height/2,0,0);
 }
 
 void set_color() {
@@ -146,32 +166,32 @@ int keypress_handler(int sym) {
     selfcommand(line);
     break;
    case XK_Up:
-    tmpx=WALK_SPEED*sinl(d2r(camera.yr+90));
-    tmpz=WALK_SPEED*cosl(d2r(camera.yr+90));
+    tmpx=WALK_SPEED*sinl(d2r(camera.yr.d+90));
+    tmpz=WALK_SPEED*cosl(d2r(camera.yr.d+90));
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
     snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Down:
-    tmpx=WALK_SPEED*sinl(d2r(camera.yr+270));
-    tmpz=WALK_SPEED*cosl(d2r(camera.yr+270));
+    tmpx=WALK_SPEED*sinl(d2r(camera.yr.d+270));
+    tmpz=WALK_SPEED*cosl(d2r(camera.yr.d+270));
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
     snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Left:
-    tmpx=WALK_SPEED*sinl(d2r(camera.yr));
-    tmpz=WALK_SPEED*cosl(d2r(camera.yr));
+    tmpx=WALK_SPEED*sinl(d2r(camera.yr.d));
+    tmpz=WALK_SPEED*cosl(d2r(camera.yr.d));
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
     snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Right:
-    tmpx=WALK_SPEED*sinl(d2r(camera.yr+180));
-    tmpz=WALK_SPEED*cosl(d2r(camera.yr+180));
+    tmpx=WALK_SPEED*sinl(d2r(camera.yr.d+180));
+    tmpz=WALK_SPEED*cosl(d2r(camera.yr.d+180));
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
     snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
@@ -188,28 +208,28 @@ int keypress_handler(int sym) {
     selfcommand(line);
     break;
    case XK_r:
-    camera.xr+=5;
-    while(camera.xr > 360) camera.xr-=360;
+    camera.xr.d+=5;
+    while(camera.xr.d > 360) camera.xr.d-=360;
     break;
    case XK_y:
-    camera.xr-=5;
-    while(camera.xr < 0) camera.xr+=360;
+    camera.xr.d-=5;
+    while(camera.xr.d < 0) camera.xr.d+=360;
     break;
    case XK_q:
-    camera.yr+=5;
-    while(camera.yr > 360) camera.yr-=360;
+    camera.yr.d+=5;
+    while(camera.yr.d > 360) camera.yr.d-=360;
     break;
    case XK_e:
-    camera.yr-=5;
-    while(camera.yr < 0) camera.yr+=360;
+    camera.yr.d-=5;
+    while(camera.yr.d < 0) camera.yr.d+=360;
     break;
    case XK_u:
-    camera.zr+=5;
-    while(camera.zr > 360) camera.zr-=360;
+    camera.zr.d+=5;
+    while(camera.zr.d > 360) camera.zr.d-=360;
     break;
    case XK_o:
-    camera.zr-=5;
-    while(camera.zr < 0) camera.zr+=360;
+    camera.zr.d-=5;
+    while(camera.zr.d < 0) camera.zr.d+=360;
     break;
    case XK_z: camera.zoom+=1; break;
    case XK_x: camera.zoom-=1; break;
@@ -339,9 +359,9 @@ int graphics_init() {
 
 //this should be in graphics.c ?
  camera.zoom=30.0l;
- camera.xr=270;
- camera.yr=90;
- camera.zr=0;
+ camera.xr.d=270;
+ camera.yr.d=90;
+ camera.zr.d=0;
  global.mmz=1;
  camera.p.x=0;
  camera.p.z=-6;

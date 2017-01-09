@@ -53,24 +53,26 @@ cs_t c2_to_cs(c2_t p) {
 c2_t cs_to_c2(cs_t p) {
  return (c2_t){s2cX(p.x),s2cY(p.y)};
 }
-
+/*
 real distance2(c2_t p1,c2_t p2) {
  return sqrtl(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) ));
 }
-
+*/
 real distance3(c3_t p1,c3_t p2) {
  return sqrtl(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) )+( (p1.z-p2.z)*(p1.z-p2.z) ));
 }
 
+/*
 real points_to_angle(c2_t p1,c2_t p2) {
   real a=atan2l(p2.y-p1.y,p2.x-p1.x);
   return a>=0?a:M_PIl+M_PIl+a;
 }
-
+*/
+/*
 real d2r(int d) {
  while(d<0) d+=360;
  return (real)(d%360) / (real)180 * M_PIl;
-}
+}*/
 int r2d(real r) {
  return r / M_PIl * 180;
 }
@@ -202,7 +204,8 @@ void draw_graph(real (*fun)(real x)) {
  }
 }
 
-c2_t rotate_c2(c2_t p1,c2_t p2,real dr) {
+/*
+c2_t rotate_c2(c2_t p1,c2_t p2,real dr) {//dr is in radians
   c2_t p3;
   real d=distance2(p1,p2);
   real r=points_to_angle(p1,p2);
@@ -227,7 +230,7 @@ c3_t rotate_c3_zr(c3_t p1,c3_t p2,real zr) {//rotate x and y around camera based
   tmp=rotate_c2((c2_t){p1.x,p1.y},(c2_t){p2.x,p2.y},zr);
   return (c3_t){tmp.x,tmp.y,p1.z};
 }
-
+*/
 c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
   c2_t p2;
 //  c3_t tmp1;
@@ -235,7 +238,7 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
 //  c3_t tmp3;
   c3_t final;
 //these rotations need to be about the previous axis after the axis itself has been rotated.
-  final=rotate_c3_yr(p3,camera.p,d2r(camera.yr));//rotate everything around the camera's location.
+  final=rotate_c3_yr(p3,camera.p,d2r(camera.yr.d));//rotate everything around the camera's location.
 //  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
 //  tmp2=rotate_c3_xr(tmp1,camera.p,d2r(camera.xr));
 //  final=rotate_c3_zr(tmp2,camera.p,d2r(camera.zr));
@@ -257,8 +260,8 @@ void draw_c3_line(c3_t p1,c3_t p2) {
   draw_c2_line((c2_t){p1.x*global.mmz,p1.z*global.mmz},(c2_t){p2.x*global.mmz,p2.z*global.mmz});
  }
  if(gra_global.drawminimap == 2) {//map rotates.
-  c3_t t1=rotate_c3_yr(p1,camera.p,d2r(camera.yr));
-  c3_t t2=rotate_c3_yr(p2,camera.p,d2r(camera.yr));
+  c3_t t1=rotate_c3_yr(p1,camera.p,d2r(camera.yr.d));
+  c3_t t2=rotate_c3_yr(p2,camera.p,d2r(camera.yr.d));
   draw_c2_line((c2_t){t1.x*global.mmz,t1.z*global.mmz},(c2_t){t2.x*global.mmz,t2.z*global.mmz});
  }
  if(gra_global.draw3d != 0) draw_c2_line(c3_to_c2(p1),c3_to_c2(p2));
@@ -283,7 +286,7 @@ real shitdist(struct c3_shape *s,c3_t p) {
  real total=0;
  for(i=0;i< s->len+(s->len==1);i++) {
 //  total=total+shitdist2(rotate_c3_yr(s->p[i],(c3_t){0,0,0},d2r(camera.yr)),camera.p);
-  total=total+shitdist2(rotate_c3_yr(s->p[i],camera.p,d2r(camera.yr)),camera.p);
+  total=total+shitdist2(rotate_c3_yr(s->p[i],camera.p,d2r(camera.yr.d)),camera.p);
  }
  return (total) / (real)(s->len+(s->len==1));
 }
@@ -363,7 +366,7 @@ int selfcommand(char *s) {
 #endif
 
 void draw_screen() {
-  int i,j;
+  int i;
   int cn=0;//camera number.
   char tmp[256];
   zsort_t zs[SHAPES];
@@ -371,10 +374,11 @@ void draw_screen() {
   real oldx=camera.p.x;
   real oldz=camera.p.z;
   if(gra_global.split_screen > 1) {
-   camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cosl(d2r(camera.yr+180)));
-   camera.p.x-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*sinl(d2r(camera.yr+180)));
+   camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cosl(d2r(camera.yr.d+180)));
+   camera.p.x-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*sinl(d2r(camera.yr.d+180)));
   }
   for(cn=0;cn<gra_global.split_screen;cn++) {
+    set_color();//restart each draw with the default color.
     if(gra_global.red_and_blue) {
      //set color for left half to red and right half to blue
      //and draw mode for the gc to GXOr
@@ -409,7 +413,7 @@ void draw_screen() {
       draw_cs_text((cs_t){gra_global.xoff,(gra_global.height/2)+20},tmp);
       snprintf(tmp,sizeof(tmp)-1,"cx: %Lf cy: %Lf cz: %Lf",camera.p.x,camera.p.y,camera.p.z);
       draw_cs_text((cs_t){gra_global.xoff,(gra_global.height/2)+30},tmp);
-      snprintf(tmp,sizeof(tmp)-1,"xr: %d yr: %d zr: %d",camera.xr,camera.yr,camera.zr);
+      snprintf(tmp,sizeof(tmp)-1,"xr: %d yr: %d zr: %d",camera.xr.d,camera.yr.d,camera.zr.d);
       draw_cs_text((cs_t){gra_global.xoff,(gra_global.height/2)+40},tmp);
     }
 
@@ -422,34 +426,6 @@ void draw_screen() {
 //   draw_c2_line((c2_t){0,0},(c2_t){-10,10});
 //   draw_c2_line((c2_t){10,10},(c2_t){-10,10});
 //  }
-
-/* cube
-   draw_c3_line((c3_t){-3,0,-3},(c3_t){-3,0,3});
-   draw_c3_line((c3_t){-3,0,-3},(c3_t){-3,6,-3});
-   draw_c3_line((c3_t){-3,0,-3},(c3_t){3,0,-3});
-
-   draw_c3_line((c3_t){3,6,3},(c3_t){3,6,-3});
-   draw_c3_line((c3_t){3,6,3},(c3_t){-3,6,3});
-   draw_c3_line((c3_t){3,6,3},(c3_t){3,0,3});
-
-   draw_c3_line((c3_t){-3,0,3},(c3_t){3,0,3});
-   draw_c3_line((c3_t){-3,0,3},(c3_t){-3,6,3});
-
-   draw_c3_line((c3_t){-3,6,-3},(c3_t){-3,6,3});
-   draw_c3_line((c3_t){-3,6,-3},(c3_t){3,6,-3});
-
-   draw_c3_line((c3_t){3,0,-3},(c3_t){3,0,3});
-   draw_c3_line((c3_t){3,0,-3},(c3_t){3,6,-3});
-*/
-
-   //floor grid
-/*   for(i=-21;i<21;i+=3) {
-    for(j=-21;j<21;j+=3) {
-     //draw_c3_triangle((struct c3_triangle){"id",(c3_t){i,0,j},(c3_t){i,0,j+3},(c3_t){i+3,0,j}});
-     draw_c3_line((c3_t){i,0,j},(c3_t){i,0,j+3});
-     draw_c3_line((c3_t){i,0,j},(c3_t){i+3,0,j});
-    }
-   }*/
 
    //apply rotation?
    // load up the triangles to render... after applying rotation?
@@ -468,6 +444,10 @@ void draw_screen() {
     strcpy(global.selected_object,zs[i-1].s->id);//0th is farthest. fixme.
    }
    //draw all triangles
+   if(global.debug) {
+    snprintf(tmp,sizeof(tmp)-1,"selected object: %s",global.selected_object);
+    draw_cs_text((cs_t){gra_global.xoff,(gra_global.height/2)+50},tmp);
+   }
    for(i=0;global.shape[i];i++) {
     //now we pick the color of this triangle!
     if(gra_global.red_and_blue) {
@@ -492,12 +472,8 @@ void draw_screen() {
     //}
    }
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
-   if(global.debug) {
-    snprintf(tmp,sizeof(tmp)-1,"selected object: %s",global.selected_object);
-    draw_cs_text((cs_t){gra_global.xoff,(gra_global.height/2)+50},tmp);
-   }
-   camera.p.z+=(gra_global.split_flip)*(gra_global.split*cosl(d2r(camera.yr+180)));
-   camera.p.x+=(gra_global.split_flip)*(gra_global.split*sinl(d2r(camera.yr+180)));
+   camera.p.z+=(gra_global.split_flip)*(gra_global.split*cosl(d2r(camera.yr.d+180)));
+   camera.p.x+=(gra_global.split_flip)*(gra_global.split*sinl(d2r(camera.yr.d+180)));
   }
 
 //TODO: figure out what all this shit is and either update or remove.

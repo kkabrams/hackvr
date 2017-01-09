@@ -2,27 +2,32 @@
 ### and add graphics.o to hackvr build target.
 ### fuck it. I'll fix it later.
 CFLAGS=-Wall -pedantic -std=c99 -DGRAPHICAL -ffast-math
-#CFLAGS=-std=c99 -DGRAPHICAL -ffast-math
 
-all: hackvr slowcat
+all: hackvr_headless hackvr_x11 hackvr_opengl slowcat
 
-#for x11
-hackvr: LDLIBS=-lm -lX11
-#for opengl
-#hackvr: LDLIBS=-lm -lGL -lGLU -lglut
+hackvr_headless: LDLIBS=-lm
+hackvr_headless: CFLAGS=-Wall -pedantic -std=c99 -ffast-math
+hackvr_headless: hackvr_headless.o math.o
 
-hackvr: hackvr.o graphics.o graphics_x11.o
-#hackvr: hackvr.o graphics.o graphics_opengl.o
+hackvr_x11: LDLIBS=-lm -lX11
+hackvr_x11: hackvr_x11.o graphics.o graphics_x11.o math.o
 
-graphics_opengl.o: LDLIBS=-lm -lGL -lGLU -lglut
+hackvr_opengl: LDLIBS=-lm -lGL -lGLU -lglut
+hackvr_opengl: hackvr_opengl.o graphics.o graphics_opengl.o math.o
 
-graphics_x11.o: LDLIBS=-lm -lX11
-
-hackvr.o: LDLIBS=-lm -lX11
+hackvr_opengl.o: LDLIBS=-lm -lGL -lGLU -lglut
+hackvr_x11.o: LDLIBS=-lm -lX11
+hackvr_headless.o: LDLIBS=-lm
 
 graphics.o: LDLIBS=-lm -lX11
+graphics_x11.o: LDLIBS=-lm -lX11
+graphics_opengl.o: LDLIBS=-lm -lGL -lGLU -lglut
+math.o: LDLIBS=-lm
 
 clean:
 	rm -f hackvr
+	rm -f hackvr_headless
+	rm -f hackvr_opengl
+	rm -f hackvr_x11
 	rm -f slowcat
 	rm -f *.o
