@@ -1,6 +1,7 @@
 CFLAGS=-Wall -pedantic -std=c99 -DGRAPHICAL -ffast-math
 
 all: hackvr_headless hackvr_x11 hackvr_opengl slowcat
+	ln -s hackvr_x11 hackvr
 
 hackvr_headless: LDLIBS=-lm
 hackvr_headless: hackvr_headless.o math.o

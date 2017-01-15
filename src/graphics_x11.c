@@ -336,6 +336,7 @@ int graphics_init() {
 
 //  XSetForeground(x11_global.dpy, gc, whiteColor);
 // this was taking a "long" time.
+/*
  printf("# generating sky... ");
  skypixmap=XCreatePixmap(x11_global.dpy,x11_global.w,SKYW,SKYH,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
  for(i=0;i<SKYH;i++) {
@@ -350,7 +351,7 @@ int graphics_init() {
   }
  }
  printf("done.\n");
-
+*/
  gra_global.mapxoff=gra_global.width/2;
  gra_global.mapyoff=gra_global.height/2;
  gra_global.drawminimap=DEFAULT_MINIMAP;
