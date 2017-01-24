@@ -1,0 +1,21 @@
+ohai.
+
+I dunno.
+
+hackvr... um. outputs commands to stdout based on keys pressed inside hackvr,
+and inputs the same type of commands.
+so do some plumbing and get a multiplayer game going?
+
+quick start:
+
+cd src
+make
+./testit.sh
+
+
+what hackvr can do...
+
+I dunno.
+
+_     _
+ \O_o/
