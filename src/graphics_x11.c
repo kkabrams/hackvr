@@ -20,6 +20,7 @@
 #include "common.h"
 #include "graphics.h"
 #include "graphics_x11.h"
+#include "graphics_backend.h"
 
 //typedef float real; //think this conflicts?
 
@@ -139,6 +140,14 @@ void red_and_blue_magic() {
 
 void set_color() {
   XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.green.pixel);
+}
+
+void set_color_red() {
+  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.red.pixel);
+}
+
+void set_color_blue() {
+  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.blue.pixel);
 }
 
 void flipscreen() {
@@ -384,22 +393,22 @@ int graphics_event_handler() {
 //         if(e.xexpose.count == 0) redraw=1;
 //         break;
     case MotionNotify:
-      printf("# MotionNotify\n");
+      if(global.debug >= 2) printf("# MotionNotify\n");
       XQueryPointer(x11_global.dpy,x11_global.w,&root,&child,&gra_global.rmousex,&gra_global.rmousey,&gra_global.mousex,&gra_global.mousey,&mask);
       redraw=1;
       break;
     case ButtonPress:
-      printf("# ButtonPress\n");
+      if(global.debug >= 2) printf("# ButtonPress\n");
       redraw=1;
       gra_global.buttonpressed=e.xbutton.button;//what's this for? mouse?
       break;
     case ButtonRelease:
-      printf("# ButtonRelease\n");
+      if(global.debug >= 2) printf("# ButtonRelease\n");
       redraw=1;
       gra_global.buttonpressed=0;//what's this for???
       break;
     case ConfigureNotify:
-      printf("# ConfigureNotify\n");
+      if(global.debug >= 2) printf("# ConfigureNotify\n");
       redraw=1;
       XGetGeometry(x11_global.dpy,x11_global.w,&root,&global.x,&global.y,&gra_global.width,&gra_global.height,&gra_global.border_width,&gra_global.depth);
       if(gra_global.height * AR_W / AR_H != gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1))) {
@@ -416,7 +425,7 @@ int graphics_event_handler() {
       gra_global.mapyoff=gra_global.height/2;
       break;
     case KeyPress:
-      printf("# KeyPress\n");
+      if(global.debug >= 2) printf("# KeyPress\n");
       redraw=1;
       if(keypress_handler(XLookupKeysym(&e.xkey,0)) == -1) {
        printf("# exiting\n");

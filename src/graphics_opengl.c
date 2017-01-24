@@ -66,6 +66,14 @@ void set_color() {
  glColor3f(0.0, 1.0, 0.0);
 }
 
+void set_color_red() {
+ glColor3f(1.0, 0.0, 0.0);
+}
+
+void set_color_blue() {
+ glColor3f(0.0, 0.0, 1.0);
+}
+
 void clear_backbuffer() {
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT);

@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <stdlib.h>
-//#include <sys/select.h> //code to use select instead of non-blocking is commented out. might decide to use it later.
 #include <time.h>
 #define __USE_GNU //for longer math constants
 #include <math.h>
@@ -15,8 +14,7 @@
 #include "config.h"
 #include "common.h"
 
-//choose which graphic's end you want here I guess?
-#include "graphics_x11.h"
+#include "graphics_backend.h" //this header includes all the functions you'll need to implement if you want to port hackvr to something else
 #include "graphics.h"
 
 //typedef float real; //think this conflicts?
@@ -452,22 +450,21 @@ void draw_screen() {
     //now we pick the color of this triangle!
     if(gra_global.red_and_blue) {
      if(cn==0) {
-//      XSetForeground(global.dpy,global.backgc,global.red.pixel);//???
+      set_color_red();
      } else {
-//      XSetForeground(global.dpy,global.backgc,global.blue.pixel);//???
+      set_color_blue();
      }
 //tests of blending grayscale with red and blue
 //     draw_c3_triangle(*(zs[i].t));
     } else {
-     if(!strcmp(global.selected_object,zs[i].s->id)) {
+//     if(!strcmp(global.selected_object,zs[i].s->id)) {
       //XSetForeground(global.dpy,global.backgc,global.green.pixel);
-     } else {
-//      set_color_based_on_distance(zs[i].d);
-     }
-    }
-//    set_color();
-    //if(between_angles(points_to_angle((c2_t){zs[i].s->p[0].x,zs[i].s->p[0].z},(c2_t){camera.p.x,camera.p.z}),d2r(camera.yr+45),d2r(camera.yr+135))) {
+//     } else {
+//     }
      set_color_based_on_distance(zs[i].d);
+    }
+    //if(between_angles(points_to_angle((c2_t){zs[i].s->p[0].x,zs[i].s->p[0].z},(c2_t){camera.p.x,camera.p.z}),d2r(camera.yr+45),d2r(camera.yr+135))) {
+//     set_color_based_on_distance(zs[i].d);
      draw_c3_shape(*(zs[i].s));
     //}
    }
