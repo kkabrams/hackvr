@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <stdlib.h>
-//#include <sys/select.h> //code to use select instead of non-blocking is commented out. might decide to use it later.
+#include <sys/select.h> //code to use select instead of non-blocking is commented out. might decide to use it later.
 #include <time.h>
 #define __USE_GNU //for longer math constants
 #include <math.h>
@@ -100,19 +100,22 @@ int load_stdin() {
  int i;//used to store the last triangle. even though I have a global for that. >_>
 
 // printf("# entering load_stdin()\n");
+#ifdef _HACKVR_USE_NONBLOCK_
  for(i=0;global.shape[i];i++) ;//hop to the end.
  fcntl(0,F_SETFL,O_NONBLOCK);
  if(feof(stdin))  {
   clearerr(stdin);
  }
- // readfs=master;
- // timeout.tv_sec=0;
- // timeout.tv_usec=1;
- // if((j=select(1,&readfs,0,0,&timeout)) == -1) {
- //  perror("select");
- //  return 0;
- // }
- // if(FD_ISSET(0,&readfs)) {
+#else
+/* readfs=master;
+ timeout.tv_sec=0;
+ timeout.tv_usec=1;
+ if((j=select(1,&readfs,0,0,&timeout)) == -1) {
+  perror("select");
+  return 0;
+ }
+ if(FD_ISSET(0,&readfs)) {*/
+#endif
  while((line=read_line_hack(stdin,0))) {//load as long there's something to load
   if(*line == '#') return 0;
 //  printf("# read command: %s\n",line);
