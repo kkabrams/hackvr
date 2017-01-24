@@ -26,12 +26,12 @@
 //TODO: will have to make some pixmaps get resized when the window does.
 //for now set them to be as big as you think you'll ever resize the window to.
 
-#define SKYRULE 90
-#define SKYW (WIDTH*5)
-#define SKYH (HEIGHT/2)
+//#define SKYRULE 90
+//#define SKYW (WIDTH*5)
+//#define SKYH (HEIGHT/2)
 
-Pixmap skypixmap;
-char sky[SKYH][SKYW];
+//Pixmap skypixmap;
+//char sky[SKYH][SKYW];
 
 extern struct global global;
 extern struct gra_global gra_global;
@@ -120,8 +120,8 @@ void clear_backbuffer() {
 
 void set_clipping_rectangle(int x,int y,int width,int height) {
   XRectangle cliprect;
-  cliprect.x=x;
-  cliprect.y=y;
+  cliprect.x=0;
+  cliprect.y=0;
   cliprect.width=width;
   cliprect.height=height;
   XSetClipRectangles(x11_global.dpy,x11_global.backgc,x,y,&cliprect,1,Unsorted);
@@ -133,9 +133,9 @@ void red_and_blue_magic() {
   XChangeGC(x11_global.dpy,x11_global.backgc,GCFunction,&gcval);
 }
 
-void draw_sky() {
-  XCopyArea(x11_global.dpy,skypixmap,x11_global.backbuffer,x11_global.backgc,((camera.yr.d*5)+SKYW)%SKYW,0,WIDTH,gra_global.height/2,0,0);
-}
+//void draw_sky() {
+//  XCopyArea(x11_global.dpy,skypixmap,x11_global.backbuffer,x11_global.backgc,((camera.yr.d*5)+SKYW)%SKYW,0,WIDTH,gra_global.height/2,0,0);
+//}
 
 void set_color() {
   XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.green.pixel);
