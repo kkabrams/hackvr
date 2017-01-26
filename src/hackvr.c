@@ -100,13 +100,13 @@ int load_stdin() {
  int i;//used to store the last triangle. even though I have a global for that. >_>
 
 // printf("# entering load_stdin()\n");
-#ifdef _HACKVR_USE_NONBLOCK_
+//#ifdef _HACKVR_USE_NONBLOCK_
  for(i=0;global.shape[i];i++) ;//hop to the end.
  fcntl(0,F_SETFL,O_NONBLOCK);
  if(feof(stdin))  {
   clearerr(stdin);
  }
-#else
+//#else
 /* readfs=master;
  timeout.tv_sec=0;
  timeout.tv_usec=1;
@@ -115,7 +115,7 @@ int load_stdin() {
   return 0;
  }
  if(FD_ISSET(0,&readfs)) {*/
-#endif
+//#endif
  while((line=read_line_hack(stdin,0))) {//load as long there's something to load
   if(*line == '#') return 0;
 //  printf("# read command: %s\n",line);
