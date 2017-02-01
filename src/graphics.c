@@ -438,8 +438,10 @@ void draw_screen() {
     }
     qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
    }
-   if(zs[i-1].s) {
-    strcpy(global.selected_object,zs[i-1].s->id);//0th is farthest. fixme.
+   if(i > 0) {
+    if(zs[i-1].s) {
+     strcpy(global.selected_object,zs[i-1].s->id);
+    }
    }
    //draw all triangles
    if(global.debug) {
