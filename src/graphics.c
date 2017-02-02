@@ -371,6 +371,12 @@ void draw_screen() {
   clear_backbuffer();
   real oldx=camera.p.x;
   real oldz=camera.p.z;
+
+  for(i=0;global.shape[i];i++) zs[i].s=global.shape[i];
+  for(i=0;global.shape[i];i++) zs[i].d=shitdist(zs[i].s,camera.p);
+  qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
+  if(i > 0 && zs[i-1].s) strcpy(global.selected_object,zs[i-1].s->id);
+
   if(gra_global.split_screen > 1) {
    camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cosl(d2r(camera.yr.d+180)));
    camera.p.x-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*sinl(d2r(camera.yr.d+180)));
@@ -425,24 +431,10 @@ void draw_screen() {
 //   draw_c2_line((c2_t){10,10},(c2_t){-10,10});
 //  }
 
-   //apply rotation?
-   // load up the triangles to render... after applying rotation?
    for(i=0;global.shape[i];i++) {
-    zs[i].s=global.shape[i];
-    //rotate_shape(zs[i].s);
+    zs[i].d=shitdist(zs[i].s,camera.p);
    }
-   //
-   if(1) {//global.zsort) {
-    for(i=0;global.shape[i];i++) {
-     zs[i].d=shitdist(zs[i].s,camera.p);
-    }
-    qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
-   }
-   if(i > 0) {
-    if(zs[i-1].s) {
-     strcpy(global.selected_object,zs[i-1].s->id);
-    }
-   }
+   qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
    //draw all triangles
    if(global.debug) {
     snprintf(tmp,sizeof(tmp)-1,"selected object: %s",global.selected_object);
