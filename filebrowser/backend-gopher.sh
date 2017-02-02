@@ -3,12 +3,13 @@
 #wait for a selection on stdin
 #cd or start that file
 #repeat.
-server=192.168.0.2
+server=gopher.hacking.allowed.org
 port=70
 selection=/
 while true;do
 #not sure why this needs to be printed to show up every time.
-  printf '%s\n' "$selection" | ncat "$server" "$port"
+  printf '%s\n' "$selection" | ncat "$server" "$port" | tee /dev/stderr | grep -v ^i | cut -f2
+### need to ask user for input in the form of a pop-up window if the selected target was of type 7
   read -r selection
   echo
 done
