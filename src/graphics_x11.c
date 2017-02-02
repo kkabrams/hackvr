@@ -281,7 +281,10 @@ int graphics_init() {
 // Window root,child;//why do I have this?
 //  XColor toss;
  printf("# Opening X Display... (%s)\n",getenv("DISPLAY"));
- if((x11_global.dpy = XOpenDisplay(0)) == NULL) return printf("# failure.\n"),2;
+ if((x11_global.dpy = XOpenDisplay(0)) == NULL) {
+  printf("# failure.\n");
+  exit(1);
+ }
  else printf("# done.\n");
  x11_global.color_map=DefaultColormap(x11_global.dpy, DefaultScreen(x11_global.dpy));
  printf("# generating grays...\n");
