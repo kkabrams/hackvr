@@ -419,7 +419,7 @@ void draw_screen() {
    for(i=0;global.shape[i];i++) {
     //now we pick the color of this triangle!
     if(gra_global.red_and_blue) {
-     if(cn==0) {
+     if(cn%2==0) {
       set_color_red();
      } else {
       set_color_blue();

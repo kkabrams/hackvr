@@ -1,6 +1,8 @@
-ohai.
-
-I dunno.
+ _   _    ___     ___    _  _  __    __  ____
+| |_| |  / _ \   / __\  | |/ / \ \  / / |  _ \
+|  _  | |  _  | | (__   |   <   \ \/ /  |    /
+|_| |_| |_| |_|  \___/  |_|\_\   \__/   |_|\_\
+(everything is better with ascii-art)
 
 hackvr... um. outputs commands to stdout based on keys pressed inside hackvr,
 and inputs the same type of commands.
@@ -8,10 +10,20 @@ so do some plumbing and get a multiplayer game going?
 
 quick start:
 
-cd src
-make
-./testit.sh
+You'll need to have the library and headers of libx11 installed for hackvr to build successfully.
+Which usually means you will need the dev version of the libx11 (xlib) package for your distro.
+To get that on debian you might run
 
+  apt-get install libx11-dev
+
+After you have that installed you should be able to do these to get hackvr built:
+
+  cd src
+  make
+
+A few helper scripts are written in perl and python.
+So you might want to install perl and python if you want to play with them.
+They're pretty nifty.
 
 what hackvr can do...
 
@@ -19,3 +31,20 @@ I dunno.
 
 _     _
  \O_o/
+
+
+Red and Blue mode
+
+You'll have to either enable this using a command sent to hackvr's stdin that
+I don't even remember, or just enable it in config.h make clean then rebuild.
+Be sure to have SPLIT_SCREEN set to 2 while you have RED_AND_BLUE set to 1.
+Otherwise you'll just end up with one camera that is red. Three cameras will
+draw a third view that is also red. (colors of views are picked by modulo two of
+camera number atm)
+
+left eye should have red over it.
+right eye should have blue over it.
+
+if your glasses are backwards you can either wear them upside down.
+or just flip the value of CAMERA_SEPARATION in config.h before building.
+or fiddle with it using the 'p' and 'l' keys while hackvr is running.
