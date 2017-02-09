@@ -9,7 +9,7 @@
 #define DEBUG 1
 #define WALK_SPEED 1
 #define SPLIT_SCREEN 2
-#define CAMERA_SEPARATION 4
+#define CAMERA_SEPARATION .0125
 #define RED_AND_BLUE 0
 #define SHAPES 16386
 #define MAX_SIDES 8

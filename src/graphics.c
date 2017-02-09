@@ -463,8 +463,8 @@ void draw_screen() {
     //}
    }
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
-   camera.p.z+=(gra_global.split_flip)*(gra_global.split*cosl(d2r(camera.yr.d+180)));
-   camera.p.x+=(gra_global.split_flip)*(gra_global.split*sinl(d2r(camera.yr.d+180)));
+   camera.p.z+=(CAMERA_SEPARATION)*(gra_global.split_flip)*(gra_global.split*cosl(d2r(camera.yr.d+180)));
+   camera.p.x+=(CAMERA_SEPARATION)*(gra_global.split_flip)*(gra_global.split*sinl(d2r(camera.yr.d+180)));
   }
 
 //TODO: figure out what all this shit is and either update or remove.
