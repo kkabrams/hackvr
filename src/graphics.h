@@ -11,7 +11,7 @@ struct gra_global {
   int greyscale;
   int xoff;
   int split_screen;
-  int split;
+  real split;
   int split_flip;
   char force_redraw;
   char red_and_blue;
@@ -42,12 +42,11 @@ void draw_screen();
 void set_aspect_ratio();
 int selfcommand(char *s);
 cs_t c3_to_cs(c3_t p);
-real d2r(int d);
+radians d2r(degrees d);
 real shitdist(struct c3_shape *s,c3_t p);
-c3_t rotate_c3_xr(c3_t p1,c3_t p2,real xr);
-c3_t rotate_c3_yr(c3_t p1,c3_t p2,real yr);
-c3_t rotate_c3_zr(c3_t p1,c3_t p2,real zr);
-real points_to_angle(c2_t p1,c2_t p2);
+c3_t rotate_c3_xr(c3_t p1,c3_t p2,radians xr);
+c3_t rotate_c3_yr(c3_t p1,c3_t p2,radians yr);
+c3_t rotate_c3_zr(c3_t p1,c3_t p2,radians zr);
 
 int compar(zsort_t *a,zsort_t *b);
 

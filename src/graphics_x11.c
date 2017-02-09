@@ -166,6 +166,8 @@ void set_aspect_ratio() {
 
 int keypress_handler(int sym) {
   char line[1024];
+  radians tmprad;
+  radians tmprad2;
   real tmpx;
 //  real tmpy; //unused atm
   real tmpz;
@@ -175,32 +177,40 @@ int keypress_handler(int sym) {
     selfcommand(line);
     break;
    case XK_Up:
-    tmpx=WALK_SPEED*sinl(d2r(camera.yr.d+90));
-    tmpz=WALK_SPEED*cosl(d2r(camera.yr.d+90));
+    tmprad=d2r((degrees){camera.r.y.d+90});
+    tmprad2=d2r((degrees){camera.r.y.d+90});
+    tmpx=WALK_SPEED*sinl(tmprad.r);
+    tmpz=WALK_SPEED*cosl(tmprad2.r);
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
     snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Down:
-    tmpx=WALK_SPEED*sinl(d2r(camera.yr.d+270));
-    tmpz=WALK_SPEED*cosl(d2r(camera.yr.d+270));
+    tmprad=d2r((degrees){camera.r.y.d+270});
+    tmprad2=d2r((degrees){camera.r.y.d+270});
+    tmpx=WALK_SPEED*sinl(tmprad.r);
+    tmpz=WALK_SPEED*cosl(tmprad2.r);
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
     snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Left:
-    tmpx=WALK_SPEED*sinl(d2r(camera.yr.d));
-    tmpz=WALK_SPEED*cosl(d2r(camera.yr.d));
+    tmprad=d2r(camera.r.y);
+    tmprad2=d2r(camera.r.y);
+    tmpx=WALK_SPEED*sinl(tmprad.r);
+    tmpz=WALK_SPEED*cosl(tmprad2.r);
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
     snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Right:
-    tmpx=WALK_SPEED*sinl(d2r(camera.yr.d+180));
-    tmpz=WALK_SPEED*cosl(d2r(camera.yr.d+180));
+    tmprad=d2r((degrees){camera.r.y.d+180});
+    tmprad2=d2r((degrees){camera.r.y.d+180});
+    tmpx=WALK_SPEED*sinl(tmprad.r);
+    tmpz=WALK_SPEED*cosl(tmprad2.r);
     camera.p.x+=tmpx;
     camera.p.z+=tmpz;
     snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
@@ -217,28 +227,34 @@ int keypress_handler(int sym) {
     selfcommand(line);
     break;
    case XK_r:
-    camera.xr.d+=5;
-    while(camera.xr.d > 360) camera.xr.d-=360;
+    camera.r.x.d+=5;
+    while(camera.r.x.d > 360) camera.r.x.d-=360;
     break;
    case XK_y:
-    camera.xr.d-=5;
-    while(camera.xr.d < 0) camera.xr.d+=360;
+    camera.r.x.d-=5;
+    while(camera.r.x.d < 0) camera.r.x.d+=360;
     break;
    case XK_q:
-    camera.yr.d+=5;
-    while(camera.yr.d > 360) camera.yr.d-=360;
+    camera.r.y.d+=5;
+    while(camera.r.y.d > 360) camera.r.y.d-=360;
     break;
    case XK_e:
-    camera.yr.d-=5;
-    while(camera.yr.d < 0) camera.yr.d+=360;
+    camera.r.y.d-=5;
+    while(camera.r.y.d < 0) camera.r.y.d+=360;
     break;
    case XK_u:
-    camera.zr.d+=5;
-    while(camera.zr.d > 360) camera.zr.d-=360;
+    camera.r.z.d+=5;
+    while(camera.r.z.d > 360) camera.r.z.d-=360;
     break;
    case XK_o:
-    camera.zr.d-=5;
-    while(camera.zr.d < 0) camera.zr.d+=360;
+    camera.r.z.d-=5;
+    while(camera.r.z.d < 0) camera.r.z.d+=360;
+    break;
+   case XK_p:
+    gra_global.split+=.1;
+    break;
+   case XK_l:
+    gra_global.split-=.1;
     break;
    case XK_z: camera.zoom+=1; break;
    case XK_x: camera.zoom-=1; break;
@@ -274,7 +290,7 @@ int keypress_handler(int sym) {
 #endif
 
 int graphics_init() {
- int i,j;
+ int i;
  char tmp[64];
  Cursor cursor;
  XSetWindowAttributes attributes;
@@ -296,7 +312,7 @@ int graphics_init() {
  assert(x11_global.dpy);
  gra_global.split_screen=SPLIT_SCREEN;
  gra_global.split_flip=-1;
- gra_global.split=5;
+ gra_global.split=CAMERA_SEPARATION;
  x11_global.root_window=0;
  gra_global.red_and_blue=RED_AND_BLUE;
  //global.colors[0]=BlackPixel(x11_global.dpy,DefaultScreen(x11_global.dpy));
@@ -372,9 +388,9 @@ int graphics_init() {
 
 //this should be in graphics.c ?
  camera.zoom=30.0l;
- camera.xr.d=270;
- camera.yr.d=90;
- camera.zr.d=0;
+ camera.r.x.d=270;
+ camera.r.y.d=90;
+ camera.r.z.d=0;
  global.mmz=1;
  camera.p.x=0;
  camera.p.z=-6;

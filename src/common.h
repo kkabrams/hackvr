@@ -33,11 +33,15 @@ typedef struct {
  short y;
 } cs_t;
 
+typedef struct c3_rotation {
+  degrees x;
+  degrees y;
+  degrees z;
+} c3_rot_t;
+
 struct camera {
   c3_t p;
-  degrees xr;//rotations
-  degrees yr;
-  degrees zr;
+  c3_rot_t r;
   real zoom;
 } camera;
 

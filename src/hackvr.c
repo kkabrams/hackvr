@@ -213,9 +213,9 @@ int load_stdin() {
    printf("%s set camera.p.x %Lf\n",global.user,camera.p.x);
    printf("%s set camera.p.y %Lf\n",global.user,camera.p.y);
    printf("%s set camera.p.z %Lf\n",global.user,camera.p.z);
-   printf("%s set camera.xr %d\n",global.user,camera.xr.d);
-   printf("%s set camera.yr %d\n",global.user,camera.yr.d);
-   printf("%s set camera.zr %d\n",global.user,camera.zr.d);
+   printf("%s set camera.r.x %d\n",global.user,camera.r.x.d);
+   printf("%s set camera.r.y %d\n",global.user,camera.r.y.d);
+   printf("%s set camera.r.z %d\n",global.user,camera.r.z.d);
    printf("%s set camera.zoom %Lf\n",global.user,camera.zoom);
    continue;
   }
@@ -231,9 +231,9 @@ int load_stdin() {
     else if(!strcmp(a[2],"camera.p.y")) camera.p.y=strtold(a[3],0);
     else if(!strcmp(a[2],"camera.p.z")) camera.p.z=strtold(a[3],0);
     else if(!strcmp(a[2],"camera.zoom")) camera.zoom=strtold(a[3],0);
-    else if(!strcmp(a[2],"camera.xr")) camera.xr.d=atoi(a[3]);
-    else if(!strcmp(a[2],"camera.yr")) camera.yr.d=atoi(a[3]);
-    else if(!strcmp(a[2],"camera.zr")) camera.zr.d=atoi(a[3]);
+    else if(!strcmp(a[2],"camera.r.x")) camera.r.x.d=atoi(a[3]);
+    else if(!strcmp(a[2],"camera.r.y")) camera.r.y.d=atoi(a[3]);
+    else if(!strcmp(a[2],"camera.r.z")) camera.r.z.d=atoi(a[3]);
 #endif
     else printf("# unknown variable: %s\n",a[2]);
     continue;
@@ -293,12 +293,14 @@ int load_stdin() {
    }
    continue;
   }
-  if(!strcmp(command,"rotate")) {
+  if(!strcmp(command,"rotate")) {//this probably won't be needed with the new rotation structs per group.
    if(len > 4) {
     for(i=0;global.shape[i];i++) {
      if(!strcmp(global.shape[i]->id,id)) {
       for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
-       global.shape[i]->p[j]=rotate_c3_yr(global.shape[i]->p[j],(c3_t){0,0,0},points_to_angle((c2_t){global.shape[i]->p[j].x,global.shape[i]->p[j].z},(c2_t){0,0})+d2r(atoi(a[2])));
+       radians tmprad=points_to_angle((c2_t){global.shape[i]->p[j].x,global.shape[i]->p[j].z},(c2_t){0,0});
+       radians tmprad2=d2r((degrees){atoi(a[2])});
+       global.shape[i]->p[j]=rotate_c3_yr(global.shape[i]->p[j],(c3_t){0,0,0},(radians){tmprad.r+tmprad2.r});
        //global.shape[i]->p[j]=rotate_c3_yr(global.shape[i]->p[j],(c3_t){0,0,0},d2r(atoi(a[3])));
        //global.shape[i]->p[j]=rotate_c3_zr(global.shape[i]->p[j],(c3_t){0,0,0},d2r(atoi(a[4])));
       }
