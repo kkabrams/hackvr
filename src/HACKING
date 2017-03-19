@@ -1,0 +1,20 @@
+oh god. I have no idea what I'm doing.
+
+may the gods have mercy on my soul for this monstrosity..
+
+so.
+
+hackvr.c can optionally use graphics or not.
+
+if you choose to have graphics you can choose between:
+
+x11 or opengl+glut
+
+There are three layers of the graphics code..
+
+I'm not exactly sure how I'm going to combine these.
+
+graphics_c3.c uses functions defined in a graphics_c2* file.
+graphics_c2.c uses function defined in a graphics_cs* file.
+
+some graphical backends may provide their own graphics_c3.c?

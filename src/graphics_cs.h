@@ -1,5 +1,7 @@
-#ifndef _HACKVR_GRAPHICS_BACKEND_H_
-#define _HACKVR_GRAPHICS_BACKEND_H_
+#ifndef _HACKVR_GRAPHICS_CS_H_
+#define _HACKVR_GRAPHICS_CS_H_
+
+#include "math.h"
 
 //these are just the functions that all backends need to implement to work with hackvr.
 //the list of functions are subject to change.
@@ -15,7 +17,7 @@ void set_color();
 void set_color_red();
 void set_color_blue();
 void clear_backbuffer();
-int keypress_handler(int sym);
+void keypress_handler(unsigned char sym,int x,int y);
 int graphics_init();
 int graphics_event_handler();
 void set_clipping_rectangle(int x,int y,int width,int height);

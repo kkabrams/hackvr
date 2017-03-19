@@ -1,6 +1,19 @@
+#include <string.h>
+#include "common.h"
 #include "math.h"
 
-//should these use the radians struct?
+extern struct global global;
+
+//might change this to use hashtables for faster lookups.
+c3_group_rot_t *get_group_rotation(char *id) {
+  int i;
+  for(i=0;global.group_rot[i];i++) {
+    if(!strcmp(global.group_rot[i]->id,id)) {
+      return global.group_rot[i];
+    }
+  }
+  return 0;//need to be sure to check return value for this function!
+}
 
 c3_t rotate_c3_xr(c3_t p1,c3_t p2,radians xr) {//rotate y and z around camera based on xr (looking up and down)
   c2_t tmp;

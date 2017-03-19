@@ -18,9 +18,9 @@
 
 #include "config.h"
 #include "common.h"
-#include "graphics.h"
+#include "graphics_c3.h"//not needed?
 #include "graphics_x11.h"
-#include "graphics_backend.h"
+#include "graphics_cs.h"
 
 //typedef float real; //think this conflicts?
 
@@ -135,7 +135,7 @@ void red_and_blue_magic() {
 }
 
 //void draw_sky() {
-//  XCopyArea(x11_global.dpy,skypixmap,x11_global.backbuffer,x11_global.backgc,((camera.yr.d*5)+SKYW)%SKYW,0,WIDTH,gra_global.height/2,0,0);
+//  XCopyArea(x11_global.dpy,skypixmap,x11_global.backbuffer,x11_global.backgc,((global.camera.yr.d*5)+SKYW)%SKYW,0,WIDTH,gra_global.height/2,0,0);
 //}
 
 void set_color() {
@@ -164,7 +164,7 @@ void set_aspect_ratio() {
  XSetWMNormalHints(x11_global.dpy,x11_global.w,hints);
 }
 
-int keypress_handler(int sym) {
+void x11_keypress_handler(int sym,int x,int y) {
   char line[1024];
   radians tmprad;
   radians tmprad2;
@@ -177,78 +177,68 @@ int keypress_handler(int sym) {
     selfcommand(line);
     break;
    case XK_Up:
-    tmprad=d2r((degrees){camera.r.y.d+90});
-    tmprad2=d2r((degrees){camera.r.y.d+90});
+    tmprad=d2r((degrees){global.camera.r.y.d+90});
+    tmprad2=d2r((degrees){global.camera.r.y.d+90});
     tmpx=WALK_SPEED*sinl(tmprad.r);
     tmpz=WALK_SPEED*cosl(tmprad2.r);
-    camera.p.x+=tmpx;
-    camera.p.z+=tmpz;
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,-tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Down:
-    tmprad=d2r((degrees){camera.r.y.d+270});
-    tmprad2=d2r((degrees){camera.r.y.d+270});
+    tmprad=d2r((degrees){global.camera.r.y.d+270});
+    tmprad2=d2r((degrees){global.camera.r.y.d+270});
     tmpx=WALK_SPEED*sinl(tmprad.r);
     tmpz=WALK_SPEED*cosl(tmprad2.r);
-    camera.p.x+=tmpx;
-    camera.p.z+=tmpz;
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,-tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Left:
-    tmprad=d2r(camera.r.y);
-    tmprad2=d2r(camera.r.y);
+    tmprad=d2r(global.camera.r.y);
+    tmprad2=d2r(global.camera.r.y);
     tmpx=WALK_SPEED*sinl(tmprad.r);
     tmpz=WALK_SPEED*cosl(tmprad2.r);
-    camera.p.x+=tmpx;
-    camera.p.z+=tmpz;
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,-tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Right:
-    tmprad=d2r((degrees){camera.r.y.d+180});
-    tmprad2=d2r((degrees){camera.r.y.d+180});
+    tmprad=d2r((degrees){global.camera.r.y.d+180});
+    tmprad2=d2r((degrees){global.camera.r.y.d+180});
     tmpx=WALK_SPEED*sinl(tmprad.r);
     tmpz=WALK_SPEED*cosl(tmprad2.r);
-    camera.p.x+=tmpx;
-    camera.p.z+=tmpz;
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,-tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_w:
-    camera.p.y+=1;
     snprintf(line,sizeof(line)-1,"%s move 0 1 0 0 0 0 0 0 0\n",global.user);
     selfcommand(line);
     break;
    case XK_s:
-    camera.p.y-=1;
     snprintf(line,sizeof(line)-1,"%s move 0 -1 0 0 0 0 0 0 0\n",global.user);
     selfcommand(line);
     break;
    case XK_r:
-    camera.r.x.d+=5;
-    while(camera.r.x.d > 360) camera.r.x.d-=360;
+    snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d+5);
+    selfcommand(line);
     break;
    case XK_y:
-    camera.r.x.d-=5;
-    while(camera.r.x.d < 0) camera.r.x.d+=360;
+    snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d-5);
+    selfcommand(line);
     break;
    case XK_q:
-    camera.r.y.d+=5;
-    while(camera.r.y.d > 360) camera.r.y.d-=360;
+    snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d+5);
+    selfcommand(line);
     break;
    case XK_e:
-    camera.r.y.d-=5;
-    while(camera.r.y.d < 0) camera.r.y.d+=360;
+    snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d-5);
+    selfcommand(line);
     break;
    case XK_u:
-    camera.r.z.d+=5;
-    while(camera.r.z.d > 360) camera.r.z.d-=360;
+    snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d+5);
+    selfcommand(line);
     break;
    case XK_o:
-    camera.r.z.d-=5;
-    while(camera.r.z.d < 0) camera.r.z.d+=360;
+    snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d-5);
+    selfcommand(line);
     break;
    case XK_p:
     gra_global.split+=.1;
@@ -256,12 +246,14 @@ int keypress_handler(int sym) {
    case XK_l:
     gra_global.split-=.1;
     break;
-   case XK_z: camera.zoom+=1; break;
-   case XK_x: camera.zoom-=1; break;
+   case XK_z: global.zoom+=1; break;
+   case XK_x: global.zoom-=1; break;
    case XK_c: global.mmz*=1.1; break;
    case XK_v: global.mmz/=1.1; break;
    case XK_h: global.split+=1; break;
    case XK_j: global.split-=1; break;
+   case XK_6: gra_global.maxshapes+=10; break;
+   case XK_7: gra_global.maxshapes-=10; break;
    case XK_d:
     global.debug ^= 1;
     break;
@@ -280,16 +272,14 @@ int keypress_handler(int sym) {
     gra_global.draw3d %= 4;
     break;
    case XK_Escape:
-    return -1;
+    exit(0);
    default:
-    return 0;
     break;
  }
- return 1;
 }
 #endif
 
-int graphics_init() {
+int graphics_sub_init() {
  int i;
  char tmp[64];
  Cursor cursor;
@@ -310,11 +300,7 @@ int graphics_init() {
  }
  printf("# done.\n");
  assert(x11_global.dpy);
- gra_global.split_screen=SPLIT_SCREEN;
- gra_global.split_flip=-1;
- gra_global.split=CAMERA_SEPARATION;
  x11_global.root_window=0;
- gra_global.red_and_blue=RED_AND_BLUE;
  //global.colors[0]=BlackPixel(x11_global.dpy,DefaultScreen(x11_global.dpy));
 // int whiteColor = //WhitePixel(x11_global.dpy, DefaultScreen(x11_global.dpy));
  attributes.background_pixel=x11_global.colors[0].pixel;
@@ -328,18 +314,11 @@ int graphics_init() {
  }
  XMapWindow(x11_global.dpy,x11_global.w);
  XStoreName(x11_global.dpy,x11_global.w,"hackvr");
- gra_global.greyscale=1;
- gra_global.zsort=1;
  global.shape[0]=0;//we'll allocate as we need more.
+ global.camera.id=global.user;
+ global.group_rot[0]=&global.camera;
+ global.group_rot[1]=0;
  x11_global.gc=XCreateGC(x11_global.dpy,x11_global.w, 0, 0);
-
- if(gra_global.red_and_blue) {
-  gra_global.width=WIDTH;
- } else {
-  gra_global.width=WIDTH*gra_global.split_screen;
- }
- gra_global.height=HEIGHT;
-
  x11_global.backbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,gra_global.width,gra_global.height,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
  x11_global.cleanbackbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,gra_global.width,gra_global.height,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
 
@@ -380,22 +359,8 @@ int graphics_init() {
  }
  printf("done.\n");
 */
- gra_global.mapxoff=gra_global.width/2;
- gra_global.mapyoff=gra_global.height/2;
- gra_global.drawminimap=DEFAULT_MINIMAP;
- gra_global.draw3d=1;
- gra_global.force_redraw=FORCE_REDRAW;//use this for checking proper fps I guess.
 
-//this should be in graphics.c ?
- camera.zoom=30.0l;
- camera.r.x.d=270;
- camera.r.y.d=90;
- camera.r.z.d=0;
- global.mmz=1;
- camera.p.x=0;
- camera.p.z=-6;
- camera.p.y=5;
- return 0;
+ return 0;//we're fine
 }
 
 int graphics_event_handler() {
@@ -447,10 +412,7 @@ int graphics_event_handler() {
     case KeyPress:
       if(global.debug >= 2) printf("# KeyPress\n");
       redraw=1;
-      if(keypress_handler(XLookupKeysym(&e.xkey,0)) == -1) {
-       printf("# exiting\n");
-       return -1;
-      }
+      x11_keypress_handler(XLookupKeysym(&e.xkey,0),gra_global.mousex,gra_global.mousey);
       break;
     default:
 //      printf("# received unknown event with type: %d\n",e.type);

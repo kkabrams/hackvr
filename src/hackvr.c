@@ -16,7 +16,7 @@
 #include "common.h"
 #include "math.h"
 #ifdef GRAPHICAL
-#include "graphics.h"
+#include "graphics_c3.h"
 extern struct gra_global gra_global;
 #endif
 
@@ -210,13 +210,13 @@ int load_stdin() {
    continue;
   }
   if(!strcmp(command,"dump")) {
-   printf("%s set camera.p.x %Lf\n",global.user,camera.p.x);
-   printf("%s set camera.p.y %Lf\n",global.user,camera.p.y);
-   printf("%s set camera.p.z %Lf\n",global.user,camera.p.z);
-   printf("%s set camera.r.x %d\n",global.user,camera.r.x.d);
-   printf("%s set camera.r.y %d\n",global.user,camera.r.y.d);
-   printf("%s set camera.r.z %d\n",global.user,camera.r.z.d);
-   printf("%s set camera.zoom %Lf\n",global.user,camera.zoom);
+   printf("%s set global.camera.p.x %Lf\n",global.user,global.camera.p.x);
+   printf("%s set global.camera.p.y %Lf\n",global.user,global.camera.p.y);
+   printf("%s set global.camera.p.z %Lf\n",global.user,global.camera.p.z);
+   printf("%s set global.camera.r.x %d\n",global.user,global.camera.r.x.d);
+   printf("%s set global.camera.r.y %d\n",global.user,global.camera.r.y.d);
+   printf("%s set global.camera.r.z %d\n",global.user,global.camera.r.z.d);
+   printf("%s set global.zoom %Lf\n",global.user,global.zoom);
    continue;
   }
   if(!strcmp(command,"quit")) {
@@ -227,13 +227,13 @@ int load_stdin() {
    if(len == 4) {
     if(0);
 #ifdef GRAPHICAL
-    else if(!strcmp(a[2],"camera.p.x")) camera.p.x=strtold(a[3],0);
-    else if(!strcmp(a[2],"camera.p.y")) camera.p.y=strtold(a[3],0);
-    else if(!strcmp(a[2],"camera.p.z")) camera.p.z=strtold(a[3],0);
-    else if(!strcmp(a[2],"camera.zoom")) camera.zoom=strtold(a[3],0);
-    else if(!strcmp(a[2],"camera.r.x")) camera.r.x.d=atoi(a[3]);
-    else if(!strcmp(a[2],"camera.r.y")) camera.r.y.d=atoi(a[3]);
-    else if(!strcmp(a[2],"camera.r.z")) camera.r.z.d=atoi(a[3]);
+    else if(!strcmp(a[2],"camera.p.x")) global.camera.p.x=strtold(a[3],0);
+    else if(!strcmp(a[2],"camera.p.y")) global.camera.p.y=strtold(a[3],0);
+    else if(!strcmp(a[2],"camera.p.z")) global.camera.p.z=strtold(a[3],0);
+    else if(!strcmp(a[2],"global.zoom")) global.zoom=strtold(a[3],0);
+    else if(!strcmp(a[2],"camera.r.x")) global.camera.r.x.d=atoi(a[3]);
+    else if(!strcmp(a[2],"camera.r.y")) global.camera.r.y.d=atoi(a[3]);
+    else if(!strcmp(a[2],"camera.r.z")) global.camera.r.z.d=atoi(a[3]);
 #endif
     else printf("# unknown variable: %s\n",a[2]);
     continue;
@@ -246,12 +246,13 @@ int load_stdin() {
    printf("# %s toggled!\n",a[2]);
    continue;
   }
-  if(!strcmp(command,"addshape")) {
+  if(!strcmp(command,"addshape")) {//need to add a grouprot with this.
    if(len > 3) {
     if(len != ((strtold(a[2],0)+(strtold(a[2],0)==1))*3)+3) {
      printf("# ERROR: wrong amount of parts for addshape. got: %d expected %d\n",len,((int)strtold(a[2],0)+(strtold(a[2],0)==1))*3+3);
      continue;
     }
+    for(i=0;global.shape[i];i++);//just take me to the end.
     global.shape[i]=malloc(sizeof(struct c3_shape));
     global.shape[i]->len=strtold(a[2],0);
     global.shape[i]->id=strdup(id);
@@ -263,6 +264,23 @@ int load_stdin() {
     i++;
     global.shapes=i;
     global.shape[i]=0;
+
+    for(i=0;global.group_rot[i];i++) {
+     if(!strcmp(global.group_rot[i]->id,id)) {
+      break;
+     }
+    }
+    if(global.group_rot[i] == 0) {//we have ourselves a new grouprot!
+     global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
+     global.group_rot[i]->id=strdup(id);
+     global.group_rot[i+1]=0;
+     global.group_rot[i]->p.x=0;
+     global.group_rot[i]->p.y=0;
+     global.group_rot[i]->p.z=0;
+     global.group_rot[i]->r.x=(degrees){0};
+     global.group_rot[i]->r.y=(degrees){0};
+     global.group_rot[i]->r.z=(degrees){0};
+    }
    }
    continue;
   }
@@ -293,37 +311,50 @@ int load_stdin() {
    }
    continue;
   }
-  if(!strcmp(command,"rotate")) {//this probably won't be needed with the new rotation structs per group.
+  if(!strcmp(command,"rotate")) {
    if(len > 4) {
-    for(i=0;global.shape[i];i++) {
-     if(!strcmp(global.shape[i]->id,id)) {
-      for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
-       radians tmprad=points_to_angle((c2_t){global.shape[i]->p[j].x,global.shape[i]->p[j].z},(c2_t){0,0});
-       radians tmprad2=d2r((degrees){atoi(a[2])});
-       global.shape[i]->p[j]=rotate_c3_yr(global.shape[i]->p[j],(c3_t){0,0,0},(radians){tmprad.r+tmprad2.r});
-       //global.shape[i]->p[j]=rotate_c3_yr(global.shape[i]->p[j],(c3_t){0,0,0},d2r(atoi(a[3])));
-       //global.shape[i]->p[j]=rotate_c3_zr(global.shape[i]->p[j],(c3_t){0,0,0},d2r(atoi(a[4])));
-      }
+    for(i=0;global.group_rot[i];i++) {
+     if(!strcmp(global.group_rot[i]->id,id)) {
+      break;
      }
     }
+    if(global.group_rot[i] == 0) {//we have ourselves a new grouprot!
+     global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
+     global.group_rot[i]->id=strdup(id);
+     global.group_rot[i+1]=0;
+     global.group_rot[i]->p.x=0;//only set these if new.
+     global.group_rot[i]->p.y=0;
+     global.group_rot[i]->p.z=0;
+    }
+    global.group_rot[i]->r.x=(degrees){atoi(a[2])};
+    global.group_rot[i]->r.y=(degrees){atoi(a[3])};
+    global.group_rot[i]->r.z=(degrees){atoi(a[4])};
    }
+   continue;
   }
   if(!strcmp(command,"move")) {
    if(len > 4) {
-    for(i=0;global.shape[i];i++) {
-     if(!strcmp(global.shape[i]->id,id)) {
-      for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
-       global.shape[i]->p[j].x+=strtold(a[2],0);
-       global.shape[i]->p[j].y+=strtold(a[3],0);
-       global.shape[i]->p[j].z+=strtold(a[4],0);
-      }
+    for(i=0;global.group_rot[i];i++) {
+     if(!strcmp(global.group_rot[i]->id,id)) {
+      break;
      }
     }
+    if(global.group_rot[i] == 0) {//we have ourselves a new grouprot!
+     global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
+     global.group_rot[i]->id=strdup(id);
+     global.group_rot[i+1]=0;
+     global.group_rot[i]->r.x=(degrees){0};//only set these if new.
+     global.group_rot[i]->r.y=(degrees){0};
+     global.group_rot[i]->r.z=(degrees){0};
+    }
+    global.group_rot[i]->p.x+=strtold(a[2],0);
+    global.group_rot[i]->p.y+=strtold(a[3],0);
+    global.group_rot[i]->p.z+=strtold(a[4],0);
    }
    else {
     printf("# ERROR: wrong amount of parts for move. got: %d expected: 11\n",len);
    }
-   continue;//???
+   continue;
   }
   printf("# I don't know what command you're talking about. %s\n",command);
   free(line);
@@ -363,9 +394,10 @@ int main(int argc,char *argv[]) {
     if((redraw=graphics_event_handler()) == -1) {
      return 0;
     }
-    if((redraw || gra_global.force_redraw) && !global.headless) {
-     draw_screen();
-    }
+//    printf("redraw=%d gra_global.force_redraw=%d global.headless=%d\n",redraw,gra_global.force_redraw,global.headless);
+    //if((redraw || gra_global.force_redraw) && !global.headless) {
+    // draw_screen();
+    //}
 #endif
     switch(load_stdin()) {
      case -1:

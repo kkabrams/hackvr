@@ -29,6 +29,7 @@ struct gra_global {
   int rmousex;
   int rmousey;
   int buttonpressed;
+  int maxshapes;
 };
 
 typedef struct {
@@ -37,6 +38,7 @@ typedef struct {
 } zsort_t;
 
 int graphics_init();
+int graphics_sub_init();
 int graphics_event_handler();
 void draw_screen();
 void set_aspect_ratio();

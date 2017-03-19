@@ -14,8 +14,10 @@
 #include "config.h"
 #include "common.h"
 
-#include "graphics_backend.h" //this header includes all the functions you'll need to implement if you want to port hackvr to something else
-#include "graphics.h"
+//#include "graphics_cs.h" //this header includes all the functions you'll need to implement if you want to port hackvr to something else
+#include "graphics_c3.h"//we're defining these functions in this file.
+#include "graphics_c2.h"//we're using these functions make them.
+#include "graphics_cs.h"//we'll need generic function that don't give a damn about which dimension it is?
 
 //typedef float real; //think this conflicts?
 
@@ -39,18 +41,6 @@ struct gra_global gra_global;
 #define RIGHT   320.0
 #define LEFT    -320.0
 
-int c2sX(real x) { return (gra_global.width/(gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen: 1))) * ((x + RIGHT) / (RIGHT *2)) + gra_global.xoff; }
-int s2cX(real x) { return (x/(gra_global.width/(gra_global.split_screen / (gra_global.red_and_blue?gra_global.split_screen :1))))*(RIGHT*2)-RIGHT; }
-
-int c2sY(real y) { return gra_global.height * ((TOP-y) / (TOP*2)); }
-int s2cY(real y) { return -((y/gra_global.height) * (TOP*2) - TOP); }
-
-cs_t c2_to_cs(c2_t p) {
- return (cs_t){c2sX(p.x),c2sY(p.y)};
-}
-c2_t cs_to_c2(cs_t p) {
- return (c2_t){s2cX(p.x),s2cY(p.y)};
-}
 /*
 real distance2(c2_t p1,c2_t p2) {
  return sqrtl(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) ));
@@ -152,20 +142,53 @@ int get_2D_intersection_Y(x,y,d,x,z,d) {
 }
 */
 
-void draw_c2_line(c2_t p1,c2_t p2) {
-  draw_cs_line(c2_to_cs(p1),c2_to_cs(p2));
+c3_t c3_add(c3_t p1,c3_t p2) {
+ return (c3_t){p1.x+p2.x,p1.y+p2.y,p1.z+p2.z};
+}
+
+c3_t c3_subtract(c3_t p1,c3_t p2) {
+ return (c3_t){p1.x-p2.x,p1.y-p2.y,p1.z-p2.z};
+}
+
+#define MAGIC(x) (1.0l-(1.0l/powl(1.01l,(x)))) //??? might want to have some changables in here
+
+real magic(real x) {
+  return MAGIC(x);
+}
+
+c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
+  c2_t p2;
+//  c3_t tmp1;
+//  c3_t tmp2;
+//  c3_t tmp3;
+  c3_t final;
+//these rotations need to be about the previous axis after the axis itself has been rotated.
+
+  final=rotate_c3_yr(p3,global.camera.p,d2r(global.camera.r.y));//rotate everything around the camera's location.
+  //now to rotate the shape around it's group's center.
+//  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
+//  tmp2=rotate_c3_xr(tmp1,camera.p,d2r(camera.xr));
+//  final=rotate_c3_zr(tmp2,camera.p,d2r(camera.zr));
+  real delta_x=(global.camera.p.x - final.x);
+  real delta_y=(global.camera.p.y - final.y);
+  real delta_z=(global.camera.p.z - final.z);
+//  real d=distance3(camera.p,final);
+  p2.y=global.zoom * (delta_y * MAGIC(delta_z) - delta_y);
+  p2.x=global.zoom * (delta_x * MAGIC(delta_z) - delta_x);
+  return p2;
 }
 
 void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shit in here too? probably...
   int i;
-  cs_s_t ss;
-  ss.id=s.id;//it shouldn't disappear and we shouldn't need to make a copy.
-  ss.len=s.len;
+  c2_s_t s2;
+  s2.id=s.id;//it shouldn't disappear and we shouldn't need to make a copy.
+  s2.len=s.len;
+  c3_group_rot_t *gr=get_group_rotation(s.id);
   for(i=0;i<s.len+(s.len==1);i++) {
-    ss.p[i]=c3_to_cs(s.p[i]);
+    s2.p[i]=c3_to_c2(gr?c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y))):s.p[i]);
   }
   if(gra_global.draw3d == 1) {
-    draw_cs_shape(ss);
+    draw_c2_shape(s2);
   }
   if(gra_global.draw3d == 2) {
     //set foreground to a gray based on distance
@@ -173,18 +196,12 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
 //    color_based_on_distance();//I don't have the distance in here. :/
 //foreground_set();
 //how... I want to draw the outline as one color and the fill as another.
-    draw_cs_filled_shape(ss);
+    draw_c2_filled_shape(s2);
     set_color();//resets it to the default color.
-    if(!strcmp(global.selected_object,ss.id)) {
-      draw_cs_shape(ss);
+    if(!strcmp(global.selected_object,s2.id)) {
+      draw_c2_shape(s2);
     }
   }
-}
-
-#define MAGIC(x) (1.0l-(1.0l/powl(1.01l,(x)))) //??? might want to have some changables in here
-
-real magic(real x) {
-  return MAGIC(x);
 }
 
 void draw_graph(real (*fun)(real x)) {
@@ -202,37 +219,18 @@ void draw_graph(real (*fun)(real x)) {
  }
 }
 
-c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
-  c2_t p2;
-//  c3_t tmp1;
-//  c3_t tmp2;
-//  c3_t tmp3;
-  c3_t final;
-//these rotations need to be about the previous axis after the axis itself has been rotated.
-  final=rotate_c3_yr(p3,camera.p,d2r(camera.r.y));//rotate everything around the camera's location.
-//  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
-//  tmp2=rotate_c3_xr(tmp1,camera.p,d2r(camera.xr));
-//  final=rotate_c3_zr(tmp2,camera.p,d2r(camera.zr));
-  real delta_x=(camera.p.x - final.x);
-  real delta_y=(camera.p.y - final.y);
-  real delta_z=(camera.p.z - final.z);
-//  real d=distance3(camera.p,final);
-  p2.y=camera.zoom * (delta_y * MAGIC(delta_z) - delta_y);
-  p2.x=camera.zoom * (delta_x * MAGIC(delta_z) - delta_x);
-  return p2;
-}
 
 void draw_c3_line(c3_t p1,c3_t p2) {
 // if(!between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p1.x,p1.z}),0,90) ||
 //    !between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p2.x,p2.z}),0,90)) return;
  if(gra_global.drawminimap == 1) {
-  draw_c2_line((c2_t){(camera.p.x-2)*global.mmz,(camera.p.z+2)*global.mmz},(c2_t){(camera.p.x+2)*global.mmz,(camera.p.z-2)*global.mmz});
-  draw_c2_line((c2_t){(camera.p.x+2)*global.mmz,(camera.p.z+2)*global.mmz},(c2_t){(camera.p.x-2)*global.mmz,(camera.p.z-2)*global.mmz});
+  draw_c2_line((c2_t){(global.camera.p.x-2)*global.mmz,(global.camera.p.z+2)*global.mmz},(c2_t){(global.camera.p.x+2)*global.mmz,(global.camera.p.z-2)*global.mmz});
+  draw_c2_line((c2_t){(global.camera.p.x+2)*global.mmz,(global.camera.p.z+2)*global.mmz},(c2_t){(global.camera.p.x-2)*global.mmz,(global.camera.p.z-2)*global.mmz});
   draw_c2_line((c2_t){p1.x*global.mmz,p1.z*global.mmz},(c2_t){p2.x*global.mmz,p2.z*global.mmz});
  }
  if(gra_global.drawminimap == 2) {//map rotates.
-  c3_t t1=rotate_c3_yr(p1,camera.p,d2r(camera.r.y));
-  c3_t t2=rotate_c3_yr(p2,camera.p,d2r(camera.r.y));
+  c3_t t1=rotate_c3_yr(p1,global.camera.p,d2r(global.camera.r.y));
+  c3_t t2=rotate_c3_yr(p2,global.camera.p,d2r(global.camera.r.y));
   draw_c2_line((c2_t){t1.x*global.mmz,t1.z*global.mmz},(c2_t){t2.x*global.mmz,t2.z*global.mmz});
  }
  if(gra_global.draw3d != 0) draw_c2_line(c3_to_c2(p1),c3_to_c2(p2));
@@ -251,13 +249,18 @@ real shitdist2(c3_t p1,c3_t p2) {
         ((p1.z - p2.z) * (p1.z - p2.z)));
 }
 
-real shitdist(struct c3_shape *s,c3_t p) {
-// apply rotation then find distance?
+real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  int i;
  real total=0;
  for(i=0;i< s->len+(s->len==1);i++) {
-//  total=total+shitdist2(rotate_c3_yr(s->p[i],(c3_t){0,0,0},d2r(camera.yr)),camera.p);
-  total=total+shitdist2(rotate_c3_yr(s->p[i],camera.p,d2r(camera.r.y)),camera.p);
+  c3_group_rot_t *gr=get_group_rotation(s->id);
+  total=total+shitdist2(
+                rotate_c3_yr(//we're rotating the point around the camera...
+                  gr?
+                    c3_add(gr->p,rotate_c3_yr(s->p[i],gr->p,d2r(gr->r.y)))://after applying the rotation of the group it is in.
+                    s->p[i],global.camera.p
+                  ,d2r(global.camera.r.y))
+              ,global.camera.p);
  }
  return (total) / (real)(s->len+(s->len==1));
 }
@@ -289,14 +292,9 @@ void HatchLines(c2_t p1,c2_t p2,c2_t p3,int density) {
 //black out the rest of the triangle first?
 //sounds alright to me...
 
-void draw_c2_text(c2_t p,char *text) {
- cs_t p2=c2_to_cs(p);
- draw_cs_text(p2,text);
-}
-
 void draw_c3_text(c3_t p,char *text) {
- cs_t p2=c3_to_cs(p);
- draw_cs_text(p2,text);
+ c2_t p2=c3_to_c2(p);
+ draw_c2_text(p2,text);
 }
 
 /*
@@ -342,20 +340,20 @@ void draw_screen() {
   char tmp[256];
   zsort_t zs[SHAPES];
   clear_backbuffer();
-  real oldx=camera.p.x;
-  real oldz=camera.p.z;
+  real oldx=global.camera.p.x;
+  real oldz=global.camera.p.z;
 
   for(i=0;global.shape[i];i++) zs[i].s=global.shape[i];
-  for(i=0;global.shape[i];i++) zs[i].d=shitdist(zs[i].s,camera.p);
-  qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
+  for(i=0;global.shape[i];i++) zs[i].d=shitdist(zs[i].s,global.camera.p);
+  qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d. farthest first.
   if(i > 0 && zs[i-1].s) strcpy(global.selected_object,zs[i-1].s->id);
 
   if(gra_global.split_screen > 1) {
 //oh... this will need to be a couple more lines
-   radians tmprad=d2r((degrees){camera.r.y.d+180});
-   radians tmprad2=d2r((degrees){camera.r.y.d+180});
-   camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cosl( tmprad.r ));
-   camera.p.x-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*sinl( tmprad2.r ));
+   radians tmprad=d2r((degrees){global.camera.r.y.d+180});
+   radians tmprad2=d2r((degrees){global.camera.r.y.d+180});
+   global.camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cosl( tmprad.r ));
+   global.camera.p.x-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*sinl( tmprad2.r ));
   }
   for(cn=0;cn<gra_global.split_screen;cn++) {
     set_color();//restart each draw with the default color.
@@ -386,15 +384,17 @@ void draw_screen() {
      gra_global.fps=0;
     }
     //XSetForeground(global.dpy, global.backgc, global.green.pixel);
-    if(global.debug) {
+    if(global.debug) {//the way I have text done won't scale...
+/*      draw_c2_text((cs_t){0,0},global.user);
       snprintf(tmp,sizeof(tmp)-1,"debug: %s minimap: %d 3d: %d fps: %d shapes: %d",global.debug?"on":"off",gra_global.drawminimap,gra_global.draw3d,gra_global.oldfps,global.shapes);
-      draw_cs_text((cs_t){gra_global.xoff,(gra_global.height/2)+10},tmp);
+      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+10},tmp);
       snprintf(tmp,sizeof(tmp)-1,"x: %d y: %d",gra_global.mousex,gra_global.mousey);
-      draw_cs_text((cs_t){gra_global.xoff,(gra_global.height/2)+20},tmp);
-      snprintf(tmp,sizeof(tmp)-1,"cx: %Lf cy: %Lf cz: %Lf",camera.p.x,camera.p.y,camera.p.z);
-      draw_cs_text((cs_t){gra_global.xoff,(gra_global.height/2)+30},tmp);
-      snprintf(tmp,sizeof(tmp)-1,"xr: %d yr: %d zr: %d",camera.r.x.d,camera.r.y.d,camera.r.z.d);
-      draw_cs_text((cs_t){gra_global.xoff,(gra_global.height/2)+40},tmp);
+      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+20},tmp);
+      snprintf(tmp,sizeof(tmp)-1,"cx: %Lf cy: %Lf cz: %Lf",global.camera.p.x,global.camera.p.y,global.camera.p.z);
+      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+30},tmp);
+      snprintf(tmp,sizeof(tmp)-1,"xr: %d yr: %d zr: %d",global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
+      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+40},tmp);
+*/
     }
 
 //  if(global.drawminimap) {//this isn't even useful I guess.
@@ -407,16 +407,19 @@ void draw_screen() {
 //   draw_c2_line((c2_t){10,10},(c2_t){-10,10});
 //  }
 
-   for(i=0;global.shape[i];i++) {
-    zs[i].d=shitdist(zs[i].s,camera.p);
-   }
-   qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
+    for(i=0;global.shape[i];i++) {
+     zs[i].d=shitdist(zs[i].s,global.camera.p);
+    }
+    qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
    //draw all triangles
-   if(global.debug) {
-    snprintf(tmp,sizeof(tmp)-1,"selected object: %s",global.selected_object);
-    draw_cs_text((cs_t){gra_global.xoff,(gra_global.height/2)+50},tmp);
-   }
-   for(i=0;global.shape[i];i++) {
+    if(global.debug) {
+     snprintf(tmp,sizeof(tmp)-1,"selected object: %s",global.selected_object);
+     draw_c2_text((c2_t){gra_global.xoff,(gra_global.height/2)+50},tmp);
+    }
+   //i already equals the length of the array.
+   i-=gra_global.maxshapes;
+   if(i<0) i=0;
+   for(;global.shape[i];i++) {
     //now we pick the color of this triangle!
     if(gra_global.red_and_blue) {
      if(cn%2==0) {
@@ -439,12 +442,11 @@ void draw_screen() {
     //}
    }
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
-   radians tmprad=d2r((degrees){camera.r.y.d+180});
-   radians tmprad2=d2r((degrees){camera.r.y.d+180});
-   camera.p.z+=(gra_global.split_flip)*(gra_global.split*cosl( tmprad.r ));
-   camera.p.x+=(gra_global.split_flip)*(gra_global.split*sinl( tmprad2.r ));
+   radians tmprad=d2r((degrees){global.camera.r.y.d+180});
+   radians tmprad2=d2r((degrees){global.camera.r.y.d+180});
+   global.camera.p.z+=(gra_global.split_flip)*(gra_global.split*cosl( tmprad.r ));
+   global.camera.p.x+=(gra_global.split_flip)*(gra_global.split*sinl( tmprad2.r ));
   }
-
 //TODO: figure out what all this shit is and either update or remove.
 //DONT USE WIDTH for shit.
 /*
@@ -474,7 +476,40 @@ void draw_screen() {
   y2=nextY(x1,y1,d2r(camera.yr-90),c);
   XDrawLine(global.dpy,w,gc,x1,y1,x2,y2);
 */
-  camera.p.x = oldx;
-  camera.p.z = oldz; //-= cn*CAMERA_SEPARATION;
+  global.camera.p.x = oldx;
+  global.camera.p.z = oldz; //-= cn*CAMERA_SEPARATION;
   flipscreen();
+}
+
+int graphics_init() {
+
+ global.zoom=30.0l;
+ global.camera.r.x.d=270;
+ global.camera.r.y.d=90;
+ global.camera.r.z.d=0;
+ global.mmz=1;
+ global.camera.p.x=0;
+ global.camera.p.z=-6;
+ global.camera.p.y=5;
+
+ gra_global.split_screen=SPLIT_SCREEN;
+ gra_global.split_flip=-1;
+ gra_global.split=CAMERA_SEPARATION;
+ gra_global.maxshapes=MAXSHAPES;
+ gra_global.red_and_blue=RED_AND_BLUE;
+ gra_global.greyscale=1;
+ gra_global.zsort=1;
+ if(gra_global.red_and_blue) {
+  gra_global.width=WIDTH;
+ } else {
+  gra_global.width=WIDTH*gra_global.split_screen;
+ }
+ gra_global.height=HEIGHT;
+ gra_global.mapxoff=gra_global.width/2;
+ gra_global.mapyoff=gra_global.height/2;
+ gra_global.drawminimap=DEFAULT_MINIMAP;
+ gra_global.draw3d=1;
+ gra_global.force_redraw=FORCE_REDRAW;
+ graphics_sub_init();
+ return 0;//we're fine
 }
