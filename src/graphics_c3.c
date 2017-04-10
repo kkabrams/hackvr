@@ -482,7 +482,6 @@ void draw_screen() {
 }
 
 int graphics_init() {
-
  global.zoom=30.0l;
  global.camera.r.x.d=270;
  global.camera.r.y.d=90;

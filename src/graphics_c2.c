@@ -32,7 +32,14 @@ void draw_c2_shape(c2_s_t s) {
 }
 
 void draw_c2_filled_shape(c2_s_t s) {
-  draw_c2_shape(s);//heh. TODO: fixme
+  int i;
+  cs_s_t ss;
+  ss.len=s.len;
+  ss.id=s.id;
+  for(i=0;i<s.len;i++) {
+   ss.p[i]=c2_to_cs(s.p[i]);
+  }
+  draw_cs_filled_shape(ss);
 }
 
 void draw_c2_text(c2_t p,char *text) {

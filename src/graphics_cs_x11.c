@@ -217,27 +217,27 @@ void x11_keypress_handler(int sym,int x,int y) {
     selfcommand(line);
     break;
    case XK_r:
-    snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d+5);
+    snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d+ROTATE_STEP);
     selfcommand(line);
     break;
    case XK_y:
-    snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d-5);
+    snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d-ROTATE_STEP);
     selfcommand(line);
     break;
    case XK_q:
-    snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d+5);
+    snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d+ROTATE_STEP);
     selfcommand(line);
     break;
    case XK_e:
-    snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d-5);
+    snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d-ROTATE_STEP);
     selfcommand(line);
     break;
    case XK_u:
-    snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d+5);
+    snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d+ROTATE_STEP);
     selfcommand(line);
     break;
    case XK_o:
-    snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d-5);
+    snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d-ROTATE_STEP);
     selfcommand(line);
     break;
    case XK_p:
@@ -359,11 +359,10 @@ int graphics_sub_init() {
  }
  printf("done.\n");
 */
-
  return 0;//we're fine
 }
 
-int graphics_event_handler() {
+int graphics_event_handler() { //should calling draw_screen be in here?
  int redraw=0;
  XEvent e;
  Window child,root;
@@ -419,5 +418,7 @@ int graphics_event_handler() {
       break;
   }
  }
+ redraw=1;//meh.
+ if(redraw) { draw_screen(); }
  return redraw;
 }

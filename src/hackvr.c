@@ -81,7 +81,7 @@ char **line_splitter(char *line,int *rlen) {
  return a;
 }
 
-int load_stdin() {
+int load_stdin() {//what is this returning?
  struct c3_shape s;
 // struct c3_line l;
  char *command;
@@ -385,20 +385,10 @@ int main(int argc,char *argv[]) {
   setbuf(stdout,0);
   global.debug=DEBUG;
 #ifdef GRAPHICAL
-  int redraw;
   graphics_init();
 #endif
   printf("# entering main loop\n");
   for(;;) {
-#ifdef GRAPHICAL
-    if((redraw=graphics_event_handler()) == -1) {
-     return 0;
-    }
-//    printf("redraw=%d gra_global.force_redraw=%d global.headless=%d\n",redraw,gra_global.force_redraw,global.headless);
-    //if((redraw || gra_global.force_redraw) && !global.headless) {
-    // draw_screen();
-    //}
-#endif
     switch(load_stdin()) {
      case -1:
       return 0;
@@ -406,11 +396,11 @@ int main(int argc,char *argv[]) {
      case 0:
       break;
      default:
-#ifdef GRAPHICAL
-      redraw=1;
-#endif
       break;
     }
+#ifdef GRAPHICAL
+    graphics_event_handler();//this thing should call draw_screen when it needs to.
+#endif
   }
   return 0;
 }
