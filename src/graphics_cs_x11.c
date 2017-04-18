@@ -62,7 +62,8 @@ void calculate_shape_color(c3_s_t s,real d) {
 */
 void set_color_based_on_distance(real d) {
   int i=100-((int)((d+100.0) * 16.0) % 100);
-  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[i].pixel);
+  //XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[i].pixel);
+  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[99].pixel);
 }
 
 void draw_cs_line(cs_t p1,cs_t p2) {
@@ -80,6 +81,12 @@ void draw_cs_text(cs_t p,char *text) {
 }
 
 void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it could be moved up to graphics.c? probl no.
+  //test in here whether a mouse click is within this shape's... bounding box? sure.
+  cs_s_t bb;//bounding box
+  int minx=s.p[0].x;
+  int miny=s.p[0].y;
+  int maxx=s.p[0].x;
+  int maxy=s.p[0].y;
   int h;
   int i;//all cs shapes can have 1, 2, or 3+ points. guess I gotta do that logic here too.
   switch(s.len) {
@@ -90,7 +97,31 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
     break;
    default:
     for(i=0;i<s.len+(s.len==1);i++) {//this shape is closed!
+      minx=(s.p[i].x<minx)?s.p[i].x:minx;
+      miny=(s.p[i].y<miny)?s.p[i].y:miny;
+      maxx=(s.p[i].x>maxx)?s.p[i].x:maxx;
+      maxy=(s.p[i].y>maxy)?s.p[i].y:maxy;
       draw_cs_line(s.p[i],s.p[(i+1)%(s.len+(s.len==1))]);
+    }
+    if(gra_global.mousex > minx &&
+         gra_global.mousey > miny &&
+         gra_global.mousex < maxx &&
+         gra_global.mousey < maxy) {
+      if(gra_global.buttonpressed) {//if we're inside the bounding box let's make SOMETHING happen.
+          printf("# clicked on object! %s\n",s.id);
+        }
+      bb.id=strdup("boundingbox");
+      bb.len=4;
+      bb.p[0].x=minx;
+      bb.p[0].y=miny;
+      bb.p[1].x=minx;
+      bb.p[1].y=maxy;
+      bb.p[2].x=maxx;
+      bb.p[2].y=maxy;
+      bb.p[3].x=maxx;
+      bb.p[3].y=miny;
+      draw_cs_filled_shape(bb);
+      free(bb.id);
     }
     break;
   }
@@ -181,7 +212,7 @@ void x11_keypress_handler(int sym,int x,int y) {
     tmprad2=d2r((degrees){global.camera.r.y.d+90});
     tmpx=WALK_SPEED*sinl(tmprad.r);
     tmpz=WALK_SPEED*cosl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,-tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,-tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Down:
@@ -189,7 +220,7 @@ void x11_keypress_handler(int sym,int x,int y) {
     tmprad2=d2r((degrees){global.camera.r.y.d+270});
     tmpx=WALK_SPEED*sinl(tmprad.r);
     tmpz=WALK_SPEED*cosl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,-tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,-tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Left:
@@ -197,7 +228,7 @@ void x11_keypress_handler(int sym,int x,int y) {
     tmprad2=d2r(global.camera.r.y);
     tmpx=WALK_SPEED*sinl(tmprad.r);
     tmpz=WALK_SPEED*cosl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,-tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,-tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Right:
@@ -205,15 +236,15 @@ void x11_keypress_handler(int sym,int x,int y) {
     tmprad2=d2r((degrees){global.camera.r.y.d+180});
     tmpx=WALK_SPEED*sinl(tmprad.r);
     tmpz=WALK_SPEED*cosl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf 0 0 0 0 0 0\n",global.user,-tmpx,tmpz);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,-tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_w:
-    snprintf(line,sizeof(line)-1,"%s move 0 1 0 0 0 0 0 0 0\n",global.user);
+    snprintf(line,sizeof(line)-1,"%s move 0 1 0\n",global.user);
     selfcommand(line);
     break;
    case XK_s:
-    snprintf(line,sizeof(line)-1,"%s move 0 -1 0 0 0 0 0 0 0\n",global.user);
+    snprintf(line,sizeof(line)-1,"%s move 0 -1 0\n",global.user);
     selfcommand(line);
     break;
    case XK_r:

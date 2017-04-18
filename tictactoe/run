@@ -1,0 +1,22 @@
+#!/bin/bash
+turn=$( expr $RANDOM % 2)
+echo "go. player: $turn"
+stdbuf -oL cat <(echo "$USER" move 0 -5 0) board p | ../src/hackvr_x11 "$USER" 2>/dev/null \
+  | stdbuf -oL uniq \
+  | grep --line-buffered clicked \
+  | stdbuf -oL cut '-d ' -f5 | while read group;do
+    if grep "_" <<<$group >/dev/null;then
+#     xmessage "CUT IT OUT"
+     echo CUT IT OUT > /dev/stderr
+    else
+     turn=$(expr \( $turn + 1 \) % 2)
+     printf "# turn: %d\n" "$turn" > /dev/stderr
+     printf "$USER deletegroup %s\n" "$group"
+#need to get the first point of the group clicked and translate the new shape by that much
+     translatex="$(grep "$group" board | grep -v '^#' | tr -s ' ' | cut '-d ' -f5)"
+     translatey="$(grep "$group" board | grep -v '^#' | tr -s ' ' | cut '-d ' -f6)"
+     cat "marker$turn"
+     printf "%s move 0 %s %s\n" "_marker" "$(expr "$translatex")" "$(expr -1 \* "$translatey" + 2)"
+     printf "%s renamegroup _marker _marker%s%s\n" "$USER" "$(date +%s)" "$RANDOM"
+    fi
+  done > p

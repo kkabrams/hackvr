@@ -84,6 +84,7 @@ char **line_splitter(char *line,int *rlen) {
 int load_stdin() {//what is this returning?
  struct c3_shape s;
 // struct c3_line l;
+ c3_group_rot_t *gr;
  char *command;
  char *line;
  char *id;
@@ -173,15 +174,16 @@ int load_stdin() {//what is this returning?
    continue;
   }
   if(!strcmp(command,"deletegroup")) {
-   for(j=0;global.shape[j];j++) {//mark first. compress later.
-    if(!strcmp(global.shape[j]->id,s.id)) {//??? where is s.id supposed to be set from?
-     free(global.shape[j]->id);
-     free(global.shape[j]);
+   for(j=0;global.shape[j];j++) {
+    if(!strcmp(global.shape[j]->id,a[2])) {
+//     free(global.shape[j]->id);
+//     free(global.shape[j]);
      global.shape[j]=0;
     }
    }
    l=0;
    for(k=0;k<j;k++) {
+    l=k;
     while(global.shape[l] == 0 && l < j) l++;
     global.shape[k]=global.shape[l];
    }
@@ -205,6 +207,11 @@ int load_stdin() {//what is this returning?
       free(global.shape[j]->id);
       global.shape[j]->id=strdup(a[3]);
      }
+    }
+    gr=get_group_rotation(a[2]);
+    if(gr) {
+     free(gr->id);
+     gr->id=strdup(a[3]);
     }
    }
    continue;

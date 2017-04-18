@@ -185,7 +185,9 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
   s2.len=s.len;
   c3_group_rot_t *gr=get_group_rotation(s.id);
   for(i=0;i<s.len+(s.len==1);i++) {
+    //this is causing rotation even when values are 0. this should not be. this is why the tictactoe game has hacks.
     s2.p[i]=c3_to_c2(gr?c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y))):s.p[i]);
+    //s2.p[i]=c3_to_c2(s.p[i]);
   }
   if(gra_global.draw3d == 1) {
     draw_c2_shape(s2);
@@ -218,7 +220,6 @@ void draw_graph(real (*fun)(real x)) {
   draw_c2_line((c2_t){pa.x,fun(pa.x)},(c2_t){pa.x+1.0,fun(pa.x+1.0)});
  }
 }
-
 
 void draw_c3_line(c3_t p1,c3_t p2) {
 // if(!between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p1.x,p1.z}),0,90) ||
@@ -373,7 +374,7 @@ void draw_screen() {
      //XCopyArea(global.dpy,skypixmap,global.backbuffer,global.backgc,((camera.yr*5)+SKYW)%SKYW,0,WIDTH,global.height/2,0,0);
     }
     if(gra_global.draw3d) {
-      draw_c2_line((c2_t){LEFT,0},(c2_t){RIGHT,0}); //horizon
+//      draw_c2_line((c2_t){LEFT,0},(c2_t){RIGHT,0}); //horizon
     }
     if(time(0) == gra_global.oldtime) {
      gra_global.fps++;
@@ -385,16 +386,21 @@ void draw_screen() {
     }
     //XSetForeground(global.dpy, global.backgc, global.green.pixel);
     if(global.debug) {//the way I have text done won't scale...
-/*      draw_c2_text((cs_t){0,0},global.user);
+//      draw_c2_text((cs_t){0,0},global.user);
+//      fprintf(stderr,"\x1b[H");
+//      fprintf(stderr,"\x1b[2J");
       snprintf(tmp,sizeof(tmp)-1,"debug: %s minimap: %d 3d: %d fps: %d shapes: %d",global.debug?"on":"off",gra_global.drawminimap,gra_global.draw3d,gra_global.oldfps,global.shapes);
-      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+10},tmp);
+      fprintf(stderr,"%s\n",tmp);
+//      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+10},tmp);
       snprintf(tmp,sizeof(tmp)-1,"x: %d y: %d",gra_global.mousex,gra_global.mousey);
-      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+20},tmp);
+      fprintf(stderr,"%s\n",tmp);
+//      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+20},tmp);
       snprintf(tmp,sizeof(tmp)-1,"cx: %Lf cy: %Lf cz: %Lf",global.camera.p.x,global.camera.p.y,global.camera.p.z);
-      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+30},tmp);
+      fprintf(stderr,"%s\n",tmp);
+//      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+30},tmp);
       snprintf(tmp,sizeof(tmp)-1,"xr: %d yr: %d zr: %d",global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
-      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+40},tmp);
-*/
+      fprintf(stderr,"%s\n",tmp);
+//      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+40},tmp);
     }
 
 //  if(global.drawminimap) {//this isn't even useful I guess.
@@ -413,8 +419,8 @@ void draw_screen() {
     qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
    //draw all triangles
     if(global.debug) {
-     snprintf(tmp,sizeof(tmp)-1,"selected object: %s",global.selected_object);
-     draw_c2_text((c2_t){gra_global.xoff,(gra_global.height/2)+50},tmp);
+     //snprintf(tmp,sizeof(tmp)-1,"selected object: %s",global.selected_object);
+     //draw_c2_text((c2_t){gra_global.xoff,(gra_global.height/2)+50},tmp);
     }
    //i already equals the length of the array.
    i-=gra_global.maxshapes;
