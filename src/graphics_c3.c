@@ -19,8 +19,6 @@
 #include "graphics_c2.h"//we're using these functions make them.
 #include "graphics_cs.h"//we'll need generic function that don't give a damn about which dimension it is?
 
-//typedef float real; //think this conflicts?
-
 //TODO: will have to make some pixmaps get resized when the window does.
 //for now set them to be as big as you think you'll ever resize the window to.
 
@@ -173,8 +171,10 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
   real delta_y=(global.camera.p.y - final.y);
   real delta_z=(global.camera.p.z - final.z);
 //  real d=distance3(camera.p,final);
-  p2.y=global.zoom * (delta_y * MAGIC(delta_z) - delta_y);
   p2.x=global.zoom * (delta_x * MAGIC(delta_z) - delta_x);
+  p2.y=global.zoom * (delta_y * MAGIC(delta_z) - delta_y);
+//  p2.x=global.zoom * (delta_x * MAGIC(delta_z));
+//  p2.y=global.zoom * (delta_y * MAGIC(delta_z));//dunno if this is better or not.
   return p2;
 }
 
@@ -186,6 +186,7 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
   c3_group_rot_t *gr=get_group_rotation(s.id);
   for(i=0;i<s.len+(s.len==1);i++) {
     //this is causing rotation even when values are 0. this should not be. this is why the tictactoe game has hacks.
+    //I think this is fixed now.
     s2.p[i]=c3_to_c2(gr?c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y))):s.p[i]);
     //s2.p[i]=c3_to_c2(s.p[i]);
   }
@@ -262,7 +263,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
                     s->p[i],global.camera.p
                   ,d2r(global.camera.r.y))
               ,global.camera.p);
- }
+ }//why the fuck are we rotating this around the camera? that shouldn't make any difference to the distance from the camera...
  return (total) / (real)(s->len+(s->len==1));
 }
 
@@ -350,7 +351,7 @@ void draw_screen() {
   if(i > 0 && zs[i-1].s) strcpy(global.selected_object,zs[i-1].s->id);
 
   if(gra_global.split_screen > 1) {
-//oh... this will need to be a couple more lines
+//oh... this will need to be a couple more lines... of what? I forgot. -Sep 2017
    radians tmprad=d2r((degrees){global.camera.r.y.d+180});
    radians tmprad2=d2r((degrees){global.camera.r.y.d+180});
    global.camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cosl( tmprad.r ));
@@ -370,11 +371,12 @@ void draw_screen() {
      set_clipping_rectangle(gra_global.xoff,0,gra_global.width/gra_global.split_screen,gra_global.height);//
     }
     if(gra_global.drawminimap == 3) { draw_graph(magic); continue; }
-    if(gra_global.drawsky) {
+    if(gra_global.drawsky) { //draw_sky() should be a function in an engine specific file.
+     //draw_sky();//???p?
      //XCopyArea(global.dpy,skypixmap,global.backbuffer,global.backgc,((camera.yr*5)+SKYW)%SKYW,0,WIDTH,global.height/2,0,0);
     }
     if(gra_global.draw3d) {
-//      draw_c2_line((c2_t){LEFT,0},(c2_t){RIGHT,0}); //horizon
+      draw_c2_line((c2_t){LEFT,0},(c2_t){RIGHT,0}); //horizon
     }
     if(time(0) == gra_global.oldtime) {
      gra_global.fps++;
@@ -384,7 +386,6 @@ void draw_screen() {
      gra_global.oldfps=gra_global.fps;
      gra_global.fps=0;
     }
-    //XSetForeground(global.dpy, global.backgc, global.green.pixel);
     if(global.debug) {//the way I have text done won't scale...
 //      draw_c2_text((cs_t){0,0},global.user);
 //      fprintf(stderr,"\x1b[H");
@@ -453,49 +454,24 @@ void draw_screen() {
    global.camera.p.z+=(gra_global.split_flip)*(gra_global.split*cosl( tmprad.r ));
    global.camera.p.x+=(gra_global.split_flip)*(gra_global.split*sinl( tmprad2.r ));
   }
-//TODO: figure out what all this shit is and either update or remove.
-//DONT USE WIDTH for shit.
-/*
-  x1=nextX(WIDTH/2,HEIGHT/2,d2r(camera.yr),40);
-  y1=nextY(WIDTH/2,HEIGHT/2,d2r(camera.yr),40);
-  x2=nextX(WIDTH/2,HEIGHT/2,d2r(camera.yr+180),80);
-  y2=nextY(WIDTH/2,HEIGHT/2,d2r(camera.yr+180),80);
-  XDrawLine(global.dpy,w,gc,WIDTH/2,HEIGHT/2,x1,y1);
-  XDrawLine(global.dpy,w,gc,WIDTH/2,HEIGHT/2,x2,y2);
-
-  XDrawLine(global.dpy,w,gc,0,HEIGHT/2,WIDTH,HEIGHT/2);
-
-  x1=global.mousex;
-  y1=global.mousey;
-  real a=points_to_angle((c2_t){0,0},cs_to_c2((cs_t){x1,y1}));
-
-  snprintf(tmp,sizeof(tmp)-1,"%llf",a);
-  XTextExtents(font,tmp,strlen(tmp),&direction,&ascent,&descent,&overall);
-  XDrawString(global.dpy,w,gc,global.xoff,(descent+0+ascent)*6,tmp,strlen(tmp));
-  snprintf(tmp,sizeof(tmp)-1,"%llf",points_to_angle(cs_to_c2((cs_t){global.mousex,global.mousey}),(c2_t){0,0})+(M_PIl/2));
-  XTextExtents(font,tmp,strlen(tmp),&direction,&ascent,&descent,&overall);
-  XDrawString(global.dpy,w,gc,global.xoff,(descent+0+ascent)*7,tmp,strlen(tmp));
-  XDrawLine(global.dpy,w,gc,global.mousex,global.mousey,global.width/2,global.height/2);
-
-  real c=cosl(d2r(camera.yr) - a) * distance((c2_t){x1,y1},(c2_t){WIDTH/2,HEIGHT/2});
-  x2=nextX(x1,y1,d2r(camera.yr-90),c);
-  y2=nextY(x1,y1,d2r(camera.yr-90),c);
-  XDrawLine(global.dpy,w,gc,x1,y1,x2,y2);
-*/
+//just draw a line from center to 40 away from the center at the angle of the camera's y-rotation
+  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.camera.r.y)));
+//draw a line from the center to 80 away from the center in the angle of what should point at the mouse.
+  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},cs_to_c2((cs_t){gra_global.mousex,gra_global.mousey}))));
   global.camera.p.x = oldx;
   global.camera.p.z = oldz; //-= cn*CAMERA_SEPARATION;
   flipscreen();
 }
 
 int graphics_init() {
- global.zoom=30.0l;
- global.camera.r.x.d=270;
- global.camera.r.y.d=90;
+ global.zoom=1.0l;//I think if this is set to 1, then 1 3d unit is 1 2d unit?
+ global.camera.r.x.d=0;
+ global.camera.r.y.d=0;
  global.camera.r.z.d=0;
- global.mmz=1;
+ global.mmz=1;//this is minimap zoom.
  global.camera.p.x=0;
+ global.camera.p.y=0;
  global.camera.p.z=-6;
- global.camera.p.y=5;
 
  gra_global.split_screen=SPLIT_SCREEN;
  gra_global.split_flip=-1;
