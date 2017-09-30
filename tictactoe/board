@@ -1,11 +1,13 @@
-topleft addshape 4 0 -3 3 0 -1 3 0 -1 1 0 -3 1
-topcenter addshape 4 0 -1 3 0 1 3 0 1 1 0 -1 1
-topright addshape 4 0 1 3 0 3 3 0 3 1 0 1 1
+junk set global.zoom 64
 
-middleleft addshape 4 0 -3 1 0 -1 1 0 -1 -1 0 -3 -1
-middlecenter addshape 4 0 -1 1 0 1 1 0 1 -1 0 -1 -1
-middleright addshape 4 0 1 1 0 3 1 0 3 -1 0 1 -1
+topleft addshape 4 -3 3 0 -1 3 0 -1 1 0 -3 1 0
+topcenter addshape 4 -1 3 0 1 3 0 1 1 0 -1 1 0
+topright addshape 4 1 3 0 3 3 0 3 1 0 1 1 0
 
-bottomleft addshape 4 0 -3 -1 0 -1 -1 0 -1 -3 0 -3 -3
-bottomcenter addshape 4 0 -1 -1 0 1 -1 0 1 -3 0 -1 -3
-bottomright addshape 4 0 1 -1 0 3 -1 0 3 -3 0 1 -3
+middleleft addshape 4 -3 1 0 -1 1 0 -1 -1 0 -3 -1 0
+middlecenter addshape 4 -1 1 0 1 1 0 1 -1 0 -1 -1 0
+middleright addshape 4 1 1 0 3 1 0 3 -1 0 1 -1 0
+
+bottomleft addshape 4 -3 -1 0 -1 -1 0 -1 -3 0 -3 -3 0
+bottomcenter addshape 4 -1 -1 0 1 -1 0 1 -3 0 -1 -3 0
+bottomright addshape 4 1 -1 0 3 -1 0 3 -3 0 1 -3 0
