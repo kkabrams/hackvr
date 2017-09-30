@@ -35,15 +35,14 @@ c3_t rotate_c3_zr(c3_t p1,c3_t p2,radians zr) {//rotate x and y around camera ba
 //sin(90deg) = 1
 //cos(0) = 1
 //cos(90deg) = 0
-c2_t rotate_c2(c2_t p1,c2_t p2,radians dr) {//dr is in radians
+//// rotate first point about second point
+c2_t rotate_c2(c2_t p1,c2_t p2,radians dr) {
   c2_t p3;
   real d=distance2(p1,p2);
-  radians r=points_to_angle(p1,p2);
+  radians r=points_to_angle(p2,p1);
   r.r=r.r+dr.r;
-  p3.x=(sinl(r.r) * d) + p2.x;//switchiing this to cos and the next line to sin seems
-  p3.y=(cosl(r.r) * d) + p2.y;//to make some bug less weird.
-//  p3.x=(cosl(r.r) * d) + p2.x;//switchiing this to cos and the next line to sin seems
-//  p3.y=(sinl(r.r) * d) + p2.y;//to make some bug less weird.
+  p3.x=(cosl(r.r) * d) + p2.x;
+  p3.y=(sinl(r.r) * d) + p2.y;
   return p3;
 }
 real distance2(c2_t p1,c2_t p2) {
@@ -54,6 +53,7 @@ radians d2r(degrees d) {
  while(d.d<0) d.d+=360;
  return (radians){(real)(d.d%360) / (real)180 * M_PIl};
 }
+//the angle from the first point to the second point. not the other way around.
 radians points_to_angle(c2_t p1,c2_t p2) {
   real a=atan2l(p2.y-p1.y,p2.x-p1.x);
   return (radians){a>=0?a:M_PIl+M_PIl+a};
