@@ -1,1 +1,7 @@
 *.o
+hackvr
+src/hackvr
+src/hackvr_headless
+src/hackvr_x11
+src/hackvr_opengl
+src/slowcat
