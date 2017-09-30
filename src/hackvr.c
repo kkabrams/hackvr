@@ -359,7 +359,7 @@ int load_stdin() {//what is this returning?
     global.group_rot[i]->p.z+=strtold(a[4],0);
    }
    else {
-    printf("# ERROR: wrong amount of parts for move. got: %d expected: 11\n",len);
+    printf("# ERROR: wrong amount of parts for move. got: %d expected: 4\n",len);
    }
    continue;
   }
