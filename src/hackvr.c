@@ -53,7 +53,7 @@ char *read_line_hack(FILE *fp,int len) {
 //warning: clobbers input
 //skips leading and trailing space.
 //compresses multiple spaces to one.
-//return length of array
+//returns pointer to array of strings. second argument is return by reference length of returned array.
 char **line_splitter(char *line,int *rlen) {
  char **a;
  int len,i=0;
@@ -81,14 +81,14 @@ char **line_splitter(char *line,int *rlen) {
  return a;
 }
 
-int load_stdin() {//what is this returning?
+int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw, and 1 to ask for redraw
  struct c3_shape s;
 // struct c3_line l;
  c3_group_rot_t *gr;
  char *command;
- char *line;
+ char *line=0;
  char *id;
- char **a;
+ char **a=0;
  int len;
  int ret=0;
  int j,k,l;
@@ -117,10 +117,11 @@ int load_stdin() {//what is this returning?
  }
  if(FD_ISSET(0,&readfs)) {*/
 //#endif
- while((line=read_line_hack(stdin,0))) {//load as long there's something to load
+ while((line=line?free(line),read_line_hack(stdin,0):read_line_hack(stdin,0))) {//load as long there's something to load
   if(*line == '#') return 0;
 //  printf("# read command: %s\n",line);
-  a=line_splitter(line,&len);
+ if(a) free(a);
+ a=line_splitter(line,&len);
 //  for(i=0;i<len;i++) {
 //   printf("\"%s\" ",a[i]);
 //  }
@@ -146,15 +147,15 @@ int load_stdin() {//what is this returning?
     printf("#   dump\n");
     printf("#   quit\n");
     printf("#   set\n");
-    printf("#   addshape\n");
+    printf("#   addshape N x1 y1 z1 ... xN yN zN\n");
     printf("#   export\n");
-    printf("#   scaleup\n");
-    printf("#   move\n");
+    printf("#   scaleup x y z\n");
+    printf("#   move x y z\n");
     printf("# that is all.\n");
-    return 0;
+    continue;
    } else {
     printf("# ur not doing it right. '%s'\n",id);
-    return 0;
+    continue;
    }
   }
   ret=1;
@@ -171,6 +172,7 @@ int load_stdin() {//what is this returning?
     while(global.shape[l] == 0 && l < j) l++;
     global.shape[k]=global.shape[l];
    }
+   ret=1;
    continue;
   }
   if(!strcmp(command,"deletegroup")) {
@@ -187,6 +189,7 @@ int load_stdin() {//what is this returning?
     while(global.shape[l] == 0 && l < j) l++;
     global.shape[k]=global.shape[l];
    }
+   ret=1;
    continue;
   }
   if(!strcmp(command,"assimilate")) {
@@ -198,6 +201,7 @@ int load_stdin() {//what is this returning?
      }
     }
    }
+   ret=1;
    continue;
   }
   if(!strcmp(command,"renamegroup")) {
@@ -214,7 +218,14 @@ int load_stdin() {//what is this returning?
      gr->id=strdup(a[3]);
     }
    }
+   ret=1;
    continue;
+  }
+  if(!strcmp(command,"status")) {
+#ifdef GRAPHICAL
+   printf("# fps: %d\n",gra_global.fps);
+   continue;
+#endif
   }
   if(!strcmp(command,"dump")) {
    printf("%s set global.camera.p.x %Lf\n",global.user,global.camera.p.x);
@@ -243,6 +254,7 @@ int load_stdin() {//what is this returning?
     else if(!strcmp(a[2],"camera.r.z")) global.camera.r.z.d=atoi(a[3]);
 #endif
     else printf("# unknown variable: %s\n",a[2]);
+    ret=1;
     continue;
    }
 #ifdef GRAPHICAL
@@ -251,6 +263,7 @@ int load_stdin() {//what is this returning?
 #endif
    else { printf("# unknown variable: %s\n",a[2]); continue; }
    printf("# %s toggled!\n",a[2]);
+   ret=1;
    continue;
   }
   if(!strcmp(command,"addshape")) {//need to add a grouprot with this.
@@ -289,6 +302,7 @@ int load_stdin() {//what is this returning?
      global.group_rot[i]->r.z=(degrees){0};
     }
    }
+   ret=1;
    continue;
   }
   if(!strcmp(command,"export")) {
@@ -316,6 +330,7 @@ int load_stdin() {//what is this returning?
      }
     }
    }
+   ret=1;
    continue;
   }
   if(!strcmp(command,"rotate")) {
@@ -337,6 +352,7 @@ int load_stdin() {//what is this returning?
     global.group_rot[i]->r.y=(degrees){atoi(a[3])};
     global.group_rot[i]->r.z=(degrees){atoi(a[4])};
    }
+   ret=1;
    continue;
   }
   if(!strcmp(command,"move")) {
@@ -361,11 +377,11 @@ int load_stdin() {//what is this returning?
    else {
     printf("# ERROR: wrong amount of parts for move. got: %d expected: 4\n",len);
    }
+   ret=1;
    continue;
   }
   printf("# I don't know what command you're talking about. %s\n",command);
-  free(line);
-  if(a) free(a);
+  //I used to have free(line) here, but this place is never gotten to if a command is found so it wasn't getting released.
  }
  return ret;
 }
@@ -381,6 +397,7 @@ int export_file(FILE *fp) {//not used yet. maybe export in obj optionally? no. t
 }
 
 int main(int argc,char *argv[]) {
+  char redraw;
   if(argc < 2) {
    fprintf(stderr,"usage: hackvr yourname < from_others > to_others\n");
    return 1;
@@ -396,7 +413,7 @@ int main(int argc,char *argv[]) {
 #endif
   printf("# entering main loop\n");
   for(;;) {
-    switch(load_stdin()) {
+    switch(redraw=load_stdin()) {
      case -1:
       return 0;
       break;
@@ -406,8 +423,9 @@ int main(int argc,char *argv[]) {
       break;
     }
 #ifdef GRAPHICAL
-    graphics_event_handler();//this thing should call draw_screen when it needs to.
+    graphics_event_handler(redraw);//this thing should call draw_screen when it needs to.
 #endif
+   sleep(.01);
   }
   return 0;
 }
