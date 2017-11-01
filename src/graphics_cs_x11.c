@@ -62,8 +62,8 @@ void calculate_shape_color(c3_s_t s,real d) {
 */
 void set_color_based_on_distance(real d) {
   int i=100-((int)((d+100.0) * 16.0) % 100);
-  //XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[i].pixel);
-  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[99].pixel);
+  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[i].pixel);
+  //XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[99].pixel);
 }
 
 void draw_cs_line(cs_t p1,cs_t p2) {
@@ -210,33 +210,33 @@ void x11_keypress_handler(int sym,int x,int y) {
    case XK_Up:
     tmprad=d2r((degrees){global.camera.r.y.d+90});
     tmprad2=d2r((degrees){global.camera.r.y.d+90});
-    tmpx=WALK_SPEED*sinl(tmprad.r);
-    tmpz=WALK_SPEED*cosl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,-tmpx,tmpz);
+    tmpx=WALK_SPEED*cosl(tmprad.r);
+    tmpz=WALK_SPEED*sinl(tmprad2.r);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Down:
     tmprad=d2r((degrees){global.camera.r.y.d+270});
     tmprad2=d2r((degrees){global.camera.r.y.d+270});
-    tmpx=WALK_SPEED*sinl(tmprad.r);
-    tmpz=WALK_SPEED*cosl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,-tmpx,tmpz);
+    tmpx=WALK_SPEED*cosl(tmprad.r);
+    tmpz=WALK_SPEED*sinl(tmprad2.r);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Left:
-    tmprad=d2r(global.camera.r.y);
-    tmprad2=d2r(global.camera.r.y);
-    tmpx=WALK_SPEED*sinl(tmprad.r);
-    tmpz=WALK_SPEED*cosl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,-tmpx,tmpz);
+    tmprad=d2r((degrees){global.camera.r.y.d+180});
+    tmprad2=d2r((degrees){global.camera.r.y.d+180});
+    tmpx=WALK_SPEED*cosl(tmprad.r);
+    tmpz=WALK_SPEED*sinl(tmprad2.r);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_Right:
-    tmprad=d2r((degrees){global.camera.r.y.d+180});
-    tmprad2=d2r((degrees){global.camera.r.y.d+180});
-    tmpx=WALK_SPEED*sinl(tmprad.r);
-    tmpz=WALK_SPEED*cosl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,-tmpx,tmpz);
+    tmprad=d2r((degrees){global.camera.r.y.d+0});
+    tmprad2=d2r((degrees){global.camera.r.y.d+0});
+    tmpx=WALK_SPEED*cosl(tmprad.r);
+    tmpz=WALK_SPEED*sinl(tmprad2.r);
+    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
     selfcommand(line);
     break;
    case XK_w:
@@ -278,7 +278,10 @@ void x11_keypress_handler(int sym,int x,int y) {
     gra_global.split-=.1;
     break;
    case XK_z: global.zoom+=1; break;
-   case XK_x: global.zoom-=1; break;
+   case XK_x:
+    global.zoom-=1;
+    if(global.zoom < 1) global.zoom=1;
+    break;
    case XK_c: global.mmz*=1.1; break;
    case XK_v: global.mmz/=1.1; break;
    case XK_h: global.split+=1; break;
@@ -393,11 +396,12 @@ int graphics_sub_init() {
  return 0;//we're fine
 }
 
-int graphics_event_handler() { //should calling draw_screen be in here?
+int graphics_event_handler(int world_changed) { //should calling draw_screen be in here?
  int redraw=0;
  XEvent e;
  Window child,root;
  //what sets mask?
+ char motionnotify=0;
  unsigned int mask;
  while(XPending(x11_global.dpy)) {//these are taking too long?
   XNextEvent(x11_global.dpy, &e);
@@ -408,8 +412,7 @@ int graphics_event_handler() { //should calling draw_screen be in here?
 //         break;
     case MotionNotify:
       if(global.debug >= 2) printf("# MotionNotify\n");
-      XQueryPointer(x11_global.dpy,x11_global.w,&root,&child,&gra_global.rmousex,&gra_global.rmousey,&gra_global.mousex,&gra_global.mousey,&mask);
-      redraw=1;
+      motionnotify=1;
       break;
     case ButtonPress:
       if(global.debug >= 2) printf("# ButtonPress\n");
@@ -449,7 +452,11 @@ int graphics_event_handler() { //should calling draw_screen be in here?
       break;
   }
  }
- redraw=1;//meh.
- if(redraw) { draw_screen(); }
+ if(motionnotify) {
+  XQueryPointer(x11_global.dpy,x11_global.w,&root,&child,&gra_global.rmousex,&gra_global.rmousey,&gra_global.mousex,&gra_global.mousey,&mask);
+  redraw=1;
+ }
+ //redraw=1;//meh.
+ if(redraw || world_changed) { draw_screen(); }
  return redraw;
 }
