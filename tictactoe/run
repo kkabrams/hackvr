@@ -19,6 +19,7 @@ stdbuf -oL cat board p | ../src/hackvr_x11 "$USER"  \
      cat "marker$turn"
      printf "%s move %s %s 0\n" "_marker" "$(expr "$translatex")" "$(expr "$translatey" - 2 )"
      printf "%s move %s %s 0\n" "_marker" "$(expr "$translatex")" "$(expr "$translatey" - 2 )" >/dev/stderr
+     grep "$group" board | sed "s/$group/_marker2/g"
      printf "%s renamegroup _marker _marker%s%s\n" "$USER" "$(date +%s)" "$RANDOM"
     fi
   done > p
