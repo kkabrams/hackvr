@@ -188,6 +188,7 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
     //this is causing rotation even when values are 0. this should not be. this is why the tictactoe game has hacks.
     //I think this is fixed now.
     s2.p[i]=c3_to_c2(gr?c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y))):s.p[i]);
+    //this is only applying rotation around the y axis... gotta do this for x and z? uh oh. this could get weird.
     //s2.p[i]=c3_to_c2(s.p[i]);
   }
   if(gra_global.draw3d == 1) {
@@ -393,7 +394,7 @@ void draw_screen() {
       snprintf(tmp,sizeof(tmp)-1,"debug: %s minimap: %d 3d: %d fps: %d shapes: %d",global.debug?"on":"off",gra_global.drawminimap,gra_global.draw3d,gra_global.oldfps,global.shapes);
       fprintf(stderr,"%s\n",tmp);
 //      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+10},tmp);
-      snprintf(tmp,sizeof(tmp)-1,"x: %d y: %d",gra_global.mousex,gra_global.mousey);
+//      snprintf(tmp,sizeof(tmp)-1,"x: %d y: %d",gra_global.mousex,gra_global.mousey);
       fprintf(stderr,"%s\n",tmp);
 //      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+20},tmp);
       snprintf(tmp,sizeof(tmp)-1,"cx: %Lf cy: %Lf cz: %Lf",global.camera.p.x,global.camera.p.y,global.camera.p.z);
@@ -426,6 +427,7 @@ void draw_screen() {
    //i already equals the length of the array.
    i-=gra_global.maxshapes;
    if(i<0) i=0;
+
    for(;global.shape[i];i++) {
     //now we pick the color of this triangle!
     if(gra_global.red_and_blue) {
@@ -448,6 +450,7 @@ void draw_screen() {
      draw_c3_shape(*(zs[i].s));
     //}
    }
+
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
    radians tmprad=d2r((degrees){global.camera.r.y.d+180});
    radians tmprad2=d2r((degrees){global.camera.r.y.d+180});
@@ -455,9 +458,10 @@ void draw_screen() {
    global.camera.p.x+=(gra_global.split_flip)*(gra_global.split*sinl( tmprad2.r ));
   }
 //just draw a line from center to 40 away from the center at the angle of the camera's y-rotation
-  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.camera.r.y)));
+//this should be minimap shit  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.camera.r.y)));
 //draw a line from the center to 80 away from the center in the angle of what should point at the mouse.
-  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},cs_to_c2((cs_t){gra_global.mousex,gra_global.mousey}))));
+//  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},cs_to_c2((cs_t){gra_global.mousex,gra_global.mousey}))));
+//  draw_c2_line((c2_t){0,0},cs_to_c2((cs_t){gra_global.mousex,gra_global.mousey}));
   global.camera.p.x = oldx;
   global.camera.p.z = oldz; //-= cn*CAMERA_SEPARATION;
   flipscreen();
@@ -494,3 +498,4 @@ int graphics_init() {
  graphics_sub_init();
  return 0;//we're fine
 }
+
