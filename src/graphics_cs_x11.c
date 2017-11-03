@@ -108,7 +108,7 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
          gra_global.mousex < maxx &&
          gra_global.mousey < maxy) {
       if(gra_global.buttonpressed) {//if we're inside the bounding box let's make SOMETHING happen.
-          printf("# clicked on object! %s\n",s.id);
+          printf("%s action %s\n",global.user,s.id);
         }
       bb.id=strdup("boundingbox");
       bb.len=4;
