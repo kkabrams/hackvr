@@ -14,6 +14,7 @@ c3_t rotate_c3_yr(c3_t p1,c3_t p2,radians yr);
 c3_t rotate_c3_zr(c3_t p1,c3_t p2,radians zr);
 c3_group_rot_t *get_group_rotation(char *id);
 radians d2r(degrees d);
+degrees r2d(radians r);
 radians points_to_angle(c2_t p1,c2_t p2);
 
 #endif

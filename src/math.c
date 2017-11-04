@@ -49,6 +49,10 @@ real distance2(c2_t p1,c2_t p2) {
  return sqrtl(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) ));
 }
 
+degrees r2d(radians r) {
+ return (degrees){(r.r * (real)180 / M_PIl) };
+}
+
 radians d2r(degrees d) {
  while(d.d<0) d.d+=360;
  return (radians){(real)(d.d%360) / (real)180 * M_PIl};
