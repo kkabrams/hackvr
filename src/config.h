@@ -7,7 +7,7 @@
 #define AR_H 3
 
 #define DEBUG 0
-#define WALK_SPEED -1
+#define WALK_SPEED 1
 #define SPLIT_SCREEN 1
 #define CAMERA_SEPARATION -1
 #define RED_AND_BLUE 0
