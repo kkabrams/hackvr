@@ -48,30 +48,15 @@ real distance3(c3_t p1,c3_t p2) {
  return sqrtl(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) )+( (p1.z-p2.z)*(p1.z-p2.z) ));
 }
 
-/*
-real points_to_angle(c2_t p1,c2_t p2) {
-  real a=atan2l(p2.y-p1.y,p2.x-p1.x);
-  return a>=0?a:M_PIl+M_PIl+a;
-}
-*/
-/*
-real d2r(int d) {
- while(d<0) d+=360;
- return (real)(d%360) / (real)180 * M_PIl;
-}*/
-int r2d(real r) {
- return r / M_PIl * 180;
-}
-
-int between_angles(real angle,real lower,real upper) {
+int between_angles(degrees d,real lower,real upper) {
   //lower may be higher than upper.
   //because lower is < 0 which wraps to higher. lower is 270, upper is 90. 270-90 is in front.
   if(lower > upper) {
-    if(angle > lower) return 1;
-    if(angle < upper) return 1;
+    if(d.d > lower) return 1;
+    if(d.d < upper) return 1;
   }
   if(upper > lower) {
-    if(angle > lower && angle < upper) return 1;
+    if(d.d > lower && d.d < upper) return 1;
   }
   return 0;
 }
@@ -178,15 +163,37 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
   return p2;
 }
 
+void draw_minimap_line(c3_t p1,c3_t p2) {
+ if(gra_global.drawminimap == 1) {
+  draw_c2_line((c2_t){(global.camera.p.x-2)*global.mmz,(global.camera.p.z+2)*global.mmz},(c2_t){(global.camera.p.x+2)*global.mmz,(global.camera.p.z-2)*global.mmz});
+  draw_c2_line((c2_t){(global.camera.p.x+2)*global.mmz,(global.camera.p.z+2)*global.mmz},(c2_t){(global.camera.p.x-2)*global.mmz,(global.camera.p.z-2)*global.mmz});
+  draw_c2_line((c2_t){p1.x*global.mmz,p1.z*global.mmz},(c2_t){p2.x*global.mmz,p2.z*global.mmz});
+ }
+ if(gra_global.drawminimap == 2) {//map rotates.
+  c3_t t1=rotate_c3_yr(p1,global.camera.p,d2r(global.camera.r.y));
+  c3_t t2=rotate_c3_yr(p2,global.camera.p,d2r(global.camera.r.y));
+  draw_c2_line((c2_t){t1.x*global.mmz,t1.z*global.mmz},(c2_t){t2.x*global.mmz,t2.z*global.mmz});
+ }
+}
+
 void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shit in here too? probably...
   int i;
+  char drawthefucker=0;//I don't wanna!
   c2_s_t s2;
+  radians r;
   s2.id=s.id;//it shouldn't disappear and we shouldn't need to make a copy.
   s2.len=s.len;
   c3_group_rot_t *gr=get_group_rotation(s.id);
   for(i=0;i<s.len+(s.len==1);i++) {
-    //this is causing rotation even when values are 0. this should not be. this is why the tictactoe game has hacks.
-    //I think this is fixed now.
+   r=points_to_angle((c2_t){global.camera.p.x,global.camera.p.z},(c2_t){s.p[i].x,s.p[i].z});
+   if(between_angles(r2d(r),0,180)) {
+    drawthefucker=1;//damn it.
+    break;//might as well cut this short. we have to draw this bastard now. :/
+   }
+  }
+  if(!drawthefucker) return;//fuck yeah. didn't have to do all that other crap.
+  for(i=0;i<s.len+(s.len==1);i++) {
+    if(i>1) draw_minimap_line(s.p[i],s.p[(i+1)%s.len]);
     s2.p[i]=c3_to_c2(gr?c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y))):s.p[i]);
     //this is only applying rotation around the y axis... gotta do this for x and z? uh oh. this could get weird.
     //s2.p[i]=c3_to_c2(s.p[i]);
@@ -220,25 +227,6 @@ void draw_graph(real (*fun)(real x)) {
  }
  for(pa.x=LEFT;pa.x<RIGHT;pa.x+=1.0) {
   draw_c2_line((c2_t){pa.x,fun(pa.x)},(c2_t){pa.x+1.0,fun(pa.x+1.0)});
- }
-}
-
-void draw_c3_line(c3_t p1,c3_t p2) {
-// if(!between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p1.x,p1.z}),0,90) ||
-//    !between_angles(points_to_angle((c2_t){camera.p.x,camera.p.z},(c2_t){p2.x,p2.z}),0,90)) return;
- if(gra_global.drawminimap == 1) {
-  draw_c2_line((c2_t){(global.camera.p.x-2)*global.mmz,(global.camera.p.z+2)*global.mmz},(c2_t){(global.camera.p.x+2)*global.mmz,(global.camera.p.z-2)*global.mmz});
-  draw_c2_line((c2_t){(global.camera.p.x+2)*global.mmz,(global.camera.p.z+2)*global.mmz},(c2_t){(global.camera.p.x-2)*global.mmz,(global.camera.p.z-2)*global.mmz});
-  draw_c2_line((c2_t){p1.x*global.mmz,p1.z*global.mmz},(c2_t){p2.x*global.mmz,p2.z*global.mmz});
- }
- if(gra_global.drawminimap == 2) {//map rotates.
-  c3_t t1=rotate_c3_yr(p1,global.camera.p,d2r(global.camera.r.y));
-  c3_t t2=rotate_c3_yr(p2,global.camera.p,d2r(global.camera.r.y));
-  draw_c2_line((c2_t){t1.x*global.mmz,t1.z*global.mmz},(c2_t){t2.x*global.mmz,t2.z*global.mmz});
- }
- if(gra_global.draw3d != 0) draw_c2_line(c3_to_c2(p1),c3_to_c2(p2));
- if(global.debug) {
-  
  }
 }
 
