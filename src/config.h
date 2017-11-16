@@ -17,7 +17,7 @@
 #define HEIGHT 3000
 #define DEFAULT_MINIMAP 0
 #define FORCE_REDRAW 1
-#define MAXSHAPES 3000
+#define MAXSHAPES 30000
 #define ROTATE_STEP 5
 
 #endif

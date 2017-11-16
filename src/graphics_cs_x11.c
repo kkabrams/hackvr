@@ -62,8 +62,8 @@ void calculate_shape_color(c3_s_t s,real d) {
 */
 void set_color_based_on_distance(real d) {
   int i=100-((int)((d+100.0) * 16.0) % 100);
-  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[i].pixel);
-  //XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[99].pixel);
+  //XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[i].pixel);
+  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[99].pixel);
 }
 
 void draw_cs_line(cs_t p1,cs_t p2) {

@@ -82,11 +82,11 @@ struct global {
   char *user;
   char headless;
   char debug;//flag
-  char selected_object[256];//meh
+  char selected_object[2000];//meh
   real mmz;
   struct c3_shape *shape[SHAPES];
   int shapes;
-  c3_group_rot_t *group_rot[256];//meh
+  c3_group_rot_t *group_rot[2000];//meh
   c3_group_rot_t camera;
   real zoom;
   int derp;
