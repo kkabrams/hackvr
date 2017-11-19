@@ -133,7 +133,7 @@ c3_t c3_subtract(c3_t p1,c3_t p2) {
  return (c3_t){p1.x-p2.x,p1.y-p2.y,p1.z-p2.z};
 }
 
-#define MAGIC(x) (1.0l-(1.0l/powl(1.01l,(x)))) //??? might want to have some changables in here
+#define MAGIC(x) (1.0l-(1.0l/powl(1.1l,(x)))) //??? might want to have some changables in here
 
 real magic(real x) {
   return MAGIC(x);
@@ -341,8 +341,8 @@ void draw_screen() {
 
   if(gra_global.split_screen > 1) {
 //oh... this will need to be a couple more lines... of what? I forgot. -Sep 2017
-   radians tmprad=d2r((degrees){global.camera.r.y.d+180});
-   radians tmprad2=d2r((degrees){global.camera.r.y.d+180});
+   radians tmprad=d2r((degrees){global.camera.r.y.d+90});
+   radians tmprad2=d2r((degrees){global.camera.r.y.d+90});
    global.camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cosl( tmprad.r ));
    global.camera.p.x-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*sinl( tmprad2.r ));
   }
@@ -440,8 +440,8 @@ void draw_screen() {
    }
 
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
-   radians tmprad=d2r((degrees){global.camera.r.y.d+180});
-   radians tmprad2=d2r((degrees){global.camera.r.y.d+180});
+   radians tmprad=d2r((degrees){global.camera.r.y.d+90});
+   radians tmprad2=d2r((degrees){global.camera.r.y.d+90});
    global.camera.p.z+=(gra_global.split_flip)*(gra_global.split*cosl( tmprad.r ));
    global.camera.p.x+=(gra_global.split_flip)*(gra_global.split*sinl( tmprad2.r ));
   }

@@ -353,8 +353,8 @@ int graphics_sub_init() {
  global.group_rot[0]=&global.camera;
  global.group_rot[1]=0;
  x11_global.gc=XCreateGC(x11_global.dpy,x11_global.w, 0, 0);
- x11_global.backbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,gra_global.width,gra_global.height,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
- x11_global.cleanbackbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,gra_global.width,gra_global.height,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
+ x11_global.backbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,MAXWIDTH,MAXHEIGHT,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
+ x11_global.cleanbackbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,MAXWIDTH,MAXHEIGHT,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
 
 //backbuffer is uninitialized
  x11_global.backgc=XCreateGC(x11_global.dpy,x11_global.backbuffer,0,0);

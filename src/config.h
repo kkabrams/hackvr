@@ -13,8 +13,10 @@
 #define RED_AND_BLUE 0
 #define SHAPES 16386
 #define MAX_SIDES 8
-#define WIDTH 4000
-#define HEIGHT 3000
+#define MAXWIDTH 4000
+#define WIDTH 320
+#define MAXHEIGHT 3000
+#define HEIGHT 240
 #define DEFAULT_MINIMAP 0
 #define FORCE_REDRAW 1
 #define MAXSHAPES 30000
