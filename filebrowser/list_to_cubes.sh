@@ -11,9 +11,13 @@
 while read -r line;do
  if [ "_$line" != '_' ];then
 #  ../tools/obj2hackvr.pl "$line" ../meshes/cube.obj
-  printf "%s addshape 3 1 0 0 0 1 0 0 0 0\n" "$line"
+  printf "%s addshape 3 8 0 0 0 8 0 0 0 0\n" "$line"
+  cd ..
+  printf "%s\n" "$line" | ./makelabel.sh "$line" 15 0 0
+  cd filebrowser
   printf "%s move 0 %d 0 0 0 0 0 0 0\n" "$line" "$i"
-  i=$[i+2]
+  #somehow printf '%s\n' "$line" | ./testfont.sh and make its output belong to same group as $line.. sed?
+  i=$[i+10]
  else
   printf "epoch deleteallexcept epoch\n"
   i=0
