@@ -11,7 +11,9 @@
 #define SPLIT_SCREEN 1
 #define CAMERA_SEPARATION -1
 #define RED_AND_BLUE 0
-#define SHAPES 16386
+
+#define SHAPES 65535
+
 #define MAX_SIDES 8
 #define MAXWIDTH 4000
 #define WIDTH 320
@@ -19,7 +21,10 @@
 #define HEIGHT 240
 #define DEFAULT_MINIMAP 0
 #define FORCE_REDRAW 1
-#define MAXSHAPES 30000
+
+#define MAXSHAPES 65535
+
+#define DEFAULT_INPUT_MODE 1
 #define ROTATE_STEP 5
 
 #endif
