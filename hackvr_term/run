@@ -1,0 +1,9 @@
+#!/bin/bash
+mknod p p
+cat <(cat camera.pos | sed 's/USER/'"$USER"'/g') \
+    <(python -c 'import pty;pty.spawn("/bin/bash")' < p \
+       | ./hackvr_term 80 25 \
+       | sed -u 's/addshape -1/addshape 2/g' \
+       | tee /dev/stderr) \
+  | ../hackvr $USER > p
+rm p
