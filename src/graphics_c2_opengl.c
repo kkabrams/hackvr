@@ -88,6 +88,10 @@ void draw_c2_filled_shape(c2_s_t s) {
 //  glEnd();
 }
 
+void set_ansi_color(int i) {
+ glColor3f(0.0, 1.0, 0.0);
+}
+
 void set_color() {
  glColor3f(0.0, 1.0, 0.0);
 }
@@ -112,6 +116,18 @@ void flipscreen() {
 }
 
 void red_and_blue_magic() {
+
+}
+
+void draw_mode_copy() {
+
+}
+
+void draw_mode_and() {
+
+}
+
+void draw_mode_or() {
 
 }
 
