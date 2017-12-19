@@ -133,7 +133,8 @@ c3_t c3_subtract(c3_t p1,c3_t p2) {
  return (c3_t){p1.x-p2.x,p1.y-p2.y,p1.z-p2.z};
 }
 
-#define MAGIC(x) (1.0l-(1.0l/powl(1.1l,(x)))) //??? might want to have some changables in here
+//how is this supposed to work? x is distance?
+#define MAGIC(x) (1.0l-(1.0l/powl(1.01l,(x)))) //??? might want to have some changables in here
 
 real magic(real x) {
   return MAGIC(x);
@@ -152,9 +153,9 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
 //  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
 //  tmp2=rotate_c3_xr(tmp1,camera.p,d2r(camera.xr));
 //  final=rotate_c3_zr(tmp2,camera.p,d2r(camera.zr));
-  real delta_x=(global.camera.p.x - final.x);
-  real delta_y=(global.camera.p.y - final.y);
-  real delta_z=(global.camera.p.z - final.z);
+  real delta_x=(global.camera.p.x - final.x);//I guess X needs this flippage too.
+  real delta_y=(global.camera.p.y - final.y);//I dunno. Y is weird.
+  real delta_z=(final.z - global.camera.p.z);
 //  real d=distance3(camera.p,final);
   p2.x=global.zoom * (delta_x * MAGIC(delta_z) - delta_x);
   p2.y=global.zoom * (delta_y * MAGIC(delta_z) - delta_y);
@@ -164,12 +165,11 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
 }
 
 void draw_minimap_line(c3_t p1,c3_t p2) {
- if(gra_global.drawminimap == 1) {
-  draw_c2_line((c2_t){(global.camera.p.x-2)*global.mmz,(global.camera.p.z+2)*global.mmz},(c2_t){(global.camera.p.x+2)*global.mmz,(global.camera.p.z-2)*global.mmz});
-  draw_c2_line((c2_t){(global.camera.p.x+2)*global.mmz,(global.camera.p.z+2)*global.mmz},(c2_t){(global.camera.p.x-2)*global.mmz,(global.camera.p.z-2)*global.mmz});
-  draw_c2_line((c2_t){p1.x*global.mmz,p1.z*global.mmz},(c2_t){p2.x*global.mmz,p2.z*global.mmz});
+ if(gra_global.drawminimap == 1) {//map moves but doesn't rotate.
+  draw_c2_line((c2_t){(p1.z-global.camera.p.z)*global.mmz,(global.camera.p.x-p1.x)*global.mmz},
+               (c2_t){(p2.z-global.camera.p.z)*global.mmz,(global.camera.p.x-p2.x)*global.mmz});
  }
- if(gra_global.drawminimap == 2) {//map rotates.
+ if(gra_global.drawminimap == 2) {//map rotates. //NOT WORKING YET
   c3_t t1=rotate_c3_yr(p1,global.camera.p,d2r(global.camera.r.y));
   c3_t t2=rotate_c3_yr(p2,global.camera.p,d2r(global.camera.r.y));
   draw_c2_line((c2_t){t1.x*global.mmz,t1.z*global.mmz},(c2_t){t2.x*global.mmz,t2.z*global.mmz});
@@ -179,27 +179,39 @@ void draw_minimap_line(c3_t p1,c3_t p2) {
 void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shit in here too? probably...
   int i;
   char drawthefucker=0;//I don't wanna!
-  c2_s_t s2;
+  c3_s_t s2;//post rotation
+  c2_s_t s3;//post projection
   radians r;
   s2.id=s.id;//it shouldn't disappear and we shouldn't need to make a copy.
   s2.len=s.len;
+  s3.id=s.id;
+  s3.len=s.len;
   c3_group_rot_t *gr=get_group_rotation(s.id);
-  for(i=0;i<s.len+(s.len==1);i++) {
-   r=points_to_angle((c2_t){global.camera.p.x,global.camera.p.z},(c2_t){s.p[i].x,s.p[i].z});
-   if(between_angles(r2d(r),0,180)) {
-    drawthefucker=1;//damn it.
-    break;//might as well cut this short. we have to draw this bastard now. :/
+  if(s.len > 1) {
+   for(i=0;i<s.len+(s.len==1);i++) {//apply the group's rotation and store in s2.
+     s2.p[i]=(gr?c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y))):s.p[i]);
+     //s2.p[i]=c3_to_c2(s.p[i]);
    }
   }
+  for(i=0;i<s.len+(s.len==1);i++) {//
+   r=points_to_angle((c2_t){global.camera.p.x,global.camera.p.z},(c2_t){s2.p[i].x,s2.p[i].z});
+   if(between_angles(r2d(r),(360-global.camera.r.y.d-45+360+90)%360,(360-global.camera.r.y.d+45+360+90)%360)) {
+    drawthefucker=1;//damn it. somewhere in this shape needs to be drawn.
+   }   
+  }
   if(!drawthefucker) return;//fuck yeah. didn't have to do all that other crap.
+  if(s.len == 1) {
+   real dist=distance3(s.p[0],s.p[1]);
+   s2.p[0]=s.p[0];
+   s2.p[1]=c3_add(s.p[0],(c3_t){dist,0,0});//whatever
+  }
   for(i=0;i<s.len+(s.len==1);i++) {
-    if(i>1) draw_minimap_line(s.p[i],s.p[(i+1)%s.len]);
-    s2.p[i]=c3_to_c2(gr?c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y))):s.p[i]);
-    //this is only applying rotation around the y axis... gotta do this for x and z? uh oh. this could get weird.
-    //s2.p[i]=c3_to_c2(s.p[i]);
+   if(i>1) draw_minimap_line(s2.p[i],s2.p[(i+1)%s2.len]);
+   s3.p[i]=c3_to_c2(s2.p[i]);//we need to convert all points in the shape if we have to draw any parts of it.
   }
   if(gra_global.draw3d == 1) {
-    draw_c2_shape(s2);
+    set_ansi_color(s.attrib.col);
+    draw_c2_shape(s3);
   }
   if(gra_global.draw3d == 2) {
     //set foreground to a gray based on distance
@@ -207,11 +219,25 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
 //    color_based_on_distance();//I don't have the distance in here. :/
 //foreground_set();
 //how... I want to draw the outline as one color and the fill as another.
-    draw_c2_filled_shape(s2);
-    set_color();//resets it to the default color.
-    if(!strcmp(global.selected_object,s2.id)) {
-      draw_c2_shape(s2);
+//  foreground is set to color based on distance BEFORE we get here.
+//  we need that function to tell us whether we're going to draw brighter or darker than middle.
+//  then somehow get that information to here so we can pick the draw_mode...
+//  darker is draw_mode_and(); brighter is draw_mode_or(); lol. set some global? XD hackhackhack
+//the color of this shape is set before it gets drawn.
+//which is a grey.
+    set_luminosity_color(s.attrib.lum);
+    draw_c2_filled_shape(s3);
+    set_ansi_color(s.attrib.col);
+    if(s.attrib.lum > 100) {
+     draw_mode_or();
+    } else {
+     draw_mode_and();
     }
+    draw_c2_filled_shape(s3);
+    //if(!strcmp(global.selected_object,s2.id)) {
+    draw_mode_copy();
+    draw_c2_shape(s3);
+    //}
   }
 }
 
@@ -403,6 +429,9 @@ void draw_screen() {
 //   draw_c2_line((c2_t){10,10},(c2_t){-10,10});
 //  }
 
+
+///// shiiiit. I should be applying group rotations to all these shapes before sorting them.
+//when I do that. I need to make sure to take the group rotation out of draw_c3_shape()'s code.
     for(i=0;global.shape[i];i++) {
      zs[i].d=shitdist(zs[i].s,global.camera.p);
     }
@@ -431,13 +460,25 @@ void draw_screen() {
       //XSetForeground(global.dpy,global.backgc,global.green.pixel);
 //     } else {
 //     }
-     set_color_based_on_distance(zs[i].d);
+     zs[i].s->attrib.lum=200-((int)(zs[i].d * 4.0l))%200; 
     }
     //if(between_angles(points_to_angle((c2_t){zs[i].s->p[0].x,zs[i].s->p[0].z},(c2_t){camera.p.x,camera.p.z}),d2r(camera.yr+45),d2r(camera.yr+135))) {
 //     set_color_based_on_distance(zs[i].d);
      draw_c3_shape(*(zs[i].s));
     //}
    }
+
+ if(gra_global.drawminimap == 1) {
+  set_color();
+  c2_t t1=rotate_c2((c2_t){3*global.mmz,0},(c2_t){0,0},d2r(global.camera.r.y));
+  c2_t t2=rotate_c2((c2_t){-2*global.mmz,2*global.mmz},(c2_t){0,0},d2r(global.camera.r.y));
+  c2_t t3=rotate_c2((c2_t){-1*global.mmz,0},(c2_t){0,0},d2r(global.camera.r.y));
+  c2_t t4=rotate_c2((c2_t){-2*global.mmz,-2*global.mmz},(c2_t){0,0},d2r(global.camera.r.y));
+  draw_c2_line(t1,t2);
+  draw_c2_line(t2,t3);
+  draw_c2_line(t3,t4);
+  draw_c2_line(t4,t1);
+ }
 
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
    radians tmprad=d2r((degrees){global.camera.r.y.d+90});
@@ -456,15 +497,17 @@ void draw_screen() {
 }
 
 int graphics_init() {
- global.zoom=1.0l;//I think if this is set to 1, then 1 3d unit is 1 2d unit?
+//some of these values set 
+ global.zoom=25.0l;//I think if this is set to 1, then 1 3d unit is 1 2d unit?
  global.camera.r.x.d=0;
- global.camera.r.y.d=0;
+ global.camera.r.y.d=0;//we should be facing east.
  global.camera.r.z.d=0;
  global.mmz=1;//this is minimap zoom.
  global.camera.p.x=0;
- global.camera.p.y=0;
+ global.camera.p.y=10;//10 units above the ground should be as low as it goes.
  global.camera.p.z=-6;
 
+ gra_global.input_mode=DEFAULT_INPUT_MODE;
  gra_global.split_screen=SPLIT_SCREEN;
  gra_global.split_flip=-1;
  gra_global.split=CAMERA_SEPARATION;
