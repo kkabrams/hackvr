@@ -22,6 +22,7 @@ struct gra_global {
   int oldfps;
   char zsort;
   char drawminimap;
+  char input_mode;
   char drawsky;
   char draw3d;
   int mapxoff;
@@ -49,6 +50,9 @@ real shitdist(struct c3_shape *s,c3_t p);
 c3_t rotate_c3_xr(c3_t p1,c3_t p2,radians xr);
 c3_t rotate_c3_yr(c3_t p1,c3_t p2,radians yr);
 c3_t rotate_c3_zr(c3_t p1,c3_t p2,radians zr);
+
+void draw_mode_and();
+void draw_mode_set();
 
 int compar(zsort_t *a,zsort_t *b);
 
