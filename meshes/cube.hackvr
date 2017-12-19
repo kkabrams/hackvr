@@ -1,13 +1,13 @@
-cube addtriangle -3 0 -3 -3 6 -3 -3 0 -3
-cube addtriangle 3 6 3 3 6 -3 3 6 3
-cube addtriangle 3 6 3 -3 6 3 3 6 3
-cube addtriangle 3 6 3 3 0 3 3 6 3
-cube addtriangle -3 0 3 -3 6 3 -3 0 3
-cube addtriangle -3 6 -3 -3 6 3 -3 6 -3
-cube addtriangle -3 6 -3 3 6 -3 -3 6 -3
-cube addtriangle 3 0 -3 3 6 -3 3 0 -3
+cube addshape 0 3  -3 0 -3  -3 6 -3  -3 0 -3
+cube addshape 1 3   3 6  3   3 6 -3   3 6  3
+cube addshape 2 3   3 6  3  -3 6  3   3 6  3
+cube addshape 3 3   3 6  3   3 0  3   3 6  3
+cube addshape 4 3  -3 0  3  -3 6  3  -3 0  3
+cube addshape 5 3  -3 6 -3  -3 6  3  -3 6 -3
+cube addshape 6 3  -3 6 -3   3 6 -3  -3 6 -3
+cube addshape 7 3   3 0 -3   3 6 -3   3 0 -3
 
-cube addtriangle -3 0 3 3 0 3 -3 0 3
-cube addtriangle 3 0 3 3 0 -3 3 0 3
-cube addtriangle 3 0 -3 -3 0 -3 3 0 -3
-cube addtriangle -3 0 -3 -3 0 3 -3 0 -3
+cube addshape 1 3  -3 0  3   3 0  3  -3 0  3
+cube addshape 2 3   3 0  3   3 0 -3   3 0  3
+cube addshape 3 3   3 0 -3  -3 0 -3   3 0 -3
+cube addshape 4 3  -3 0 -3  -3 0  3  -3 0 -3
