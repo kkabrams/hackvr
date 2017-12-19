@@ -5,6 +5,7 @@
 
 struct x11_global {//stores global variables for the x11 *specific* shit.
   XColor colors[256];
+  XColor ansi_color[16];
   XColor green;
   XColor red;
   XColor blue;
