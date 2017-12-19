@@ -36,6 +36,8 @@ c3_t rotate_c3_zr(c3_t p1,c3_t p2,radians zr) {//rotate x and y around camera ba
 //cos(0) = 1
 //cos(90deg) = 0
 //// rotate first point about second point
+// if you pass (1,0),(0,0),0 it should output 1,0
+// if you pass (0,1),(0,0),0 it should output 0,1
 c2_t rotate_c2(c2_t p1,c2_t p2,radians dr) {
   c2_t p3;
   real d=distance2(p1,p2);
