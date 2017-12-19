@@ -100,7 +100,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
  //FD_SET(0,&master);//just stdin.
  int i;//used to store the last triangle. even though I have a global for that. >_>
 
-// printf("# entering load_stdin()\n");
+// fprintf(stderr,"# entering load_stdin()\n");
 //#ifdef _HACKVR_USE_NONBLOCK_
  for(i=0;global.shape[i];i++) ;//hop to the end.
  fcntl(0,F_SETFL,O_NONBLOCK);
@@ -119,7 +119,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
 //#endif
  while((line=line?free(line),read_line_hack(stdin,0):read_line_hack(stdin,0))) {//load as long there's something to load
   if(*line == '#') return 0;
-//  printf("# read command: %s\n",line);
+//  fprintf(stderr,"# read command: %s\n",line);
  if(a) free(a);
  a=line_splitter(line,&len);
 //  for(i=0;i<len;i++) {
@@ -133,64 +133,89 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
   if(len < 2) {
    if(!strcmp(id,"help")) {
 #ifdef GRAPHICAL
-    printf("# NOT built headless.\n");
+    fprintf(stderr,"# NOT built headless.\n");
 #else
-    printf("# built headless.\n");
+    fprintf(stderr,"# built headless.\n");
 #endif
-    printf("# command format:\n");
-    printf("# some_ID_or_nick_or_username command arguments\n");
-    printf("# commands:\n");
-    printf("#   deleteallexcept\n");
-    printf("#   deletegroup\n");
-    printf("#   assimilate\n");
-    printf("#   renamegroup\n");
-    printf("#   dump\n");
-    printf("#   quit\n");
-    printf("#   set\n");
-    printf("#   addshape N x1 y1 z1 ... xN yN zN\n");
-    printf("#   export\n");
-    printf("#   scaleup x y z\n");
-    printf("#   move x y z\n");
-    printf("# that is all.\n");
+    fprintf(stderr,"# command format:\n");
+    fprintf(stderr,"# some_ID_or_nick_or_username command arguments\n");
+    fprintf(stderr,"# commands:\n");
+    fprintf(stderr,"#   deleteallexcept\n");
+    fprintf(stderr,"#   deletegroup\n");
+    fprintf(stderr,"#   assimilate\n");
+    fprintf(stderr,"#   renamegroup\n");
+    fprintf(stderr,"#   dump\n");
+    fprintf(stderr,"#   quit\n");
+    fprintf(stderr,"#   set\n");
+    fprintf(stderr,"#   addshape N x1 y1 z1 ... xN yN zN\n");
+    fprintf(stderr,"#   export\n");
+    fprintf(stderr,"#   scaleup x y z\n");
+    fprintf(stderr,"#   move x y z\n");
+    fprintf(stderr,"# that is all.\n");
     continue;
    } else {
-    printf("# ur not doing it right. '%s'\n",id);
+    fprintf(stderr,"# ur not doing it right. '%s'\n",id);
     continue;
    }
   }
   ret=1;
   if(!strcmp(command,"deleteallexcept")) {
    for(j=0;global.shape[j];j++) {//mark first. compress later.
-    if(strcmp(global.shape[j]->id,a[2])) {//TODO: memory leak!
-     //free(global.triangle[j]->id);
-     //free(global.triangle[j]);
+    if(strcmp(global.shape[j]->id,a[2])) {
+     free(global.shape[j]->id);
+     free(global.shape[j]);
      global.shape[j]=0;
     }
    }
-   l=0;
    for(k=0;k<j;k++) {
-    while(global.shape[l] == 0 && l < j) l++;
+    if(global.shape[k]) continue;
+    for(l=k;global.shape[l] == 0 && l<j;l++);
     global.shape[k]=global.shape[l];
+    global.shape[l]=0;
    }
    ret=1;
+   //now do the same stuff but for the group_rot structs.
+   for(j=0;global.group_rot[j];j++) {
+
+   }
    continue;
   }
-  if(!strcmp(command,"deletegroup")) {
-   for(j=0;global.shape[j];j++) {
-    if(!strcmp(global.shape[j]->id,a[2])) {
-//     free(global.shape[j]->id);
-//     free(global.shape[j]);
-     global.shape[j]=0;
+  if(!strcmp(command,"deletegroup")) {//should the grouprot get deleted too? sure...
+   if(len == 3) {
+    for(j=0;global.shape[j] && j < MAXSHAPES;j++) {
+     if(!strcmp(global.shape[j]->id,a[2])) {
+      free(global.shape[j]->id);
+      free(global.shape[j]);
+      global.shape[j]=0;
+     }
     }
+    //we now have an array that needs to be compressed.
+    //max length of j.
+    //1,1,1,1,0,0,0,0,1,1,0,0,1,1,1,0,0,1,0,1,1
+    //
+    for(k=0;k<j;k++) {//now... we go from the beginning
+     if(global.shape[k]) continue;
+     for(l=k;global.shape[l] == 0 && l<j;l++);
+     global.shape[k]=global.shape[l];
+     global.shape[l]=0;
+    }
+    //now for the group_rot struct that goes with it. there should only be one, but might be a few due to bugs elsewhere. heh. let's just get all of them I guess.
+    for(j=0;global.group_rot[j] && j < MAXSHAPES;j++) {
+     if(!strcmp(global.group_rot[j]->id,a[2])) {
+      free(global.group_rot[j]->id);
+      free(global.group_rot[j]);
+      global.group_rot[j]=0;
+     }
+    }
+    for(k=0;k<j;k++) {
+     if(global.group_rot[k]) continue;
+     for(l=k;global.group_rot[l] == 0 && l<j;l++);
+     global.group_rot[k]=global.group_rot[l];
+     global.group_rot[l]=0;
+    }
+    ret=1;
+    continue;
    }
-   l=0;
-   for(k=0;k<j;k++) {
-    l=k;
-    while(global.shape[l] == 0 && l < j) l++;
-    global.shape[k]=global.shape[l];
-   }
-   ret=1;
-   continue;
   }
   if(!strcmp(command,"assimilate")) {
    if(len == 3) {
@@ -223,7 +248,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
   }
   if(!strcmp(command,"status")) {
 #ifdef GRAPHICAL
-   printf("# fps: %d\n",gra_global.fps);
+   fprintf(stderr,"# fps: %d\n",gra_global.fps);
    continue;
 #endif
   }
@@ -253,39 +278,44 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     else if(!strcmp(a[2],"camera.r.y")) global.camera.r.y.d=atoi(a[3]);
     else if(!strcmp(a[2],"camera.r.z")) global.camera.r.z.d=atoi(a[3]);
 #endif
-    else printf("# unknown variable: %s\n",a[2]);
+    else fprintf(stderr,"# unknown variable: %s\n",a[2]);
     ret=1;
     continue;
    }
 #ifdef GRAPHICAL
-   if(!strcmp(a[2],"force_redraw")) gra_global.force_redraw^=1;
+   if(!strcmp(a[2],"global.beep")) global.beep=1;
+   else if(!strcmp(a[2],"force_redraw")) gra_global.force_redraw^=1;
    else if(!strcmp(a[2],"red_and_blue")) { gra_global.red_and_blue^=1; set_aspect_ratio(); }
 #endif
-   else { printf("# unknown variable: %s\n",a[2]); continue; }
-   printf("# %s toggled!\n",a[2]);
+   else { fprintf(stderr,"# unknown variable: %s\n",a[2]); continue; }
+   fprintf(stderr,"# %s toggled!\n",a[2]);
    ret=1;
    continue;
   }
   if(!strcmp(command,"addshape")) {//need to add a grouprot with this.
    if(len > 3) {
-    if(len != ((strtold(a[2],0)+(strtold(a[2],0)==1))*3)+3) {
-     printf("# ERROR: wrong amount of parts for addshape. got: %d expected %d\n",len,((int)strtold(a[2],0)+(strtold(a[2],0)==1))*3+3);
+    if(len != ((strtold(a[3],0)+(strtold(a[3],0)==1))*3)+4) {
+     fprintf(stderr,"# ERROR: wrong amount of parts for addshape. got: %d expected %d\n",len,((int)strtold(a[3],0)+(strtold(a[3],0)==1))*3+4);
+     fprintf(stderr,"# usage: addshape color number x y z x y z repeated number of time.\n");
      continue;
     }
-    for(i=0;global.shape[i];i++);//just take me to the end.
+    for(i=0;global.shape[i];i++) { if(i>= MAXSHAPES) abort();}//just take me to the end.
     global.shape[i]=malloc(sizeof(struct c3_shape));
-    global.shape[i]->len=strtold(a[2],0);
+    global.shape[i]->len=strtold(a[3],0);
     global.shape[i]->id=strdup(id);
+    global.shape[i]->attrib.col=strtold(a[2],0);
+    global.shape[i]->attrib.lum=0;
     for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
-     global.shape[i]->p[j].x=strtold(a[(j*3)+3],0);//second arg is just for a return value. set to 0 if you don't want it.
-     global.shape[i]->p[j].y=strtold(a[(j*3)+4],0);
-     global.shape[i]->p[j].z=strtold(a[(j*3)+5],0);
+     global.shape[i]->p[j].x=strtold(a[(j*3)+4],0);//second arg is just for a return value. set to 0 if you don't want it.
+     global.shape[i]->p[j].y=strtold(a[(j*3)+5],0);
+     global.shape[i]->p[j].z=strtold(a[(j*3)+6],0);
     }
     i++;
     global.shapes=i;
     global.shape[i]=0;
 
     for(i=0;global.group_rot[i];i++) {
+     if(i >= MAXSHAPES) abort();
      if(!strcmp(global.group_rot[i]->id,id)) {
       break;
      }
@@ -325,8 +355,8 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     if(!strcmp(global.shape[i]->id,id)) {
      for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
       global.shape[i]->p[j].x*=strtold(a[2],0);
-      global.shape[i]->p[j].y*=strtold(a[2],0);
-      global.shape[i]->p[j].z*=strtold(a[2],0);
+      global.shape[i]->p[j].y*=strtold(len>4?a[3]:a[2],0);
+      global.shape[i]->p[j].z*=strtold(len>4?a[4]:a[2],0);
      }
     }
    }
@@ -374,13 +404,29 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     global.group_rot[i]->p.y+=strtold(a[3],0);
     global.group_rot[i]->p.z+=strtold(a[4],0);
    }
-   else {
-    printf("# ERROR: wrong amount of parts for move. got: %d expected: 4\n",len);
+   else if(len > 2) {
+    if(!strcmp(a[2],"forward")) {
+     //move id forward based on id's rotation.
+    } else if(!strcmp(a[2],"backward")) {
+
+    } else if(!strcmp(a[2],"up")) {
+
+    } else if(!strcmp(a[2],"down")) {
+
+    } else if(!strcmp(a[2],"left")) {
+
+    } else if(!strcmp(a[2],"right")) {
+
+    } else {
+     fprintf(stderr,"# dunno what direction you're talking about. try up, down, left, right, forward, or backward\n");
+    }
+   } else {
+    fprintf(stderr,"# ERROR: wrong amount of parts for move. got: %d expected: 4 or 2\n",len);
    }
    ret=1;
    continue;
   }
-  printf("# I don't know what command you're talking about. %s\n",command);
+  fprintf(stderr,"# I don't know what command you're talking about. %s\n",command);
   //I used to have free(line) here, but this place is never gotten to if a command is found so it wasn't getting released.
  }
  return ret;
@@ -408,10 +454,11 @@ int main(int argc,char *argv[]) {
   setbuf(stdin,0);
   setbuf(stdout,0);
   global.debug=DEBUG;
+  global.beep=0;
 #ifdef GRAPHICAL
   graphics_init();
 #endif
-  printf("# entering main loop\n");
+  fprintf(stderr,"# entering main loop\n");
   for(;;) {
     switch(redraw=load_stdin()) {
      case -1:
