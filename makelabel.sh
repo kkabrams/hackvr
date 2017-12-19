@@ -3,7 +3,7 @@ target="$1"
 xoffset=$2
 yoffset=$3
 zoffset=$4
-while read -N 1 c;do
+while read -rN 1 c;do
  name="$(printf "%02x" "'$c")"
  if [ "$name" = "0a" ]; then
   xoffset=-6
