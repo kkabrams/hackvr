@@ -14,6 +14,7 @@ my @parts;
 my @points;
 my @tmp;
 my $tmp;
+my $color=2;
 open(FILE,$ARGV[1]) if $ARGV[1];
 while(<FILE>) {
  chomp;
@@ -39,7 +40,7 @@ foreach $tmp (@faces) {
  @points = map { $_ =~ s/\/.+$//g; $_; } @points;
 ## print @points;
  print $ARGV[0];
- print " addshape ";
+ print " addshape " . (rand()*8%8) . " ";
  print @points+0;
  for($i=0;$i<(@points);$i++) {
   print " ";

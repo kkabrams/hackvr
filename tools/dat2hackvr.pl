@@ -20,7 +20,7 @@ while($line=<FILE>) {
   } else {
    if($prev ne "") {
     print $ARGV[0];
-    print " addshape 2 ";
+    print " addshape 2 2 ";
     print $line . " 0 " . $prev . " 0";
     print "\n";
    }

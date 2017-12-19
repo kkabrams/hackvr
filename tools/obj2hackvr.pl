@@ -53,7 +53,7 @@ foreach $tmp (@faces) {
 # print @points;
  for($i=2;$i<(@points);$i++) {
   print $ARGV[0];
-  print " addshape 3 ";
+  print " addshape 2 3 ";
   print $vertices[$points[0]-1];
   print " ";
   print $vertices[$points[$i-1]-1];
