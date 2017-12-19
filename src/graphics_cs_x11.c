@@ -60,11 +60,11 @@ void calculate_shape_color(c3_s_t s,real d) {
  }
 }
 */
-void set_color_based_on_distance(real d) {
-  int i=100-((int)((d+100.0) * 16.0) % 100);
-  //XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[i].pixel);
-  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[99].pixel);
+
+void set_luminosity_color(int lum) {
+  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.colors[lum%100].pixel);
 }
+
 
 void draw_cs_line(cs_t p1,cs_t p2) {
   XDrawLine(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p1.x,p1.y,p2.x,p2.y);
@@ -159,15 +159,35 @@ void set_clipping_rectangle(int x,int y,int width,int height) {
   XSetClipRectangles(x11_global.dpy,x11_global.backgc,x,y,&cliprect,1,Unsorted);
 }
 
-void red_and_blue_magic() {
+void draw_mode_copy() {
+  XGCValues gcval;
+  gcval.function=GXcopy;
+  XChangeGC(x11_global.dpy,x11_global.backgc,GCFunction,&gcval);
+}
+
+void draw_mode_and() {
+  XGCValues gcval;
+  gcval.function=GXand;
+  XChangeGC(x11_global.dpy,x11_global.backgc,GCFunction,&gcval);
+}
+
+void draw_mode_or() {
   XGCValues gcval;
   gcval.function=GXor;
   XChangeGC(x11_global.dpy,x11_global.backgc,GCFunction,&gcval);
 }
 
+void red_and_blue_magic() {
+  draw_mode_or();
+}
+
 //void draw_sky() {
 //  XCopyArea(x11_global.dpy,skypixmap,x11_global.backbuffer,x11_global.backgc,((global.camera.yr.d*5)+SKYW)%SKYW,0,WIDTH,gra_global.height/2,0,0);
 //}
+
+void set_ansi_color(int i) {
+  XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.ansi_color[i].pixel);
+}
 
 void set_color() {
   XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.green.pixel);
@@ -186,153 +206,194 @@ void flipscreen() {
 }
 
 void set_aspect_ratio() {
+ long supplied_return;
  XSizeHints *hints=XAllocSizeHints();
  hints->min_aspect.x=AR_W*(gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1));
  hints->min_aspect.y=AR_H;
  hints->max_aspect.x=AR_W*(gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1));
  hints->max_aspect.y=AR_H;
- hints->flags=PAspect;
+ hints->flags |= PAspect;
  XSetWMNormalHints(x11_global.dpy,x11_global.w,hints);
+ XFree(hints);
 }
 
-void x11_keypress_handler(int sym,int x,int y) {
+void set_demands_attention() {
+ XWMHints *hints=XGetWMHints(x11_global.dpy,x11_global.w);
+ if(!hints) hints=XAllocWMHints();
+ hints->flags |= XUrgencyHint;
+ XSetWMHints(x11_global.dpy,x11_global.w,hints);
+ XFree(hints);
+}
+
+void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
   char line[1024];
   radians tmprad;
   radians tmprad2;
   real tmpx;
-//  real tmpy; //unused atm
+  int sym=XLookupKeysym(xkey,0);
   real tmpz;
-  switch(sym) {
-   case XK_Return:
-    snprintf(line,sizeof(line)-1,"%s action %s\n",global.user,global.selected_object);
-    selfcommand(line);
+  switch(gra_global.input_mode) {
+   case 0:
+    switch(sym) {
+     case XK_Return:
+      snprintf(line,sizeof(line)-1,"%s action %s\n",global.user,global.selected_object);
+      selfcommand(line);
+      break;
+     case XK_Up:
+      tmprad=d2r((degrees){global.camera.r.y.d});//if the angle is 0...
+      tmprad2=d2r((degrees){global.camera.r.y.d});
+      tmpx=WALK_SPEED*sinl(tmprad.r);//cos(0)==1
+      tmpz=WALK_SPEED*cosl(tmprad2.r);//sin(0)==0
+      snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
+      selfcommand(line);
+      break;
+     case XK_Down:
+      tmprad=d2r((degrees){global.camera.r.y.d+180});
+      tmprad2=d2r((degrees){global.camera.r.y.d+180});
+      tmpx=WALK_SPEED*sinl(tmprad.r);
+      tmpz=WALK_SPEED*cosl(tmprad2.r);
+      snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
+      selfcommand(line);
+      break;
+     case XK_Left:
+      tmprad=d2r((degrees){global.camera.r.y.d+90});
+      tmprad2=d2r((degrees){global.camera.r.y.d+90});
+      tmpx=WALK_SPEED*sinl(tmprad.r);
+      tmpz=WALK_SPEED*cosl(tmprad2.r);
+      snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
+      selfcommand(line);
+      break;
+     case XK_Right:
+      tmprad=d2r((degrees){global.camera.r.y.d+270});
+      tmprad2=d2r((degrees){global.camera.r.y.d+270});
+      tmpx=WALK_SPEED*sinl(tmprad.r);
+      tmpz=WALK_SPEED*cosl(tmprad2.r);
+      snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
+      selfcommand(line);
+      break;
+     case XK_w:
+      snprintf(line,sizeof(line)-1,"%s move 0 1 0\n",global.user);
+      selfcommand(line);
+      break;
+     case XK_s:
+      snprintf(line,sizeof(line)-1,"%s move 0 -1 0\n",global.user);
+      selfcommand(line);
+      break;
+     case XK_r:
+      snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d+ROTATE_STEP);
+      selfcommand(line);
+      break;
+     case XK_y:
+      snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d-ROTATE_STEP);
+      selfcommand(line);
+      break;
+     case XK_q:
+      snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d+ROTATE_STEP);
+      selfcommand(line);
+      break;
+     case XK_e:
+      snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d-ROTATE_STEP);
+      selfcommand(line);
+      break;
+     case XK_u:
+      snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d+ROTATE_STEP);
+      selfcommand(line);
+      break;
+     case XK_o:
+      snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d-ROTATE_STEP);
+      selfcommand(line);
+      break;
+     case XK_p:
+      gra_global.split+=.1;
+      break;
+     case XK_l:
+      gra_global.split-=.1;
+      break;
+     case XK_z: global.zoom+=1; break;
+     case XK_x:
+      global.zoom-=1;
+      if(global.zoom < 1) global.zoom=1;
+      break;
+     case XK_c: global.mmz*=1.1; break;
+     case XK_v: global.mmz/=1.1; break;
+     case XK_h: global.split+=1; break;
+     case XK_j: global.split-=1; break;
+     case XK_6: gra_global.maxshapes+=10; break;
+     case XK_7: gra_global.maxshapes-=10; break;
+     case XK_d:
+      global.debug ^= 1;
+      break;
+     case XK_f:
+      global.derp ^= 1;
+      break;
+     case XK_m:
+      gra_global.drawminimap += 1;
+      gra_global.drawminimap %= 4;
+      break;
+     case XK_a:
+      gra_global.drawsky ^= 1;
+      break;
+     case XK_3:
+      gra_global.draw3d += 1;
+      gra_global.draw3d %= 4;
+      break;
+     case XK_Escape:
+      exit(0);
+     default:
+      break;
+    }
     break;
-   case XK_Up:
-    tmprad=d2r((degrees){global.camera.r.y.d+90});
-    tmprad2=d2r((degrees){global.camera.r.y.d+90});
-    tmpx=WALK_SPEED*cosl(tmprad.r);
-    tmpz=WALK_SPEED*sinl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
-    selfcommand(line);
-    break;
-   case XK_Down:
-    tmprad=d2r((degrees){global.camera.r.y.d+270});
-    tmprad2=d2r((degrees){global.camera.r.y.d+270});
-    tmpx=WALK_SPEED*cosl(tmprad.r);
-    tmpz=WALK_SPEED*sinl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
-    selfcommand(line);
-    break;
-   case XK_Left:
-    tmprad=d2r((degrees){global.camera.r.y.d+180});
-    tmprad2=d2r((degrees){global.camera.r.y.d+180});
-    tmpx=WALK_SPEED*cosl(tmprad.r);
-    tmpz=WALK_SPEED*sinl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
-    selfcommand(line);
-    break;
-   case XK_Right:
-    tmprad=d2r((degrees){global.camera.r.y.d+0});
-    tmprad2=d2r((degrees){global.camera.r.y.d+0});
-    tmpx=WALK_SPEED*cosl(tmprad.r);
-    tmpz=WALK_SPEED*sinl(tmprad2.r);
-    snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
-    selfcommand(line);
-    break;
-   case XK_w:
-    snprintf(line,sizeof(line)-1,"%s move 0 1 0\n",global.user);
-    selfcommand(line);
-    break;
-   case XK_s:
-    snprintf(line,sizeof(line)-1,"%s move 0 -1 0\n",global.user);
-    selfcommand(line);
-    break;
-   case XK_r:
-    snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d+ROTATE_STEP);
-    selfcommand(line);
-    break;
-   case XK_y:
-    snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d-ROTATE_STEP);
-    selfcommand(line);
-    break;
-   case XK_q:
-    snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d+ROTATE_STEP);
-    selfcommand(line);
-    break;
-   case XK_e:
-    snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d-ROTATE_STEP);
-    selfcommand(line);
-    break;
-   case XK_u:
-    snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d+ROTATE_STEP);
-    selfcommand(line);
-    break;
-   case XK_o:
-    snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d-ROTATE_STEP);
-    selfcommand(line);
-    break;
-   case XK_p:
-    gra_global.split+=.1;
-    break;
-   case XK_l:
-    gra_global.split-=.1;
-    break;
-   case XK_z: global.zoom+=1; break;
-   case XK_x:
-    global.zoom-=1;
-    if(global.zoom < 1) global.zoom=1;
-    break;
-   case XK_c: global.mmz*=1.1; break;
-   case XK_v: global.mmz/=1.1; break;
-   case XK_h: global.split+=1; break;
-   case XK_j: global.split-=1; break;
-   case XK_6: gra_global.maxshapes+=10; break;
-   case XK_7: gra_global.maxshapes-=10; break;
-   case XK_d:
-    global.debug ^= 1;
-    break;
-   case XK_f:
-    global.derp ^= 1;
-    break;
-   case XK_m:
-    gra_global.drawminimap += 1;
-    gra_global.drawminimap %= 4;
-    break;
-   case XK_a:
-    gra_global.drawsky ^= 1;
-    break;
-   case XK_3:
-    gra_global.draw3d += 1;
-    gra_global.draw3d %= 4;
-    break;
-   case XK_Escape:
-    exit(0);
    default:
+    switch(sym) {
+     case XK_Return:
+      printf("\n");
+      break;
+     case XK_Left://hack. probably just replace this with printf()s
+      printf("\x1b[D");
+      break;
+     case XK_Right:
+      printf("\x1b[C");
+      break;
+     case XK_Down:
+      printf("\x1b[B");
+      break;
+     case XK_Up:
+      printf("\x1b[A");
+      break;
+     default:
+      XLookupString(xkey,line,1023,NULL,NULL);
+      printf("%s",line);
+      break;
+    }
     break;
  }
 }
 #endif
 
 int graphics_sub_init() {
+ char *ansi_color[]={"black","red","green","yellow","blue","magenta","cyan","white",0};
  int i;
  char tmp[64];
  Cursor cursor;
  XSetWindowAttributes attributes;
 // Window root,child;//why do I have this?
 //  XColor toss;
- printf("# Opening X Display... (%s)\n",getenv("DISPLAY"));
+ fprintf(stderr,"# Opening X Display... (%s)\n",getenv("DISPLAY"));
  if((x11_global.dpy = XOpenDisplay(0)) == NULL) {
-  printf("# failure.\n");
+  fprintf(stderr,"# failure.\n");
   exit(1);
  }
- else printf("# done.\n");
+ else fprintf(stderr,"# done.\n");
  x11_global.color_map=DefaultColormap(x11_global.dpy, DefaultScreen(x11_global.dpy));
- printf("# generating grays...\n");
+ for(i=0;ansi_color[i];i++) {
+  XAllocNamedColor(x11_global.dpy,x11_global.color_map,ansi_color[i],&x11_global.ansi_color[i],&x11_global.ansi_color[i]);
+ }
+ fprintf(stderr,"# generating grays...\n");
  for(i=0;i<=100;i++) {
   snprintf(tmp,sizeof(tmp),"gray%d",i);
   XAllocNamedColor(x11_global.dpy,x11_global.color_map,tmp,&x11_global.colors[i],&x11_global.colors[i]);
  }
- printf("# done.\n");
+ fprintf(stderr,"# done.\n");
  assert(x11_global.dpy);
  x11_global.root_window=0;
  //global.colors[0]=BlackPixel(x11_global.dpy,DefaultScreen(x11_global.dpy));
@@ -378,7 +439,7 @@ int graphics_sub_init() {
 //  XSetForeground(x11_global.dpy, gc, whiteColor);
 // this was taking a "long" time.
 /*
- printf("# generating sky... ");
+ fprintf(stderr,"# generating sky... ");
  skypixmap=XCreatePixmap(x11_global.dpy,x11_global.w,SKYW,SKYH,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
  for(i=0;i<SKYH;i++) {
   for(j=0;j<SKYW;j++) {
@@ -391,7 +452,7 @@ int graphics_sub_init() {
    }
   }
  }
- printf("done.\n");
+ fprintf(stderr,"# done.\n");
 */
  return 0;//we're fine
 }
@@ -403,35 +464,40 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
  //what sets mask?
  char motionnotify=0;
  unsigned int mask;
+ if(global.beep) {
+  global.beep=0;
+  XBell(x11_global.dpy,1000);
+  set_demands_attention();
+ }
  while(XPending(x11_global.dpy)) {//these are taking too long?
   XNextEvent(x11_global.dpy, &e);
-//     printf("# handling event with type: %d\n",e.type);
+//     fprintf(stderr,"# handling event with type: %d\n",e.type);
   switch(e.type) {
 //       case Expose:
 //         if(e.xexpose.count == 0) redraw=1;
 //         break;
     case MotionNotify:
-      if(global.debug >= 2) printf("# MotionNotify\n");
+      if(global.debug >= 2) fprintf(stderr,"# MotionNotify\n");
       motionnotify=1;
       break;
     case ButtonPress:
-      if(global.debug >= 2) printf("# ButtonPress\n");
+      if(global.debug >= 2) fprintf(stderr,"# ButtonPress\n");
       redraw=1;
       gra_global.buttonpressed=e.xbutton.button;//what's this for? mouse?
       break;
     case ButtonRelease:
-      if(global.debug >= 2) printf("# ButtonRelease\n");
+      if(global.debug >= 2) fprintf(stderr,"# ButtonRelease\n");
       redraw=1;
       gra_global.buttonpressed=0;//what's this for???
       break;
     case ConfigureNotify:
-      if(global.debug >= 2) printf("# ConfigureNotify\n");
+      if(global.debug >= 2) fprintf(stderr,"# ConfigureNotify\n");
       redraw=1;
       XGetGeometry(x11_global.dpy,x11_global.w,&root,&global.x,&global.y,&gra_global.width,&gra_global.height,&gra_global.border_width,&gra_global.depth);
       if(gra_global.height * AR_W / AR_H != gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1))) {
        // height / AR_H * AR_W = width / (ss / (rab ? ss : 1))
        if(global.debug >= 2) {
-        printf("# %d != %d for some reason. probably your WM not respecting aspect ratio hints or calculating based on them differently. (would cause an off-by-one or so)\n",gra_global.height * AR_W / AR_H , gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)));
+        fprintf(stderr,"# %d != %d for some reason. probably your WM not respecting aspect ratio hints or calculating based on them differently. (would cause an off-by-one or so)\n",gra_global.height * AR_W / AR_H , gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)));
        }
        if(gra_global.width / (gra_global.red_and_blue ? 1 : gra_global.split_screen) * AR_H / AR_W < gra_global.height) {
         gra_global.height=gra_global.width / (gra_global.red_and_blue ? 1 : gra_global.split_screen) * AR_H / AR_W;
@@ -443,12 +509,12 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
       gra_global.mapyoff=gra_global.height/2;
       break;
     case KeyPress:
-      if(global.debug >= 2) printf("# KeyPress\n");
+      if(global.debug >= 2) fprintf(stderr,"# KeyPress\n");
       redraw=1;
-      x11_keypress_handler(XLookupKeysym(&e.xkey,0),gra_global.mousex,gra_global.mousey);
+      x11_keypress_handler(&e.xkey,gra_global.mousex,gra_global.mousey);
       break;
     default:
-//      printf("# received unknown event with type: %d\n",e.type);
+//      fprintf(stderr,"# received unknown event with type: %d\n",e.type);
       break;
   }
  }
