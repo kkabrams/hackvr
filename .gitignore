@@ -1,4 +1,5 @@
 *.o
+hackvr_term/hackvr_term
 hackvr
 src/hackvr
 src/hackvr_headless
