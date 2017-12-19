@@ -13,6 +13,7 @@ void draw_cs_filled_shape(cs_s_t s);
 void set_aspect_ratio();
 void set_color_based_on_distance(real d);
 void flipscreen();
+void set_ansi_color(int);
 void set_color();
 void set_color_red();
 void set_color_blue();
