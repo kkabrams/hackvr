@@ -1,7 +1,7 @@
 CFLAGS=-Wall -pedantic -std=c99 -DGRAPHICAL -ffast-math
 
-all: hackvr_headless hackvr_x11 hackvr_opengl slowcat ### when hackvr_opengl gets useful at all I'll start including it in default build.
-#all: hackvr_headless hackvr_x11 slowcat
+#all: hackvr_headless hackvr_x11 hackvr_opengl slowcat ### when hackvr_opengl gets useful at all I'll start including it in default build.
+all: hackvr_headless hackvr_x11 slowcat
 	ln -sf hackvr_x11 hackvr
 
 hackvr_headless: LDLIBS=-lm
