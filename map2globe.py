@@ -1,4 +1,4 @@
-#!/usr/bin/python3.4
+#!/usr/bin/python3.6
 
 import sys
 import math
@@ -16,7 +16,7 @@ z="0"
 # / 90 * math.pi
 #they need to be in the range 0 to 2pi?
 
-print("globe addshape 1 0 0 0 0 1 0")
+print("globe addshape 0 1  0 0 0  0 1 0")
 rotation=0
 
 while(1):
@@ -42,7 +42,7 @@ while(1):
   print("# error: " + str(e))
   break
  if(lat and lon and x and y and z and plat and plon and px and py and pz): #if the previouses exist
-  print("globe addshape 3 " + x + " " + y + " " + z + " " + x + " " + y + " " + z + " " + px + " " + py + " " + pz)
+  print("globe addshape 2 2 " + x + " " + y + " " + z + " " + px + " " + py + " " + pz)
   print("globe rotate 0 " + str(rotation) + " 0")
   rotation+=1
   rotation%=360
