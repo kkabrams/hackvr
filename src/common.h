@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE
 #include <string.h>
 #include "config.h"
 #include "math.h"
