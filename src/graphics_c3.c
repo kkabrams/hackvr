@@ -38,11 +38,11 @@ struct gra_global gra_global;
 
 /*
 real distance2(c2_t p1,c2_t p2) {
- return sqrtl(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) ));
+ return sqrt(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) ));
 }
 */
 real distance3(c3_t p1,c3_t p2) {
- return sqrtl(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) )+( (p1.z-p2.z)*(p1.z-p2.z) ));
+ return sqrt(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) )+( (p1.z-p2.z)*(p1.z-p2.z) ));
 }
 
 int between_angles(degrees d,real lower,real upper) {
@@ -131,7 +131,7 @@ c3_t c3_subtract(c3_t p1,c3_t p2) {
 }
 
 //how is this supposed to work? x is distance?
-#define MAGIC(x) (1.0l-(1.0l/powl(1.01l,(x)))) //??? might want to have some changables in here
+#define MAGIC(x) (1.0l-(1.0l/pow(1.01l,(x)))) //??? might want to have some changables in here
 
 real magic(real x) {
   return MAGIC(x);
@@ -258,7 +258,7 @@ cs_t c3_to_cs(c3_t p) {
 }
 
 real shitdist2(c3_t p1,c3_t p2) {
- return sqrtl(((p1.x - p2.x) * (p1.x - p2.x)) +
+ return sqrt(((p1.x - p2.x) * (p1.x - p2.x)) +
         ((p1.y - p2.y) * (p1.y - p2.y)) +
         ((p1.z - p2.z) * (p1.z - p2.z)));
 }
@@ -359,7 +359,7 @@ void draw_screen() {
 
   for(i=0;global.shape[i];i++) zs[i].s=global.shape[i];
   for(i=0;global.shape[i];i++) zs[i].d=shitdist(zs[i].s,global.camera.p);
-  qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d. farthest first.
+  qsort(&zs,i,sizeof(zs[0]),(int (*)(const void *,const void *))compar);//sort these zs structs based on d. farthest first.
   if(i > 0 && zs[i-1].s) strcpy(global.selected_object,zs[i-1].s->id);
 
   if(gra_global.split_screen > 1) {
