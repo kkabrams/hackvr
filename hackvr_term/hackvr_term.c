@@ -16,12 +16,13 @@ void hackvr_draw_character(int c,int r,const TMTCHAR *ch) {
   printf("# fail to open font\n");
   return;
  }
+ printf("term_%02d_%02d addshape %d 4  -1 -3 10  5 -3 10  5 7 10  -1 7 10\n",c,r,ch->a.bg+15);
  for(i=0;fgets(line,sizeof(line)-1,fp) != 0;i++) {
   if(!strncmp(str,line,2)) {
-   printf("term_%02d_%02d addshape %d %s",c,r,ch->a.fg==-1?2:ch->a.fg-1,line+strlen("XX addshape X "));
+   printf("term_%02d_%02d addshape %d %s",c,r,ch->a.fg==-1?2:ch->a.fg+15,line+strlen("XX addshape X "));
   }
  }
- if(i) printf("term_%02d_%02d move %d %d 0\n",c,r,c*5,-r*9);
+ if(i) printf("term_%02d_%02d move %d %d 0\n",c,r,c*6,-r*10);
  fclose(fp);
 }
 
@@ -51,7 +52,7 @@ void callback(tmt_msg_t m,TMT *vt, const void *a,void *vt_old) {
    }
    break;
   case TMT_MSG_ANSWER://what does this do?
-   fprintf(stderr,"# MSG_ANSWER: %s\n",a);
+   fprintf(stderr,"ANSWER: %s\n",(const char *)a);
    break;
   case TMT_MSG_MOVED:
    printf("cursor move %d %d 0\n", (c->c - cc_old) * 5, - (c->r - cr_old) * 9);//calculate relative movement needed based on previous and current positions.
