@@ -2,7 +2,6 @@
 #include "math.h"
 
 #ifndef _HACKVR_COMMON_H_
-#include <X11/Xlib.h>
 #define _HACKVR_COMMON_H_
 
 #define TOP     240.0
