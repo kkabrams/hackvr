@@ -1,5 +1,4 @@
 #define _POSIX_C_SOURCE 200809L //for fileno and strdup
-#define _BSD_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -8,8 +7,6 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <time.h>
-#define __USE_GNU //for longer math constants
-#include <math.h>
 
 #include "config.h"
 #include "common.h"
@@ -333,7 +330,7 @@ void draw_c3_point_text(c3_t p,char *text) {
  int direction,ascent,descent;
  cs_t p2;
  p2=c3_to_cs(p);
- snprintf(tmp,sizeof(tmp)-1,"(%Lf,%Lf,%Lf)",p.x,p.y,p.z);
+ snprintf(tmp,sizeof(tmp)-1,"(%f,%f,%f)",p.x,p.y,p.z);
  XTextExtents(font,text,strlen(text),&direction,&ascent,&descent,&overall);
  XDrawString(global.dpy,global.backbuffer,global.backgc,p2.x,p2.y+(descent+ascent),tmp,strlen(tmp));
 }*/
@@ -369,8 +366,8 @@ void draw_screen() {
 //oh... this will need to be a couple more lines... of what? I forgot. -Sep 2017
    radians tmprad=d2r((degrees){global.camera.r.y.d+90});
    radians tmprad2=d2r((degrees){global.camera.r.y.d+90});
-   global.camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cosl( tmprad.r ));
-   global.camera.p.x-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*sinl( tmprad2.r ));
+   global.camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cos( tmprad.r ));
+   global.camera.p.x-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*sin( tmprad2.r ));
   }
   for(cn=0;cn<gra_global.split_screen;cn++) {
     set_color();//restart each draw with the default color.
@@ -411,7 +408,7 @@ void draw_screen() {
 //      snprintf(tmp,sizeof(tmp)-1,"x: %d y: %d",gra_global.mousex,gra_global.mousey);
       fprintf(stderr,"%s\n",tmp);
 //      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+20},tmp);
-      snprintf(tmp,sizeof(tmp)-1,"cx: %Lf cy: %Lf cz: %Lf",global.camera.p.x,global.camera.p.y,global.camera.p.z);
+      snprintf(tmp,sizeof(tmp)-1,"cx: %f cy: %f cz: %f",global.camera.p.x,global.camera.p.y,global.camera.p.z);
       fprintf(stderr,"%s\n",tmp);
 //      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+30},tmp);
       snprintf(tmp,sizeof(tmp)-1,"xr: %d yr: %d zr: %d",global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
@@ -420,10 +417,10 @@ void draw_screen() {
     }
 
 //  if(global.drawminimap) {//this isn't even useful I guess.
-   //cx1=(sinl(d2r(camera.yr+270))*7l);
-   //cy1=(cosl(d2r(camera.yr+270))*7l);
-   //cx2=(sinl(d2r(camera.yr+90))*7l);
-   //cy2=(cosl(d2r(camera.yr+90))*7l);
+   //cx1=(sin(d2r(camera.yr+270))*7l);
+   //cy1=(cos(d2r(camera.yr+270))*7l);
+   //cx2=(sin(d2r(camera.yr+90))*7l);
+   //cy2=(cos(d2r(camera.yr+90))*7l);
 //   draw_c2_line((c2_t){0,0},(c2_t){10,10});
 //   draw_c2_line((c2_t){0,0},(c2_t){-10,10});
 //   draw_c2_line((c2_t){10,10},(c2_t){-10,10});
@@ -483,8 +480,8 @@ void draw_screen() {
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
    radians tmprad=d2r((degrees){global.camera.r.y.d+90});
    radians tmprad2=d2r((degrees){global.camera.r.y.d+90});
-   global.camera.p.z+=(gra_global.split_flip)*(gra_global.split*cosl( tmprad.r ));
-   global.camera.p.x+=(gra_global.split_flip)*(gra_global.split*sinl( tmprad2.r ));
+   global.camera.p.z+=(gra_global.split_flip)*(gra_global.split*cos( tmprad.r ));
+   global.camera.p.x+=(gra_global.split_flip)*(gra_global.split*sin( tmprad2.r ));
   }
 //just draw a line from center to 40 away from the center at the angle of the camera's y-rotation
 //this should be minimap shit  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.camera.r.y)));
