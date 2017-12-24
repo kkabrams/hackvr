@@ -1,5 +1,4 @@
 #define _POSIX_C_SOURCE 200809L //for fileno and strdup
-#define _BSD_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -9,7 +8,6 @@
 #include <stdlib.h>
 #include <sys/select.h> //code to use select instead of non-blocking is commented out. might decide to use it later.
 #include <time.h>
-#define __USE_GNU //for longer math constants
 #include <math.h>
 
 #include "config.h"
@@ -83,7 +81,7 @@ char **line_splitter(char *line,int *rlen) {
 }
 
 int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw, and 1 to ask for redraw
- struct c3_shape s;
+// struct c3_shape s;
 // struct c3_line l;
  c3_group_rot_t *gr;
  char *command;
@@ -252,13 +250,13 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
 #endif
   }
   if(!strcmp(command,"dump")) {
-   printf("%s set global.camera.p.x %Lf\n",global.user,global.camera.p.x);
-   printf("%s set global.camera.p.y %Lf\n",global.user,global.camera.p.y);
-   printf("%s set global.camera.p.z %Lf\n",global.user,global.camera.p.z);
+   printf("%s set global.camera.p.x %f\n",global.user,global.camera.p.x);
+   printf("%s set global.camera.p.y %f\n",global.user,global.camera.p.y);
+   printf("%s set global.camera.p.z %f\n",global.user,global.camera.p.z);
    printf("%s set global.camera.r.x %d\n",global.user,global.camera.r.x.d);
    printf("%s set global.camera.r.y %d\n",global.user,global.camera.r.y.d);
    printf("%s set global.camera.r.z %d\n",global.user,global.camera.r.z.d);
-   printf("%s set global.zoom %Lf\n",global.user,global.zoom);
+   printf("%s set global.zoom %f\n",global.user,global.zoom);
    continue;
   }
   if(!strcmp(command,"quit")) {
@@ -340,15 +338,15 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      if(a[2][0]=='*' || !strcmp(global.shape[i]->id,a[2])) {
       printf("%s_%s addshape %d",id,a[2],global.shape[i]->len);
       for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
-       printf(" %Lf %Lf %Lf",global.shape[i]->p[j].x,global.shape[i]->p[j].y,global.shape[i]->p[j].z);
+       printf(" %f %f %f",global.shape[i]->p[j].x,global.shape[i]->p[j].y,global.shape[i]->p[j].z);
       }//possible TODO: should I combine the string and output it all at once instead of throughout a loop?
       printf("\n");
      }
     }
     for(i=0;global.group_rot[i];i++) {
      if(a[2][0]=='*' || !strcmp(global.group_rot[i]->id,a[2])) {
-      printf("%s_%s rotate %d %d %d\n",id,a[2],global.group_rot[i]->r.x,global.group_rot[i]->r.y,global.group_rot[i]->r.z);
-      printf("%s_%s move %d %d %d\n",id,a[2],global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);
+      printf("%s_%s rotate %d %d %d\n",id,a[2],global.group_rot[i]->r.x.d,global.group_rot[i]->r.y.d,global.group_rot[i]->r.z.d);
+      printf("%s_%s move %f %f %f\n",id,a[2],global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);
      }
     }
    }
@@ -442,7 +440,7 @@ int export_file(FILE *fp) {//not used yet. maybe export in obj optionally? no. t
 // int i;
 // for(i=0;global.shape[i];i++) {
 //  to=global.shape[i];
-//  printf("%s addshape %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf %Lf\n",to->id,to->p1.x,to->p1.y,to->p1.z,to->p2.x,to->p2.y,to->p2.z,to->p3.x,to->p3.y,to->p3.z);
+//  printf("%s addshape %f %f %f %f %f %f %f %f %f\n",to->id,to->p1.x,to->p1.y,to->p1.z,to->p2.x,to->p2.y,to->p2.z,to->p3.x,to->p3.y,to->p3.z);
 // }
  return 0;
 }
