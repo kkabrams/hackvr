@@ -1,6 +1,5 @@
 #define _POSIX_C_SOURCE 200809L //for fileno and strdup
 #include <stdio.h>
-#include <string.h>
 #include <fcntl.h>
 #include <assert.h>
 #include <unistd.h>
