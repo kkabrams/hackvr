@@ -32,6 +32,7 @@ extern struct gra_global gra_global;
 
 struct global global;
 
+//might be able to make this faster by just using fgets() and not using recursion and malloc.
 /* does not return the newline. */
 char *read_line_hack(FILE *fp,int len) {
  short in;
@@ -118,9 +119,9 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
  if(FD_ISSET(0,&readfs)) {*/
 //#endif
  while((line=line?free(line),read_line_hack(stdin,0):read_line_hack(stdin,0))) {//load as long there's something to load
-  if(*line == '#') return 0;
+  if(*line == '#') continue;
 //  fprintf(stderr,"# read command: %s\n",line);
- if(a) free(a);
+ if(a) free(a);//use a static char pointer array so I don't have to use the heap. possible optimization.
  a=line_splitter(line,&len);
 //  for(i=0;i<len;i++) {
 //   printf("\"%s\" ",a[i]);
@@ -154,7 +155,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     fprintf(stderr,"# that is all.\n");
     continue;
    } else {
-    fprintf(stderr,"# ur not doing it right. '%s'\n",id);
+    //fprintf(stderr,"# ur not doing it right. '%s'\n",id);
     continue;
    }
   }
@@ -191,8 +192,6 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     }
     //we now have an array that needs to be compressed.
     //max length of j.
-    //1,1,1,1,0,0,0,0,1,1,0,0,1,1,1,0,0,1,0,1,1
-    //
     for(k=0;k<j;k++) {//now... we go from the beginning
      if(global.shape[k]) continue;
      for(l=k;global.shape[l] == 0 && l<j;l++);
@@ -335,15 +334,20 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
    ret=1;
    continue;
   }
-  if(!strcmp(command,"export")) {
+  if(!strcmp(command,"export")) {//dump shapes and group rotation for argument (or all if arg is *)
    if(len > 2) {
     for(i=0;global.shape[i];i++) {//require a[2], if not it'll segfault. derrrr, epoch.
-     if(!strcmp(global.shape[i]->id,a[2])) {
-      printf("%s addshape %d",a[2],global.shape[i]->len);
+     if(a[2][0]=='*' || !strcmp(global.shape[i]->id,a[2])) {
+      printf("%s_%s addshape %d",id,a[2],global.shape[i]->len);
       for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
        printf(" %Lf %Lf %Lf",global.shape[i]->p[j].x,global.shape[i]->p[j].y,global.shape[i]->p[j].z);
-      }
+      }//possible TODO: should I combine the string and output it all at once instead of throughout a loop?
       printf("\n");
+     }
+    }
+    for(i=0;global.group_rot[i];i++) {
+     if(a[2][0]=='*' || !strcmp(global.group_rot[i]->id,a[2])) {
+      printf("%s_%s rotate %d %d %d\n",id,a[2],global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);
      }
     }
    }

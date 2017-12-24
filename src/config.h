@@ -24,7 +24,7 @@
 
 #define MAXSHAPES 65535
 
-#define DEFAULT_INPUT_MODE 1
+#define DEFAULT_INPUT_MODE 0
 #define ROTATE_STEP 5
 
 #endif
