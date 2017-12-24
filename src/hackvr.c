@@ -347,7 +347,8 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     }
     for(i=0;global.group_rot[i];i++) {
      if(a[2][0]=='*' || !strcmp(global.group_rot[i]->id,a[2])) {
-      printf("%s_%s rotate %d %d %d\n",id,a[2],global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);
+      printf("%s_%s rotate %d %d %d\n",id,a[2],global.group_rot[i]->r.x,global.group_rot[i]->r.y,global.group_rot[i]->r.z);
+      printf("%s_%s move %d %d %d\n",id,a[2],global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);
      }
     }
    }
