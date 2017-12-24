@@ -3,9 +3,11 @@
 
 #include "common.h" //should define c3_t
 
-#define __USE_GNU
 #include <math.h>
-#undef __USE_GNU
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 real distance2(c2_t p1,c2_t p2);
 c2_t rotate_c2(c2_t p1,c2_t p2,radians dr);

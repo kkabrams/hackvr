@@ -43,24 +43,24 @@ c2_t rotate_c2(c2_t p1,c2_t p2,radians dr) {
   real d=distance2(p1,p2);
   radians r=points_to_angle(p2,p1);
   r.r=r.r+dr.r;
-  p3.x=(cosl(r.r) * d) + p2.x;
-  p3.y=(sinl(r.r) * d) + p2.y;
+  p3.x=(cos(r.r) * d) + p2.x;
+  p3.y=(sin(r.r) * d) + p2.y;
   return p3;
 }
 real distance2(c2_t p1,c2_t p2) {
- return sqrtl(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) ));
+ return sqrt(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) ));
 }
 
 degrees r2d(radians r) {
- return (degrees){(r.r * (real)180 / M_PIl) };
+ return (degrees){(r.r * (real)180 / M_PI) };
 }
 
 radians d2r(degrees d) {
  while(d.d<0) d.d+=360;
- return (radians){(real)(d.d%360) / (real)180 * M_PIl};
+ return (radians){(real)(d.d%360) / (real)180 * M_PI};
 }
 //the angle from the first point to the second point. not the other way around.
 radians points_to_angle(c2_t p1,c2_t p2) {
-  real a=atan2l(p2.y-p1.y,p2.x-p1.x);
-  return (radians){a>=0?a:M_PIl+M_PIl+a};
+  real a=atan2(p2.y-p1.y,p2.x-p1.x);
+  return (radians){a>=0?a:M_PI+M_PI+a};
 }
