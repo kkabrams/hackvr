@@ -1,5 +1,4 @@
 #define _POSIX_C_SOURCE 200809L //for fileno and strdup
-#define _BSD_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -13,8 +12,6 @@
 #include <X11/cursorfont.h>
 #include <X11/Xutil.h> //for size hints
 #include <time.h>
-#define __USE_GNU //for longer math constants
-#include <math.h>
 
 #include "config.h"
 #include "common.h"
@@ -209,7 +206,6 @@ void flipscreen() {
 }
 
 void set_aspect_ratio() {
- long supplied_return;
  XSizeHints *hints=XAllocSizeHints();
  hints->min_aspect.x=AR_W*(gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1));
  hints->min_aspect.y=AR_H;
@@ -229,7 +225,7 @@ void set_demands_attention() {
 }
 
 void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
-  char line[1024];
+  char line[2048];
   char line2[1025];
   int len;
   radians tmprad;
@@ -248,33 +244,33 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
      case XK_Up:
       tmprad=d2r((degrees){global.camera.r.y.d});//if the angle is 0...
       tmprad2=d2r((degrees){global.camera.r.y.d});
-      tmpx=WALK_SPEED*sinl(tmprad.r);//cos(0)==1
-      tmpz=WALK_SPEED*cosl(tmprad2.r);//sin(0)==0
-      snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
+      tmpx=WALK_SPEED*sin(tmprad.r);//cos(0)==1
+      tmpz=WALK_SPEED*cos(tmprad2.r);//sin(0)==0
+      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
       selfcommand(line);
       break;
      case XK_Down:
       tmprad=d2r((degrees){global.camera.r.y.d+180});
       tmprad2=d2r((degrees){global.camera.r.y.d+180});
-      tmpx=WALK_SPEED*sinl(tmprad.r);
-      tmpz=WALK_SPEED*cosl(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
+      tmpx=WALK_SPEED*sin(tmprad.r);
+      tmpz=WALK_SPEED*cos(tmprad2.r);
+      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
       selfcommand(line);
       break;
      case XK_Left:
       tmprad=d2r((degrees){global.camera.r.y.d+90});
       tmprad2=d2r((degrees){global.camera.r.y.d+90});
-      tmpx=WALK_SPEED*sinl(tmprad.r);
-      tmpz=WALK_SPEED*cosl(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
+      tmpx=WALK_SPEED*sin(tmprad.r);
+      tmpz=WALK_SPEED*cos(tmprad2.r);
+      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
       selfcommand(line);
       break;
      case XK_Right:
       tmprad=d2r((degrees){global.camera.r.y.d+270});
       tmprad2=d2r((degrees){global.camera.r.y.d+270});
-      tmpx=WALK_SPEED*sinl(tmprad.r);
-      tmpz=WALK_SPEED*cosl(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move %Lf 0 %Lf\n",global.user,tmpx,tmpz);
+      tmpx=WALK_SPEED*sin(tmprad.r);
+      tmpz=WALK_SPEED*cos(tmprad2.r);
+      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
       selfcommand(line);
       break;
      case XK_w:
