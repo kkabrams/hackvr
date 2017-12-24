@@ -103,13 +103,16 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
       maxy=(s.p[i].y>maxy)?s.p[i].y:maxy;
       draw_cs_line(s.p[i],s.p[(i+1)%(s.len+(s.len==1))]);
     }
-    if(gra_global.mousex > minx &&
-         gra_global.mousey > miny &&
-         gra_global.mousex < maxx &&
-         gra_global.mousey < maxy) {
+    if(gra_global.mousex >= minx &&
+         gra_global.mousey >= miny &&
+         gra_global.mousex <= maxx &&
+         gra_global.mousey <= maxy) {
       if(gra_global.buttonpressed) {//if we're inside the bounding box let's make SOMETHING happen.
           printf("%s action %s\n",global.user,s.id);
         }
+      if(!strncmp(s.id,"term",4)) {
+       gra_global.input_mode=1;
+      }
       bb.id=strdup("boundingbox");
       bb.len=4;
       bb.p[0].x=minx;
@@ -227,9 +230,12 @@ void set_demands_attention() {
 
 void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
   char line[1024];
+  char line2[1025];
+  int len;
   radians tmprad;
   radians tmprad2;
   real tmpx;
+  int i;
   int sym=XLookupKeysym(xkey,0);
   real tmpz;
   switch(gra_global.input_mode) {
@@ -346,25 +352,32 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
    default:
     switch(sym) {
      case XK_Return:
-      printf("\n");
+      strcpy(line,"\n");
+      len=1;
       break;
      case XK_Left://hack. probably just replace this with printf()s
-      printf("\x1b[D");
+      strcpy(line,"\x1b[D");
+      len=3;
       break;
      case XK_Right:
-      printf("\x1b[C");
+      strcpy(line,"\x1b[C");
+      len=3;
       break;
      case XK_Down:
-      printf("\x1b[B");
+      strcpy(line,"\x1b[B");
+      len=3;
       break;
      case XK_Up:
-      printf("\x1b[A");
+      strcpy(line,"\x1b[A");
+      len=3;
       break;
      default:
-      XLookupString(xkey,line,1023,NULL,NULL);
-      printf("%s",line);
+      len=XLookupString(xkey,line,1023,NULL,NULL);
       break;
     }
+    for(i=0;i/2 < len;i++) line2[i]="0123456789abcdef"[(line[i/2]>>(4*(1-(i%2)))) % 16];
+    line2[i]=0;
+    printf("%s data %s\n",global.user,line2);
     break;
  }
 }
@@ -385,10 +398,10 @@ int graphics_sub_init() {
  }
  else fprintf(stderr,"# done.\n");
  x11_global.color_map=DefaultColormap(x11_global.dpy, DefaultScreen(x11_global.dpy));
+ fprintf(stderr,"# generating colors...\n");
  for(i=0;ansi_color[i];i++) {
   XAllocNamedColor(x11_global.dpy,x11_global.color_map,ansi_color[i],&x11_global.ansi_color[i],&x11_global.ansi_color[i]);
  }
- fprintf(stderr,"# generating grays...\n");
  for(i=0;i<=100;i++) {
   snprintf(tmp,sizeof(tmp),"gray%d",i);
   XAllocNamedColor(x11_global.dpy,x11_global.color_map,tmp,&x11_global.colors[i],&x11_global.colors[i]);
@@ -523,6 +536,9 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
   redraw=1;
  }
  //redraw=1;//meh.
- if(redraw || world_changed) { draw_screen(); }
+ if(redraw || world_changed) { 
+  gra_global.input_mode=0;
+  draw_screen();
+ }
  return redraw;
 }
