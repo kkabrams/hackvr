@@ -210,7 +210,7 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
    s3.p[i]=c3_to_c2(s2.p[i]);//we need to convert all points in the shape if we have to draw any parts of it.
   }
   if(gra_global.draw3d == 1) {
-    set_ansi_color(s.attrib.col);
+    set_ansi_color(s.attrib.col%16);
     draw_c2_shape(s3);
   }
   if(gra_global.draw3d == 2) {
@@ -225,19 +225,19 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
 //  darker is draw_mode_and(); brighter is draw_mode_or(); lol. set some global? XD hackhackhack
 //the color of this shape is set before it gets drawn.
 //which is a grey.
-    set_luminosity_color(s.attrib.lum);
-    draw_c2_filled_shape(s3);
-    set_ansi_color(s.attrib.col);
-    if(s.attrib.lum > 100) {
-     draw_mode_or();
-    } else {
-     draw_mode_and();
+    if(s.attrib.col < 16) {
+     set_luminosity_color(s.attrib.lum);
+     draw_c2_filled_shape(s3);
+     if(s.attrib.lum > 100) {
+      draw_mode_or();
+     } else {
+      draw_mode_and();
+     }
     }
+    set_ansi_color(s.attrib.col%16);
     draw_c2_filled_shape(s3);
-    //if(!strcmp(global.selected_object,s2.id)) {
     draw_mode_copy();
     draw_c2_shape(s3);
-    //}
   }
 }
 
@@ -524,7 +524,7 @@ int graphics_init() {
  gra_global.mapxoff=gra_global.width/2;
  gra_global.mapyoff=gra_global.height/2;
  gra_global.drawminimap=DEFAULT_MINIMAP;
- gra_global.draw3d=1;
+ gra_global.draw3d=2;
  gra_global.force_redraw=FORCE_REDRAW;
  graphics_sub_init();
  return 0;//we're fine
