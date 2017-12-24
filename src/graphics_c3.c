@@ -432,7 +432,7 @@ void draw_screen() {
     for(i=0;global.shape[i];i++) {
      zs[i].d=shitdist(zs[i].s,global.camera.p);
     }
-    qsort(&zs,i,sizeof(zs[0]),(__compar_fn_t)compar);//sort these zs structs based on d.
+    qsort(&zs,i,sizeof(zs[0]),(int (*)(const void *,const void *))compar);//sort these zs structs based on d.
    //draw all triangles
     if(global.debug) {
      //snprintf(tmp,sizeof(tmp)-1,"selected object: %s",global.selected_object);
