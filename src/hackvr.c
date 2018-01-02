@@ -174,7 +174,17 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
    ret=1;
    //now do the same stuff but for the group_rot structs.
    for(j=0;global.group_rot[j];j++) {
-
+    if(strcmp(global.group_rot[j]->id,a[2])) {
+     free(global.group_rot[j]->id);
+     free(global.group_rot[j]);
+     global.group_rot[j]=0;
+    }
+   }
+   for(k=0;k<j;k++) {
+    if(global.group_rot[k]) continue;
+    for(l=k;global.group_rot[l] == 0 && l<j;l++);
+    global.group_rot[k]=global.group_rot[l];
+    global.group_rot[l]=0;
    }
    continue;
   }
