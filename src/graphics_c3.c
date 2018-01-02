@@ -265,6 +265,21 @@ real shitdist2(c3_t p1,c3_t p2) {
 
 real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  int i;
+ real curdist=0;
+ real maxdist=0;
+ c3_group_rot_t *gr=get_group_rotation(s->id);
+ for(i=0;i< s->len+(s->len==1);i++) {
+  if(gr) {
+   curdist=shitdist2(global.camera.p,rotate_c3_yr(c3_add(gr->p,s->p[i]),gr->p,d2r(gr->r.y)));
+  } else {
+   curdist=shitdist2(global.camera.p,s->p[i]);//if there's no gr we're basically just this point. no rotation, not offests.
+  }
+  if(curdist > maxdist) maxdist=curdist;
+ }
+ return maxdist;
+ //averaging it works ok, but I've decided to now use the farthest to say the distance something is.
+ //why the fuck did we get group rotations each... nevermind. this code just sucks.
+ /*
  real total=0;
  for(i=0;i< s->len+(s->len==1);i++) {
   c3_group_rot_t *gr=get_group_rotation(s->id);
@@ -277,6 +292,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
               ,global.camera.p);
  }//why the fuck are we rotating this around the camera? that shouldn't make any difference to the distance from the camera...
  return (total) / (real)(s->len+(s->len==1));
+ */
 }
 
 
