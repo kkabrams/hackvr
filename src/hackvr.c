@@ -145,7 +145,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     fprintf(stderr,"#   dump\n");
     fprintf(stderr,"#   quit\n");
     fprintf(stderr,"#   set\n");
-    fprintf(stderr,"#   addshape N x1 y1 z1 ... xN yN zN\n");
+    fprintf(stderr,"#   addshape color N x1 y1 z1 ... xN yN zN\n");
     fprintf(stderr,"#   export\n");
     fprintf(stderr,"#   scaleup x y z\n");
     fprintf(stderr,"#   move x y z\n");
@@ -335,7 +335,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
    if(len > 2) {
     for(i=0;global.shape[i];i++) {//require a[2], if not it'll segfault. derrrr, epoch.
      if(a[2][0]=='*' || !strcmp(global.shape[i]->id,a[2])) {
-      printf("%s_%s addshape %d",id,a[2],global.shape[i]->len);
+      printf("%s_%s addshape %d %d",id,a[2],global.shape[i]->attrib.col,global.shape[i]->len);
       for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
        printf(" %f %f %f",global.shape[i]->p[j].x,global.shape[i]->p[j].y,global.shape[i]->p[j].z);
       }//possible TODO: should I combine the string and output it all at once instead of throughout a loop?
