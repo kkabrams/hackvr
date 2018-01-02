@@ -6,17 +6,20 @@
 #include "libtmt/tmt.h"
 
 void hackvr_draw_character(int c,int r,const TMTCHAR *ch) {
- int s;
  int i;
  FILE *fp;
  char str[16];
  char line[256];//whatever
- snprintf(str,sizeof(str)-1,"%02x",ch->c);
+ if(ch->c < 128) {
+  snprintf(str,sizeof(str)-1,"%02lx",ch->c);
+ } else {
+  snprintf(str,sizeof(str)-1,"%08lx",ch->c);
+ }
  if((fp=fopen("font","r")) == NULL ) {
   printf("# fail to open font\n");
   return;
  }
- printf("term_%02d_%02d addshape %d 4  -1 -3 10  5 -3 10  5 7 10  -1 7 10\n",c,r,ch->a.bg+15);
+ printf("term_%02d_%02d addshape %d 4  -1 -3 0  5 -3 0  5 7 0  -1 7 0\n",c,r,ch->a.bg+15);
  for(i=0;fgets(line,sizeof(line)-1,fp) != 0;i++) {
   if(!strncmp(str,line,2)) {
    printf("term_%02d_%02d addshape %d %s",c,r,ch->a.fg==-1?2:ch->a.fg+15,line+strlen("XX addshape X "));
