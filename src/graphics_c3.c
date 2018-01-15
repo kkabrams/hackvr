@@ -203,7 +203,7 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
    s2.p[1]=c3_add(s.p[0],(c3_t){dist,0,0});//whatever
   }
   for(i=0;i<s.len+(s.len==1);i++) {
-   if(i>1) draw_minimap_line(s2.p[i],s2.p[(i+1)%s2.len]);
+   if(s.len > 1) draw_minimap_line(s2.p[i],s2.p[(i+1)%s2.len]);//we shouldn't draw circles in here.
    s3.p[i]=c3_to_c2(s2.p[i]);//we need to convert all points in the shape if we have to draw any parts of it.
   }
   if(gra_global.draw3d == 1) {
@@ -413,8 +413,7 @@ void draw_screen() {
      gra_global.oldtime=time(0);
      gra_global.oldfps=gra_global.fps;
      gra_global.fps=0;
-    }
-    if(global.debug) {//the way I have text done won't scale...
+     if(global.debug) {//the way I have text done won't scale...
 //      draw_c2_text((cs_t){0,0},global.user);
 //      fprintf(stderr,"\x1b[H");
 //      fprintf(stderr,"\x1b[2J");
@@ -430,6 +429,7 @@ void draw_screen() {
       snprintf(tmp,sizeof(tmp)-1,"xr: %d yr: %d zr: %d",global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
       fprintf(stderr,"%s\n",tmp);
 //      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+40},tmp);
+     }
     }
 
 //  if(global.drawminimap) {//this isn't even useful I guess.
