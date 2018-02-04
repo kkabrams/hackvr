@@ -12,7 +12,7 @@ clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C hackvr_term clean
 
-install:
+install: hackvr hackvr_term
 	$(MAKE) -C src install
 	$(MAKE) -C hackvr_term install
 	install -D font/font.hackvr $(PREFIX)/share/hackvr/font.hackvr
