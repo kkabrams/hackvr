@@ -11,7 +11,7 @@
 while read -r line;do
  if [ "_$line" != '_' ];then
 #  ../tools/obj2hackvr.pl "$line" ../meshes/cube.obj
-  printf "%s addshape 3 8 0 0 0 8 0 0 0 0\n" "$line"
+  printf "%s addshape 18 3 8 0 0 0 8 0 0 0 0\n" "$line"
   cd ..
   printf "%s\n" "$line" | ./makelabel.sh "$line" 15 0 0
   cd filebrowser
@@ -19,7 +19,7 @@ while read -r line;do
   #somehow printf '%s\n' "$line" | ./testfont.sh and make its output belong to same group as $line.. sed?
   i=$[i+10]
  else
-  printf "epoch deleteallexcept epoch\n"
+  printf "USER deleteallexcept USER\n" #deleteallexcept doesn't have gr deletions yet I think.
   i=0
  fi
 done
