@@ -1,1 +1,6 @@
 if you test out the tictactoe, the line that starts with grep, if you change it to _marker instead of _marker2 it'll cause the new squares to be moved some.
+
+the frame-buffer's keyboard input only checks if a key is down at the time it goes.
+so it doesn't have a back-buffer to read previous key presses.
+will probably switch back away from keystate to reading events from the kb file
+while it is set to nonblocking
