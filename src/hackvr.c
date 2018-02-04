@@ -117,10 +117,9 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
  if(FD_ISSET(0,&readfs)) {*/
 //#endif
  counter=0;
+// printf("#right before main read loop\n");
+// fflush(stdout);
  for(counter=0;counter < 100 && (line=line?free(line),read_line_hack(stdin,0):read_line_hack(stdin,0));counter++) {//load as long there's something to load
- //but doing this will make it not ever redraw the screen as long as there's more to read.
- //how do we compensate for this? an alarm that will break us out?
- //a counter that will break us out?
   if(*line == '#') continue;
 //  fprintf(stderr,"# read command: %s\n",line);
  if(a) free(a);//use a static char pointer array so I don't have to use the heap. possible optimization.
