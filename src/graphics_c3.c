@@ -45,6 +45,7 @@ real distance3(c3_t p1,c3_t p2) {
  return sqrt(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) )+( (p1.z-p2.z)*(p1.z-p2.z) ));
 }
 
+/* moved to math.c
 int between_angles(degrees d,real lower,real upper) {
   //lower may be higher than upper.
   //because lower is < 0 which wraps to higher. lower is 270, upper is 90. 270-90 is in front.
@@ -57,6 +58,7 @@ int between_angles(degrees d,real lower,real upper) {
   }
   return 0;
 }
+*/
 
 /*
 B (x2,y2)
@@ -161,6 +163,21 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
   return p2;
 }
 
+void draw_minimap_shape(c3_s_t s) {//this should replace the draw_minimap_line and actually do circles.
+  //hrm... should I have functions for converting c3 points into minimap points?
+  c2_s_t s2;
+  s2.len=s.len;
+  s2.id=s.id;
+  int i=0;
+  //if(gra_global.drawminimap == 1) {
+    for(i=0;i<s.len+(s.len==1);i++) {
+      s2.p[i]=(c2_t){(s.p[i].z - global.camera.p.z) * global.mmz,(s.p[i].x - global.camera.p.x) * global.mmz};
+    }
+    draw_c2_shape(s2);
+ // }
+}
+
+/*
 void draw_minimap_line(c3_t p1,c3_t p2) {
  if(gra_global.drawminimap == 1) {//map moves but doesn't rotate.
   draw_c2_line((c2_t){(p1.z-global.camera.p.z)*global.mmz,(global.camera.p.x-p1.x)*global.mmz},
@@ -172,6 +189,7 @@ void draw_minimap_line(c3_t p1,c3_t p2) {
   draw_c2_line((c2_t){t1.x*global.mmz,t1.z*global.mmz},(c2_t){t2.x*global.mmz,t2.z*global.mmz});
  }
 }
+*/
 
 void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shit in here too? probably...
   int i;
@@ -190,22 +208,24 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
      //s2.p[i]=c3_to_c2(s.p[i]);
    }
   }
+  if(s.len == 1) {
+    real dist=distance3(s.p[0],s.p[1]);
+    s2.p[0]=s.p[0];
+    s2.p[1]=c3_add(s.p[0],(c3_t){dist,0,0});
+  }
+  //all s2 needs to bet set before this loop.
   for(i=0;i<s.len+(s.len==1);i++) {//
    r=points_to_angle((c2_t){global.camera.p.x,global.camera.p.z},(c2_t){s2.p[i].x,s2.p[i].z});
    if(between_angles(r2d(r),(360-global.camera.r.y.d-45+360+90)%360,(360-global.camera.r.y.d+45+360+90)%360)) {
     drawthefucker=1;//damn it. somewhere in this shape needs to be drawn.
-   }   
+   }
   }
   if(!drawthefucker) return;//fuck yeah. didn't have to do all that other crap.
-  if(s.len == 1) {
-   real dist=distance3(s.p[0],s.p[1]);
-   s2.p[0]=s.p[0];
-   s2.p[1]=c3_add(s.p[0],(c3_t){dist,0,0});//whatever
-  }
   for(i=0;i<s.len+(s.len==1);i++) {
-   if(s.len > 1) draw_minimap_line(s2.p[i],s2.p[(i+1)%s2.len]);//we shouldn't draw circles in here.
+//   if(s.len > 1) draw_minimap_line(s2.p[i],s2.p[(i+1)%s2.len]);//we shouldn't draw circles in here. //yeah. we probably should.
    s3.p[i]=c3_to_c2(s2.p[i]);//we need to convert all points in the shape if we have to draw any parts of it.
   }
+  draw_minimap_shape(s2);
   if(gra_global.draw3d == 1) {
     set_ansi_color(s.attrib.col%16);
     draw_c2_shape(s3);
@@ -385,6 +405,7 @@ void draw_screen() {
    global.camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cos( tmprad.r ));
    global.camera.p.x-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*sin( tmprad2.r ));
   }
+  //return 0;//after this
   for(cn=0;cn<gra_global.split_screen;cn++) {
     set_color();//restart each draw with the default color.
     if(gra_global.red_and_blue) {
@@ -431,18 +452,6 @@ void draw_screen() {
 //      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+40},tmp);
      }
     }
-
-//  if(global.drawminimap) {//this isn't even useful I guess.
-   //cx1=(sin(d2r(camera.yr+270))*7l);
-   //cy1=(cos(d2r(camera.yr+270))*7l);
-   //cx2=(sin(d2r(camera.yr+90))*7l);
-   //cy2=(cos(d2r(camera.yr+90))*7l);
-//   draw_c2_line((c2_t){0,0},(c2_t){10,10});
-//   draw_c2_line((c2_t){0,0},(c2_t){-10,10});
-//   draw_c2_line((c2_t){10,10},(c2_t){-10,10});
-//  }
-
-
 ///// shiiiit. I should be applying group rotations to all these shapes before sorting them.
 //when I do that. I need to make sure to take the group rotation out of draw_c3_shape()'s code.
     for(i=0;global.shape[i];i++) {
@@ -450,17 +459,13 @@ void draw_screen() {
     }
     qsort(&zs,i,sizeof(zs[0]),(int (*)(const void *,const void *))compar);//sort these zs structs based on d.
    //draw all triangles
-    if(global.debug) {
-     //snprintf(tmp,sizeof(tmp)-1,"selected object: %s",global.selected_object);
-     //draw_c2_text((c2_t){gra_global.xoff,(gra_global.height/2)+50},tmp);
-    }
    //i already equals the length of the array.
    i-=gra_global.maxshapes;
    if(i<0) i=0;
 
    for(;global.shape[i];i++) {
     //now we pick the color of this triangle!
-    if(gra_global.red_and_blue) {
+    if(gra_global.red_and_blue) {//this can be moved to the draw_c3_shape function and color can be set then.
      if(cn%2==0) {
       set_color_red();
      } else {
@@ -480,7 +485,7 @@ void draw_screen() {
      draw_c3_shape(*(zs[i].s));
     //}
    }
-
+/*
  if(gra_global.drawminimap == 1) {
   set_color();
   c2_t t1=rotate_c2((c2_t){3*global.mmz,0},(c2_t){0,0},d2r(global.camera.r.y));
@@ -491,7 +496,7 @@ void draw_screen() {
   draw_c2_line(t2,t3);
   draw_c2_line(t3,t4);
   draw_c2_line(t4,t1);
- }
+ }*/
 
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
    radians tmprad=d2r((degrees){global.camera.r.y.d+90});
@@ -502,8 +507,10 @@ void draw_screen() {
 //just draw a line from center to 40 away from the center at the angle of the camera's y-rotation
 //this should be minimap shit  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.camera.r.y)));
 //draw a line from the center to 80 away from the center in the angle of what should point at the mouse.
-//  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},cs_to_c2((cs_t){gra_global.mousex,gra_global.mousey}))));
-//  draw_c2_line((c2_t){0,0},cs_to_c2((cs_t){gra_global.mousex,gra_global.mousey}));
+  //if(points_on_same_side_of_line((c2_t){gra_global.mousex,gra_global.mousey},(c2_t){80,80},(c2_t){0,0},(c2_t){0,80})) {
+  //  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},cs_to_c2((cs_t){gra_global.mousex,gra_global.mousey}))));
+  //}
+  //draw_c2_line((c2_t){0,0},cs_to_c2((cs_t){gra_global.mousex,gra_global.mousey}));
   global.camera.p.x = oldx;
   global.camera.p.z = oldz; //-= cn*CAMERA_SEPARATION;
   flipscreen();
@@ -516,6 +523,12 @@ int graphics_init() {
  global.camera.r.y.d=0;//we should be facing east.
  global.camera.r.z.d=0;
  global.mmz=1;//this is minimap zoom.
+
+ global.shape[0]=0;//we'll allocate as we need more.
+ global.camera.id=global.user;
+ global.group_rot[0]=&global.camera;
+ global.group_rot[1]=0;
+
  global.camera.p.x=0;
  global.camera.p.y=10;//10 units above the ground should be as low as it goes.
  global.camera.p.z=-6;
@@ -542,4 +555,3 @@ int graphics_init() {
  graphics_sub_init();
  return 0;//we're fine
 }
-
