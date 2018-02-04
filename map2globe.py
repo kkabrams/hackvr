@@ -16,7 +16,7 @@ z="0"
 # / 90 * math.pi
 #they need to be in the range 0 to 2pi?
 
-print("globe addshape 0 1  0 0 0  0 1 0")
+print("globe addshape 4 1  0 0 0  1 0 0")
 rotation=0
 
 while(1):
