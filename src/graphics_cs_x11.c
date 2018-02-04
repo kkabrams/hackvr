@@ -88,8 +88,8 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
   int i;//all cs shapes can have 1, 2, or 3+ points. guess I gotta do that logic here too.
   switch(s.len) {
    case 1:
-    //cicle
-    h=max(s.p[0].y,s.p[1].y)-min(s.p[0].y,s.p[1].y);
+    //circle
+    h=max(s.p[0].x,s.p[1].x)-min(s.p[0].x,s.p[1].x);
     XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
     break;
    default:
@@ -137,6 +137,7 @@ void draw_cs_filled_shape(cs_s_t s) {
   switch(s.len) {
    case 1:
     h=max(s.p[0].y,s.p[1].y)-min(s.p[0].y,s.p[1].y);
+    h=max(s.p[0].x,s.p[1].x)-min(s.p[0].x,s.p[0].x);
     XFillArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
     break;
    default:
@@ -418,10 +419,6 @@ int graphics_sub_init() {
  }
  XMapWindow(x11_global.dpy,x11_global.w);
  XStoreName(x11_global.dpy,x11_global.w,"hackvr");
- global.shape[0]=0;//we'll allocate as we need more.
- global.camera.id=global.user;
- global.group_rot[0]=&global.camera;
- global.group_rot[1]=0;
  x11_global.gc=XCreateGC(x11_global.dpy,x11_global.w, 0, 0);
  x11_global.backbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,MAXWIDTH,MAXHEIGHT,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
  x11_global.cleanbackbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,MAXWIDTH,MAXHEIGHT,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
