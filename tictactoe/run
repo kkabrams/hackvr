@@ -2,5 +2,5 @@
 turn=$( expr $RANDOM % 2)
 echo "go. player: $turn"
 mknod p p
-stdbuf -oL cat board p | ../src/hackvr_x11 "$USER" | ./game.sh > p
+stdbuf -oL cat board p | hackvr "$USER" | ./game.sh > p
 rm p
