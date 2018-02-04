@@ -18,5 +18,6 @@ c3_group_rot_t *get_group_rotation(char *id);
 radians d2r(degrees d);
 degrees r2d(radians r);
 radians points_to_angle(c2_t p1,c2_t p2);
+int between_angles(degrees d,real lower,real upper);
 
 #endif

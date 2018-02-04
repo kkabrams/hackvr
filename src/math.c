@@ -64,3 +64,61 @@ radians points_to_angle(c2_t p1,c2_t p2) {
   real a=atan2(p2.y-p1.y,p2.x-p1.x);
   return (radians){a>=0?a:M_PI+M_PI+a};
 }
+
+int between_angles(degrees d,real lower,real upper) {
+  //lower may be higher than upper.
+  //because lower is < 0 which wraps to higher. lower is 270, upper is 90. 270-90 is in front.
+  if(lower > upper) {
+    if(d.d > lower) return 1;
+    if(d.d < upper) return 1;
+  }
+  if(upper > lower) {
+    if(d.d > lower && d.d < upper) return 1;
+  }
+  return 0;
+}
+
+int points_on_same_side_of_line(c2_t p1,c2_t p2,c2_t p3,c2_t p4) {//we're going to check if... well, the name says it all.
+//  if(s.len != 2) //well... I guess we'll just use the first two points anyway.
+  degrees la=r2d(points_to_angle(p3,p4));
+  degrees p1a=r2d(points_to_angle(p3,p1));
+  degrees p2a=r2d(points_to_angle(p3,p2));
+  //p1aa=
+  //now...
+  //between angles. if the line's angle is between the points' angles they're on opposite sides
+  if(between_angles(la,p1a.d,p2a.d)) {
+    return 1;
+  }
+  return 0;
+}
+
+//if a shape's angle between points continues to grow only in one direction the shape is convex.
+//like for a square the angles would be 90,90,90,90 or -90,-90,-90,-90
+//but if we end up with something like 90,90,-90,90,90,90 then we have concave.
+//this could be used in a loop and then cut polygons into convex before loading them into the shapes array.
+//not sure how I'm going to do this for 3d shapes... not needed I guess. this is for mouse-inside-shape
+//after it has already been flattened. so it can't be used before they're loaded.
+//has to be done at run-time with the 2d shapes that are in either c2 or cs format.
+int is_shape_concave() {
+ //a;
+ //b;
+ //a=
+ //for(i=1;i<s.len;i++) {
+ // b=points_to_angle(s.p[i],s.p[(i+1)%s.len]);
+ // if(b < a) //figure out which direction the points are bending and if we bend the other direction then we're concave.
+ //}
+ return 0;
+}
+
+int point_inside_concave_shape(c2_t p1,c2_s_t s) {//hrm...
+  //the point must be on the inside side of all lines to be inside.
+  //if(s.len == 1) //as long as distance from the center is less than the radius we're in.
+  //else {
+  int i;
+  for(i=0;i<s.len;i++) {
+    //if(!points_on_same_side_of_line()) {
+    //  return 0;
+    //}
+  }
+  return 1;
+}
