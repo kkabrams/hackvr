@@ -146,6 +146,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     fprintf(stderr,"#   deletegroup\n");
     fprintf(stderr,"#   assimilate\n");
     fprintf(stderr,"#   renamegroup\n");
+    fprintf(stderr,"#   control name\n");
     fprintf(stderr,"#   dump\n");
     fprintf(stderr,"#   quit\n");
     fprintf(stderr,"#   set\n");
@@ -300,6 +301,14 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
    else { fprintf(stderr,"# unknown variable: %s\n",a[2]); continue; }
    fprintf(stderr,"# %s toggled!\n",a[2]);
    ret=1;
+   continue;
+  }
+  if(!strcmp(command,"control")) {//change what shape key commands  affect.
+   if(len > 2) {
+    free(global.user);
+    global.user=strdup(a[2]); // :D
+   }
+   ret=0;//doesn't change anything yet...
    continue;
   }
   if(!strcmp(command,"addshape")) {//need to add a grouprot with this.
