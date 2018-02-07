@@ -204,8 +204,12 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
   c3_group_rot_t *gr=get_group_rotation(s.id);
   if(s.len > 1) {
    for(i=0;i<s.len+(s.len==1);i++) {//apply the group's rotation and store in s2.
-     s2.p[i]=(gr?c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y))):s.p[i]);
-     //s2.p[i]=c3_to_c2(s.p[i]);
+     if(gr) {
+      //s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y)));
+      s2.p[i]=c3_add(gr->p,rotate_c3_yr(rotate_c3_zr(s.p[i],gr->p,d2r(gr->r.z)),gr->p,d2r(gr->r.y)));
+     } else {
+      s2.p[i]=s.p[i];
+     }
    }
   }
   if(s.len == 1) {
@@ -525,7 +529,7 @@ int graphics_init() {
  global.mmz=1;//this is minimap zoom.
 
  global.shape[0]=0;//we'll allocate as we need more.
- global.camera.id=global.user;
+ global.camera.id=strdup(global.user);//make a copy so if we change global.user later we can reattach to this camera.
  global.group_rot[0]=&global.camera;
  global.group_rot[1]=0;
 
