@@ -284,27 +284,27 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
       selfcommand(line);
       break;
      case XK_r:
-      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,global.camera.r.x.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,+ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_y:
-      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,global.camera.r.x.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,-ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_q:
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,global.camera.r.y.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,+ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_e:
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,global.camera.r.y.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,-ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_u:
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,global.camera.r.z.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_o:
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,global.camera.r.z.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,-ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_p:

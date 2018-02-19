@@ -423,27 +423,27 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_R)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,global.camera.r.x.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_Y)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,global.camera.r.x.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,-ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_Q)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,global.camera.r.y.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_E)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,global.camera.r.y.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,-ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_U)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,global.camera.r.z.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_O)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,global.camera.r.z.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,-ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_P)) gra_global.split+=.1;
