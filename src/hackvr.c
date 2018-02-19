@@ -79,6 +79,16 @@ char **line_splitter(char *line,int *rlen) {
  return a;
 }
 
+//this function is like strcmp
+//but the first argument MAY use a simple * glob ONLY at the end.
+//this function may be changed to allow globs in different spots later.
+int glob_match(char *a,char *b) {
+  if(strchr(a,'*')) {
+    return strncmp(a,b,strchr(a,'*')-a-1);//hack? sure.
+  }
+  return strcmp(a,b);
+}
+
 int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw, and 1 to ask for redraw
 // struct c3_shape s;
 // struct c3_line l;
@@ -140,20 +150,22 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     fprintf(stderr,"# built headless.\n");
 #endif
     fprintf(stderr,"# command format:\n");
-    fprintf(stderr,"# some_ID_or_nick_or_username command arguments\n");
+    fprintf(stderr,"# group names can be globbed in some cases to operate on multiple groups\n");
+    fprintf(stderr,"# groupnam* command arguments\n");
     fprintf(stderr,"# commands:\n");
-    fprintf(stderr,"#   deleteallexcept\n");
-    fprintf(stderr,"#   deletegroup\n");
-    fprintf(stderr,"#   assimilate\n");
-    fprintf(stderr,"#   renamegroup\n");
-    fprintf(stderr,"#   control name\n");
+    fprintf(stderr,"#   deleteallexcept grou*\n");
+    fprintf(stderr,"#   deletegroup grou*\n");
+    fprintf(stderr,"#   assimilate grou*\n");
+    fprintf(stderr,"#   renamegroup group\n");
+    fprintf(stderr,"#   control grou* [globbing this group could have fun effects]\n");
     fprintf(stderr,"#   dump\n");
     fprintf(stderr,"#   quit\n");
     fprintf(stderr,"#   set\n");
     fprintf(stderr,"#   addshape color N x1 y1 z1 ... xN yN zN\n");
-    fprintf(stderr,"#   export\n");
-    fprintf(stderr,"#   scaleup x y z\n");
-    fprintf(stderr,"#   move x y z\n");
+    fprintf(stderr,"#   export grou*\n");
+    fprintf(stderr,"# * scaleup x y z\n");
+    fprintf(stderr,"# * move x y z\n");
+    fprintf(stderr,"# * move forward|backward|left|right\n");
     fprintf(stderr,"# that is all.\n");
     continue;
    } else {
@@ -163,40 +175,65 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
   }
   ret=1;
   if(!strcmp(command,"deleteallexcept")) {
-   for(j=0;global.shape[j];j++) {//mark first. compress later.
-    if(strcmp(global.shape[j]->id,a[2])) {
-     free(global.shape[j]->id);
-     free(global.shape[j]);
-     global.shape[j]=0;
+   if(len == 3) {
+    for(j=0;global.shape[j] && j < MAXSHAPES;j++) {//mark first. compress later.
+     if(glob_match(a[2],global.shape[j]->id)) {
+      free(global.shape[j]->id);
+      free(global.shape[j]);
+      global.shape[j]=0;
+     }
     }
-   }
-   for(k=0;k<j;k++) {
-    if(global.shape[k]) continue;
-    for(l=k;global.shape[l] == 0 && l<j;l++);
-    global.shape[k]=global.shape[l];
-    global.shape[l]=0;
-   }
-   ret=1;
-   //now do the same stuff but for the group_rot structs.
-   for(j=0;global.group_rot[j];j++) {
-    if(strcmp(global.group_rot[j]->id,a[2])) {
-     free(global.group_rot[j]->id);
-     free(global.group_rot[j]);
-     global.group_rot[j]=0;
+    for(k=0;k<j;k++) {
+     if(global.shape[k]) continue;
+     for(l=k;global.shape[l] == 0 && l<j;l++);
+     global.shape[k]=global.shape[l];
+     global.shape[l]=0;
     }
+    ret=1;
+    //now do the same stuff but for the group_rot structs.
+    for(j=1;global.group_rot[j] && j < MAXSHAPES;j++) {//start at 1 so we skip the camera.
+     if(glob_match(a[2],global.group_rot[j]->id)) {
+      free(global.group_rot[j]->id);
+      free(global.group_rot[j]);
+      global.group_rot[j]=0;
+     }
+    }
+    for(k=0;k<j;k++) {
+     if(global.group_rot[k]) continue;
+     for(l=k;global.group_rot[l] == 0 && l<j;l++);
+     global.group_rot[k]=global.group_rot[l];
+     global.group_rot[l]=0;
+    }
+    continue;
    }
-   for(k=0;k<j;k++) {
-    if(global.group_rot[k]) continue;
-    for(l=k;global.group_rot[l] == 0 && l<j;l++);
-    global.group_rot[k]=global.group_rot[l];
-    global.group_rot[l]=0;
-   }
-   continue;
+  }
+  if(!strcmp(command,"apply")) {
+   /*gr=get_group_rotation(a[2]);
+   if(gr) {
+     for(j=0;global.shape[j] && j < MAXSHAPES;j++) {
+       if(!glob_match(a[2],global.shape[j].id)) {
+         for(k=0;k<global.shape[j].len+(global.shape[j].len==1);k++) {
+           //apply the movement stored in this gr to the shapes themselves.
+           //after taking into account the rotation.
+           //this code is the same as the code in graphics_c3 but this is object specific.
+           global.shape[j].p[k]=c3_add(gr->p,rotate_c3_yr(global.shape[j].p[k]);
+         }
+         gr->p.x=gr->p.y=gr->p.z=0;
+
+         gr->r.x=0;
+         gr->r.y=0;
+         gr->r.z=0;
+       }
+     }
+     //we don't need this gr anymore.
+     //we could clean it up, but its values are already zero.
+   }*/
+   printf("# this group doesn't have a gr.\n");
   }
   if(!strcmp(command,"deletegroup")) {//should the grouprot get deleted too? sure...
    if(len == 3) {
     for(j=0;global.shape[j] && j < MAXSHAPES;j++) {
-     if(!strcmp(global.shape[j]->id,a[2])) {
+     if(!glob_match(a[2],global.shape[j]->id)) {
       free(global.shape[j]->id);
       free(global.shape[j]);
       global.shape[j]=0;
@@ -211,8 +248,8 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      global.shape[l]=0;
     }
     //now for the group_rot struct that goes with it. there should only be one, but might be a few due to bugs elsewhere. heh. let's just get all of them I guess.
-    for(j=0;global.group_rot[j] && j < MAXSHAPES;j++) {
-     if(!strcmp(global.group_rot[j]->id,a[2])) {
+    for(j=1;global.group_rot[j] && j < MAXSHAPES;j++) {//start at 1 to skip passed the camera. it isn't malloc()d and will crash if we try to free it.
+     if(!glob_match(a[2],global.group_rot[j]->id)) {
       free(global.group_rot[j]->id);
       free(global.group_rot[j]);
       global.group_rot[j]=0;
@@ -228,10 +265,10 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     continue;
    }
   }
-  if(!strcmp(command,"assimilate")) {
+  if(!strcmp(command,"assimilate")) {//um... what do we do with the group_rotation?
    if(len == 3) {
     for(j=0;global.shape[j];j++) {
-     if(!strcmp(global.shape[j]->id,a[2])) {
+     if(!glob_match(a[2],global.shape[j]->id)) {
       free(global.shape[j]->id);
       global.shape[j]->id=strdup(id);
      }
@@ -240,15 +277,15 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
    ret=1;
    continue;
   }
-  if(!strcmp(command,"renamegroup")) {
+  if(!strcmp(command,"renamegroup")) {//this command doesn't need globbing
    if(len == 4) {
     for(j=0;global.shape[j];j++) {
-     if(!strcmp(global.shape[j]->id,a[2])) {
+     if(!strcmp(a[2],global.shape[j]->id)) {
       free(global.shape[j]->id);
       global.shape[j]->id=strdup(a[3]);
      }
     }
-    gr=get_group_rotation(a[2]);
+    gr=get_group_rotation(a[2]);//this shouldn't be used here.
     if(gr) {
      free(gr->id);
      gr->id=strdup(a[3]);
@@ -357,8 +394,8 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
   if(!strcmp(command,"export")) {//dump shapes and group rotation for argument (or all if arg is *)
    if(len > 2) {
     for(i=0;global.shape[i];i++) {//require a[2], if not it'll segfault. derrrr, epoch.
-     if(a[2][0]=='*' || !strcmp(global.shape[i]->id,a[2])) {
-      printf("%s_%s addshape %d %d",id,a[2],global.shape[i]->attrib.col,global.shape[i]->len);
+     if(!glob_match(a[2],global.shape[i]->id)) {
+      printf("%s_%s addshape %d %d",id,global.shape[i]->id,global.shape[i]->attrib.col,global.shape[i]->len);
       for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
        printf(" %f %f %f",global.shape[i]->p[j].x,global.shape[i]->p[j].y,global.shape[i]->p[j].z);
       }//possible TODO: should I combine the string and output it all at once instead of throughout a loop?
@@ -366,7 +403,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      }
     }
     for(i=0;global.group_rot[i];i++) {
-     if(a[2][0]=='*' || !strcmp(global.group_rot[i]->id,a[2])) {
+     if(!glob_match(a[2],global.group_rot[i]->id)) {
       printf("%s_%s rotate %d %d %d\n",id,a[2],global.group_rot[i]->r.x.d,global.group_rot[i]->r.y.d,global.group_rot[i]->r.z.d);
       printf("%s_%s move %f %f %f\n",id,a[2],global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);
      }
@@ -377,7 +414,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
 //should scaleup even be inside hackvr? seems like something an external program could do... but it wouldn't act on hackvr's state. so nevermind.
   if(!strcmp(command,"scaleup")) {//should this scale separately so it can be a deform too?
    for(i=0;global.shape[i];i++) {
-    if(!strcmp(global.shape[i]->id,id)) {
+    if(!glob_match(id,global.shape[i]->id)) { //we're allowing globbing in this command I guess.
      for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
       global.shape[i]->p[j].x*=strtold(a[2],0);
       global.shape[i]->p[j].y*=strtold(len>4?a[3]:a[2],0);
@@ -403,15 +440,15 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      global.group_rot[i]->p.y=0;
      global.group_rot[i]->p.z=0;
     }
-    global.group_rot[i]->r.x=(degrees){atoi(a[2])};
-    global.group_rot[i]->r.y=(degrees){atoi(a[3])};
-    global.group_rot[i]->r.z=(degrees){atoi(a[4])};
+    global.group_rot[i]->r.x=(degrees){(a[2][0]=='+'?global.group_rot[i]->r.x.d:0)+atoi(a[2]+(a[2][0]=='+'))};
+    global.group_rot[i]->r.y=(degrees){(a[3][0]=='+'?global.group_rot[i]->r.y.d:0)+atoi(a[3]+(a[3][0]=='+'))};
+    global.group_rot[i]->r.z=(degrees){(a[4][0]=='+'?global.group_rot[i]->r.z.d:0)+atoi(a[4]+(a[4][0]=='+'))};
    }
    ret=1;
    continue;
   }
   if(!strcmp(command,"move")) {
-   if(len > 4) {
+   if(len > 2) {
     for(i=0;global.group_rot[i];i++) {
      if(!strcmp(global.group_rot[i]->id,id)) {
       break;
@@ -425,13 +462,15 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      global.group_rot[i]->r.y=(degrees){0};
      global.group_rot[i]->r.z=(degrees){0};
     }
-    global.group_rot[i]->p.x+=strtold(a[2],0);
-    global.group_rot[i]->p.y+=strtold(a[3],0);
-    global.group_rot[i]->p.z+=strtold(a[4],0);
+   }
+   if(len > 4) { //if we have > 4 we're doing relative movement
+    global.group_rot[i]->p.x=(a[2][0]=='+'?global.group_rot[i]->p.x:0)+strtold(a[2]+(a[2][0]=='+'),0);
+    global.group_rot[i]->p.y=(a[3][0]=='+'?global.group_rot[i]->p.y:0)+strtold(a[3]+(a[3][0]=='+'),0);
+    global.group_rot[i]->p.z=(a[4][0]=='+'?global.group_rot[i]->p.z:0)+strtold(a[4]+(a[4][0]=='+'),0);
    }
    else if(len > 2) {
     if(!strcmp(a[2],"forward")) {
-     //move id forward based on id's rotation.
+     //global.
     } else if(!strcmp(a[2],"backward")) {
 
     } else if(!strcmp(a[2],"up")) {
@@ -495,6 +534,7 @@ int main(int argc,char *argv[]) {
       break;
     }
 #ifdef GRAPHICAL
+    //input_event_handler();//keyboard, mouse AND joysticks all at once?
     graphics_event_handler(redraw);//this thing should call draw_screen when it needs to.
 #endif
    sleep(.01);

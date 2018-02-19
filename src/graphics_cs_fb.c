@@ -375,6 +375,8 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
   int i;
  //update the keystates...
  ioctl(fb_global.kb,EVIOCGKEY(sizeof(fb_global.keystate)),fb_global.keystate);//update keystate
+ read(fb_global.kb,&ie,sizeof(ie));//????
+//need to not be using KEY_IS_DOWN so that it gets these events instead of just checking when it gets to this loop.
  if(KEY_IS_DOWN(KEY_ESC)) exit(0);
  if(KEY_IS_DOWN(KEY_ENTER)) {
       snprintf(line,sizeof(line)-1,"%s action %s\n",global.user,global.selected_object);
@@ -385,7 +387,7 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
       tmprad2=d2r((degrees){global.camera.r.y.d});
       tmpx=WALK_SPEED*sin(tmprad.r);//cos(0)==1
       tmpz=WALK_SPEED*cos(tmprad2.r);//sin(0)==0
-      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
+      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
       selfcommand(line);
  }
  if(KEY_IS_DOWN(KEY_DOWN)) {
@@ -393,7 +395,7 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
       tmprad2=d2r((degrees){global.camera.r.y.d+180});
       tmpx=WALK_SPEED*sin(tmprad.r);
       tmpz=WALK_SPEED*cos(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
+      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
       selfcommand(line);
  }
  if(KEY_IS_DOWN(KEY_LEFT)) {
@@ -401,7 +403,7 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
       tmprad2=d2r((degrees){global.camera.r.y.d+90});
       tmpx=WALK_SPEED*sin(tmprad.r);
       tmpz=WALK_SPEED*cos(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
+      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
       selfcommand(line);
  }
      if(KEY_IS_DOWN(KEY_RIGHT)) {
@@ -409,39 +411,39 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
       tmprad2=d2r((degrees){global.camera.r.y.d+270});
       tmpx=WALK_SPEED*sin(tmprad.r);
       tmpz=WALK_SPEED*cos(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
+      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
       selfcommand(line);
       }
      if(KEY_IS_DOWN(KEY_W)) {
-      snprintf(line,sizeof(line)-1,"%s move 0 1 0\n",global.user);
+      snprintf(line,sizeof(line)-1,"%s move +0 +1 +0\n",global.user);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_S)) {
-      snprintf(line,sizeof(line)-1,"%s move 0 -1 0\n",global.user);
+      snprintf(line,sizeof(line)-1,"%s move +0 +-1 +0\n",global.user);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_R)) {
-      snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,global.camera.r.x.d+ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_Y)) {
-      snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,global.camera.r.x.d-ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_Q)) {
-      snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,global.camera.r.y.d+ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_E)) {
-      snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,global.camera.r.y.d-ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_U)) {
-      snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,global.camera.r.z.d+ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_O)) {
-      snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,global.camera.r.z.d-ROTATE_STEP);
       selfcommand(line);
      }
      if(KEY_IS_DOWN(KEY_P)) gra_global.split+=.1;

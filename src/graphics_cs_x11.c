@@ -247,7 +247,8 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
       tmprad2=d2r((degrees){global.camera.r.y.d});
       tmpx=WALK_SPEED*sin(tmprad.r);//cos(0)==1
       tmpz=WALK_SPEED*cos(tmprad2.r);//sin(0)==0
-      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
+      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
+      snprintf(line,sizeof(line)-1,"%s move forward\n",global.user);
       selfcommand(line);
       break;
      case XK_Down:
@@ -255,7 +256,7 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
       tmprad2=d2r((degrees){global.camera.r.y.d+180});
       tmpx=WALK_SPEED*sin(tmprad.r);
       tmpz=WALK_SPEED*cos(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
+      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
       selfcommand(line);
       break;
      case XK_Left:
@@ -263,7 +264,7 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
       tmprad2=d2r((degrees){global.camera.r.y.d+90});
       tmpx=WALK_SPEED*sin(tmprad.r);
       tmpz=WALK_SPEED*cos(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
+      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
       selfcommand(line);
       break;
      case XK_Right:
@@ -271,39 +272,39 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
       tmprad2=d2r((degrees){global.camera.r.y.d+270});
       tmpx=WALK_SPEED*sin(tmprad.r);
       tmpz=WALK_SPEED*cos(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move %f 0 %f\n",global.user,tmpx,tmpz);
+      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
       selfcommand(line);
       break;
      case XK_w:
-      snprintf(line,sizeof(line)-1,"%s move 0 1 0\n",global.user);
+      snprintf(line,sizeof(line)-1,"%s move +0 +1 +0\n",global.user);
       selfcommand(line);
       break;
      case XK_s:
-      snprintf(line,sizeof(line)-1,"%s move 0 -1 0\n",global.user);
+      snprintf(line,sizeof(line)-1,"%s move +0 +-1 +0\n",global.user);
       selfcommand(line);
       break;
      case XK_r:
-      snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,global.camera.r.x.d+ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_y:
-      snprintf(line,sizeof(line)-1,"%s rotate %d 0 0\n",global.user,global.camera.r.x.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,global.camera.r.x.d-ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_q:
-      snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,global.camera.r.y.d+ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_e:
-      snprintf(line,sizeof(line)-1,"%s rotate 0 %d 0\n",global.user,global.camera.r.y.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,global.camera.r.y.d-ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_u:
-      snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d+ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,global.camera.r.z.d+ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_o:
-      snprintf(line,sizeof(line)-1,"%s rotate 0 0 %d\n",global.user,global.camera.r.z.d-ROTATE_STEP);
+      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,global.camera.r.z.d-ROTATE_STEP);
       selfcommand(line);
       break;
      case XK_p:
