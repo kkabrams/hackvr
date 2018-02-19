@@ -1,7 +1,5 @@
 *.o
 hackvr_term/hackvr_term
-hackvr
-src/hackvr
 src/hackvr_headless
 src/hackvr_x11
 src/hackvr_opengl

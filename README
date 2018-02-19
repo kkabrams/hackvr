@@ -8,6 +8,10 @@ hackvr... um. outputs commands to stdout based on keys pressed inside hackvr,
 and inputs the same type of commands.
 so do some plumbing and get a multiplayer game going?
 
+I'm working on making hackvr work with different output and input types. Right now the only one
+that works with everything is hackvr_x11. There's also a hackvr_fb that uses the linux framebuffer,
+but it doesn't have mouse support and keyboard support is wonky due to me not thinging it through.
+
 quick start:
 
 You'll need to have the library and headers of libx11 installed for hackvr to build successfully.
@@ -22,8 +26,11 @@ If you want to build the GLut crap you'll need
 
 After you have that installed you should be able to do these to get hackvr built:
 
-  cd src
-  make
+  make #BSD make doesn't do target specific variables. use GNUMake.
+  export PREFIX=$(HOME)/local #the Makefiles are short, worth a read.
+  make install
+
+The make install will create hackvr_headless, hackvr_x11, hackvr_fb.
 
 A few helper scripts are written in perl and python.
 So you might want to install perl and python if you want to play with them.
@@ -33,6 +40,8 @@ what hackvr can do...
 
 I dunno.
 
+try cd tictactoe ; ./run
+or... fiddle with the scripts laying around?
 _     _
  \O_o/
 
