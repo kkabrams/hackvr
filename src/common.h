@@ -35,7 +35,7 @@ typedef struct {
  real y;
 } c2_t;
 
-typedef struct {
+typedef struct {//no screens will ever be bigger than 32k x 32k, right?
  short x;
  short y;
 } cs_t;
@@ -50,19 +50,21 @@ typedef struct {
   char *id;
   c3_rot_t r;
   c3_t p;
+  c3_t s;
 } c3_group_rot_t;
 
-typedef struct c3_line {
- char *id;
- c3_t p1;
- c3_t p2;
-} cs_l_t;
+//typedef struct c3_line {//is this even used? I think I just use c3_s_t with 2 points.
+// char *id;
+// c3_t p1;
+// c3_t p2;
+//} cs_l_t;
 
 struct attrib {
-  char col;
-  char lum;
+  char col;//color. not sure how I plan on using this.
+  char lum;//brightness. 1 - 200 atm because X11 has grey1 - grey200
 };
 
+//not used yet. will be later I guess. if I ever get around to doing bezier curves.
 typedef enum shape_flavor {POLYGON,ELLIPTIC_ARC,CUBIC_BEZIER,QUAD_BEZIER} shape_flavor;
 
 typedef struct cs_shape {
