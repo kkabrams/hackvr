@@ -18,6 +18,13 @@ hackvr_fb: hackvr_fb.o graphics_c3.o graphics_c2.o graphics_cs_fb.o math.o
 hackvr_opengl: LDLIBS=-lm -lGL -lGLU -lglut
 hackvr_opengl: hackvr_opengl.o graphics_c3.o graphics_c2_opengl.o graphics_cs_opengl.o math.o
 
+hackvr_freeglut: LDLIBS=-lm -lGL -lGLU -lglut
+hackvr_freeglut: hackvr_freeglut.o graphics_c3_freeglut.o math.o
+
+hackvr_freeglut.o: LDLIBS=-lm -lGL -lGLU -lglut
+
+graphics_c3_freeglut.o: LDLIBS=-lm -lGL -lGLU -lglut
+
 hackvr_opengl.o: LDLIBS=-lm -lGL -lGLU -lglut
 hackvr_x11.o: LDLIBS=-lm -lX11
 
