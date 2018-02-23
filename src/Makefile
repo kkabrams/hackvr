@@ -55,7 +55,6 @@ uninstall:
 	rm $(PREFIX)/bin/slowcat
 
 clean:
-	rm -f hackvr
 	rm -f hackvr_headless
 	rm -f hackvr_opengl
 	rm -f hackvr_x11
