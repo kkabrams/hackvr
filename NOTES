@@ -1,0 +1,57 @@
+this may not be what actually happens, but this is what I'd like:
+
+x and z are floor.
+
+y is up and down.
+
+yr rotation 0 is facing east. because that's what rotation 0 is in cartesian coordinates.
+yr is yaw
+xr is pitch
+zr is roll
+
+the rotations need to be within the range: 0 <= r < 360 (so modulo 360 should work)
+
+minimap: view from above
+          +z?
+           |
+           |
+           |
+           |
+-x --------+-------- +x
+           |
+           |
+           |
+           |
+          -z?
+the reason the minimap has positive x being down is so that camera view at rotation 0 is with
+positive x to the right so 2D vector graphics don't need any dimensions flipped
+
+camera view: facing rotation 0
+          +y
+           |
+           |
+           |
+           |
+-x --------+-------- +x
+           |
+           |
+           |
+           |
+          -y
+
+increasing yr causes rotation counter-clockwise on the minimap. (around y axis)
+
+
+this is what minetest does. I guess I'll do this.
+
+camera angle 0 is north.
+north is +Z
+south is -Z
+west  is -X
+east  is +X
+up    is +Y
+down  is -Y
+
+there is no angle 0 actually. 0 < angle <= 360
+
+I guess I should use yaw.
