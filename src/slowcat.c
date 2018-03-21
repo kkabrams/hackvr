@@ -6,7 +6,7 @@
 int main(int argc,char *argv[]) {
  short in;
  FILE *fp=stdin;
- if(argc < 2) {
+ if(argc < 2 || (argc >= 2 && (!strcmp(argv[1],"-h") || !strcmp(argv[1],"--help")))) {
   fprintf(stderr,"usage: slowcat delay [file1] [file2] [...]\n");
   return 1;
  }
