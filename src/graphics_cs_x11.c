@@ -91,6 +91,12 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
     //circle
     h=max(s.p[0].x,s.p[1].x)-min(s.p[0].x,s.p[1].x);
     XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
+    if(distance2((c2_t){s.p[0].x,s.p[1].y},(c2_t){gra_global.mousex,gra_global.mousey} ) < h) {
+     if(gra_global.buttonpressed) {
+       printf("%s action %s\n",global.user,s.id);
+     }
+     XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h-2,s.p[0].y-h-2,h*2+4,h*2+4,0,360*64);
+    }
     break;
    default:
     for(i=0;i<s.len+(s.len==1);i++) {//this shape is closed!
@@ -248,7 +254,7 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
       tmpx=WALK_SPEED*sin(tmprad.r);//cos(0)==1
       tmpz=WALK_SPEED*cos(tmprad2.r);//sin(0)==0
       snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
-      snprintf(line,sizeof(line)-1,"%s move forward\n",global.user);
+      //snprintf(line,sizeof(line)-1,"%s move forward\n",global.user);
       selfcommand(line);
       break;
      case XK_Down:
@@ -440,7 +446,7 @@ int graphics_sub_init() {
  XSetBackground(x11_global.dpy, x11_global.gc, x11_global.colors[160].pixel);
  XSetBackground(x11_global.dpy, x11_global.backgc, x11_global.colors[140].pixel);
 
- XFillRectangle(x11_global.dpy, x11_global.cleanbackbuffer,x11_global.backgc,0,0,gra_global.width,gra_global.height);
+ XFillRectangle(x11_global.dpy, x11_global.cleanbackbuffer,x11_global.backgc,0,0,MAXWIDTH,MAXHEIGHT);
  XSetForeground(x11_global.dpy, x11_global.backgc,x11_global.green.pixel);
 
 //  XSetForeground(x11_global.dpy, gc, whiteColor);
@@ -528,6 +534,8 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
  if(motionnotify) {
   XQueryPointer(x11_global.dpy,x11_global.w,&root,&child,&gra_global.rmousex,&gra_global.rmousey,&gra_global.mousex,&gra_global.mousey,&mask);
   redraw=1;
+//  global.camera.r.x.d=gra_global.mousey - (HEIGHT/2);
+//  global.camera.r.y.d=gra_global.mousex - (LEFT/2);
  }
  //redraw=1;//meh.
  if(redraw || world_changed) { 
