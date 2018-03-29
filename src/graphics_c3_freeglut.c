@@ -194,7 +194,7 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
   s2.len=s.len;
   s3.id=s.id;
   s3.len=s.len;
-  c3_group_rot_t *gr=get_group_rotation(s.id);
+  c3_group_rot_t *gr=get_group_relative(s.id);
   if(s.len > 1) {
    for(i=0;i<s.len+(s.len==1);i++) {//apply the group's rotation and store in s2.
      if(gr) {
@@ -291,7 +291,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  int i;
  real curdist=0;
  real maxdist=0;
- c3_group_rot_t *gr=get_group_rotation(s->id);
+ c3_group_rot_t *gr=get_group_relative(s->id);
  for(i=0;i< s->len+(s->len==1);i++) {
   if(gr) {
    curdist=shitdist2(global.camera.p,rotate_c3_yr(c3_add(gr->p,s->p[i]),gr->p,d2r(gr->r.y)));
@@ -306,7 +306,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  /*
  real total=0;
  for(i=0;i< s->len+(s->len==1);i++) {
-  c3_group_rot_t *gr=get_group_rotation(s->id);
+  c3_group_rot_t *gr=get_group_relative(s->id);
   total=total+shitdist2(
                 rotate_c3_yr(//we're rotating the point around the camera...
                   gr?
@@ -395,6 +395,7 @@ void set_aspect_ratio() {
 }
 
 int graphics_event_handler() {
+  draw_screen();//kek
   return 0;//dunno
 }
 
@@ -407,6 +408,11 @@ int graphics_sub_init() {
  glutInitWindowSize(640,480);
  glutInitWindowPosition(0,0);
  glutCreateWindow("hackvr");
+
+ glViewport(0,0,320,240);
+ glMatrixMode(GL_PROJECTION);
+ glLoadIdentity();
+ gluPerspective(45.0f,4/3,1.0f,200.0f);
  //glutDisplayFunc();
  //glutReshapeFunc();
  //initGL();
@@ -421,18 +427,26 @@ int graphics_sub_init() {
 
 void draw_screen() {//welp... do something here.
   int i,j;
+  c3_group_rot_t *gr;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
   //for each object:
   for(i=0;global.shape[i];i++) {//let's see if drawing not in groups is slow as fuck.
    glLoadIdentity();//resets the current matrix to default. not translation or rotation will be applied to the shapes going in...
-   glTranslatef(1.5f, 0.0f, -7.0f);//group_rotation data goes into this
+   gr=get_group_relative(global.shape[i]->id);
+   if(gr) {
+     glRotatef(gr->r.x
+     glTranslatef(gr->p.x + global.camera.p.x , gr->p.y + global.camera.p.y , gr->p.z + global.camera.p.z);
+   } else {
+     glTranslatef(global.camera.p.x,global.camera.p.y,global.camera.p.z);
+   }
    switch(global.shape[i]->len) {
     case 0:
      continue;
     case 1://circle... skip for now.
      continue;
     case 2://line. dunno.
+     glBegin(GL_LINES);
      continue;
     case 3:
      glBegin(GL_TRIANGLES);
@@ -444,15 +458,16 @@ void draw_screen() {//welp... do something here.
      continue;//fuck it.
    }
    for(j=0;j<global.shape[i]->len;j++) {
-    glColor3f(1.0f,0.0f,0.0f);//red
+    //TODO: actually set colors.
+    glColor3f((float)(random()%256) / 256.0f,(float)(random()%256) / 256.0f,(float)(random()%256) / 256.0f);
     glVertex3f(global.shape[i]->p[j].x,global.shape[i]->p[j].y,global.shape[i]->p[j].z);
-    glEnd();
    }
+   glEnd();
    //now to draw all the shapes inside this object... can I draw the shape out of order?
   }
   //
   glutSwapBuffers();
-  //glutMainLoopEvent();//what do we need this for? calling the callbacks? I could do that...
+  glutMainLoopEvent();//what do we need this for? calling the callbacks? I could do that...
 }
 
 int graphics_init() {
