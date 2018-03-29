@@ -6,7 +6,6 @@
 while true;do
 #not sure why this needs to be printed to show up every time.
   echo ..
-  echo ..
   find . -maxdepth 1 #| tr ' ' '\n' #wut? no?
   read -r selection
   if [ -f "$selection" ];then
