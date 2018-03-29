@@ -141,16 +141,16 @@ real magic(real x) {
 
 c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
   c2_t p2;
-//  c3_t tmp1;
+  c3_t tmp1;
 //  c3_t tmp2;
 //  c3_t tmp3;
   c3_t final;
 //these rotations need to be about the previous axis after the axis itself has been rotated.
-
-  final=rotate_c3_yr(p3,global.camera.p,d2r(global.camera.r.y));//rotate everything around the camera's location.
+//this rotation needs to not be applied to objects attached to the camera?
+  tmp1=rotate_c3_yr(p3,global.camera.p,d2r(global.camera.r.y));//rotate everything around the camera's location.
   //now to rotate the shape around it's group's center.
-//  final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
-//  tmp2=rotate_c3_xr(tmp1,camera.p,d2r(camera.xr));
+  //final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
+  final=rotate_c3_xr(tmp1,global.camera.p,d2r(global.camera.r.x));
 //  final=rotate_c3_zr(tmp2,camera.p,d2r(camera.zr));
   real delta_x=(global.camera.p.x - final.x);//I guess X needs this flippage too.
   real delta_y=(global.camera.p.y - final.y);//I dunno. Y is weird.
@@ -201,12 +201,18 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
   s2.len=s.len;
   s3.id=s.id;
   s3.len=s.len;
-  c3_group_rot_t *gr=get_group_rotation(s.id);
+  c3_group_rot_t *gr=get_group_relative(s.id);
   if(s.len > 1) {
    for(i=0;i<s.len+(s.len==1);i++) {//apply the group's rotation and store in s2.
      if(gr) {
       //s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y)));
-      s2.p[i]=c3_add(gr->p,rotate_c3_yr(rotate_c3_zr(s.p[i],gr->p,d2r(gr->r.z)),gr->p,d2r(gr->r.y)));
+      s2.p[i]=c3_add(gr->p,rotate_c3_xr(
+                           rotate_c3_yr(
+                           rotate_c3_zr(s.p[i],gr->p,d2r(gr->r.z)
+                                             ),gr->p,d2r(gr->r.y)
+                                             ),gr->p,d2r(gr->r.x)
+                                       )
+                    );
      } else {
       s2.p[i]=s.p[i];
      }
@@ -229,7 +235,7 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
 //   if(s.len > 1) draw_minimap_line(s2.p[i],s2.p[(i+1)%s2.len]);//we shouldn't draw circles in here. //yeah. we probably should.
    s3.p[i]=c3_to_c2(s2.p[i]);//we need to convert all points in the shape if we have to draw any parts of it.
   }
-  draw_minimap_shape(s2);
+  //draw_minimap_shape(s2);
   if(gra_global.draw3d == 1) {
     set_ansi_color(s.attrib.col%16);
     draw_c2_shape(s3);
@@ -291,7 +297,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  int i;
  real curdist=0;
  real maxdist=0;
- c3_group_rot_t *gr=get_group_rotation(s->id);
+ c3_group_rot_t *gr=get_group_relative(s->id);
  for(i=0;i< s->len+(s->len==1);i++) {
   if(gr) {
    curdist=shitdist2(global.camera.p,rotate_c3_yr(c3_add(gr->p,s->p[i]),gr->p,d2r(gr->r.y)));
@@ -306,7 +312,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  /*
  real total=0;
  for(i=0;i< s->len+(s->len==1);i++) {
-  c3_group_rot_t *gr=get_group_rotation(s->id);
+  c3_group_rot_t *gr=get_group_relative(s->id);
   total=total+shitdist2(
                 rotate_c3_yr(//we're rotating the point around the camera...
                   gr?
@@ -383,7 +389,7 @@ int selfcommand(char *s) {
  t=s[strlen(s)-1];
  s[strlen(s)-1]=0;
  selfcommand(s);
- putchar(t);
+ if(global.periodic_output==0) putchar(t);//output commands immediately
  return 0;
 }
 #endif
@@ -530,7 +536,7 @@ int graphics_init() {
 
  global.shape[0]=0;//we'll allocate as we need more.
  global.camera.id=strdup(global.user);//make a copy so if we change global.user later we can reattach to this camera.
- global.group_rot[0]=&global.camera;
+ global.group_rot[0]=&global.camera;//why do we have the camera in here? we need to prevent this from getting deleted.
  global.group_rot[1]=0;
 
  global.camera.p.x=0;
