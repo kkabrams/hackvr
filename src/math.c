@@ -5,10 +5,10 @@
 extern struct global global;
 
 //might change this to use hashtables for faster lookups.
-c3_group_rot_t *get_group_rotation(char *id) {
+c3_group_rot_t *get_group_relative(char *id) {
   int i;
   for(i=0;global.group_rot[i];i++) {
-    if(!strcmp(global.group_rot[i]->id,id)) {
+    if(!strcmp(global.group_rot[i]->id,id)) {//should I use glob here and return an array?
       return global.group_rot[i];
     }
   }
