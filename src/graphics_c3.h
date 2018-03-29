@@ -1,8 +1,6 @@
 #ifndef _HACKVR_GRAPHICS_H_
 #define _HACKVR_GRAPHICS_H_
 
-//#include <X11/Xlib.h>//this should be in the x11 one, not this one.
-
 struct gra_global {
   unsigned int width;
   unsigned int height;
