@@ -11,22 +11,22 @@ zr is roll
 
 the rotations need to be within the range: 0 <= r < 360 (so modulo 360 should work)
 
-minimap: view from above
-          +z?
+minimap: view from above (how it actually is in hackvr)
+          -x?
            |
            |
            |
            |
--x --------+-------- +x
+-z --------+-------- +z
            |
            |
            |
            |
-          -z?
+          +x
 the reason the minimap has positive x being down is so that camera view at rotation 0 is with
 positive x to the right so 2D vector graphics don't need any dimensions flipped
 
-camera view: facing rotation 0
+camera view: facing rotation 0 (normal x,y plane that 2d is used to with increasing Z going away from camera.)
           +y
            |
            |
@@ -42,7 +42,7 @@ camera view: facing rotation 0
 increasing yr causes rotation counter-clockwise on the minimap. (around y axis)
 
 
-this is what minetest does. I guess I'll do this.
+this is what minetest does shit. I don't know if I'll change shit for this or not.
 
 camera angle 0 is north.
 north is +Z
@@ -54,4 +54,4 @@ down  is -Y
 
 there is no angle 0 actually. 0 < angle <= 360
 
-I guess I should use yaw.
+I think OpenGL does what hackvr does except flipped Z. negative is away instead of closer.
