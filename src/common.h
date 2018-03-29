@@ -100,6 +100,7 @@ struct global {
   char headless;
   char debug;//flag
   char selected_object[2000];//meh
+  int periodic_output;//if false, we output commands from keypresses as they're being sent to the command interpreter. if true we output every value amount of time. miliseconds probably.
   real mmz;
   struct c3_shape *shape[SHAPES];
   int shapes;
