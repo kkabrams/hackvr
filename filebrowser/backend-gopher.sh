@@ -11,5 +11,9 @@ while true;do
   printf '%s\n' "$selection" | ncat "$server" "$port" | tee /dev/stderr | grep -v ^i | cut -f2 | tr -d '\r'
 ### need to ask user for input in the form of a pop-up window if the selected target was of type 7
   read -r selection
+  if [ "_" = "_$selection" ];then
+   echo "looks like there's nothing here. exiting." >&2
+   exit 1
+  fi
   echo
 done
