@@ -208,7 +208,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
    }
   }
   if(!strcmp(command,"apply")) {
-   /*gr=get_group_rotation(a[2]);
+   /*gr=get_group_relative(a[2]);
    if(gr) {
      for(j=0;global.shape[j] && j < MAXSHAPES;j++) {
        if(!glob_match(a[2],global.shape[j].id)) {
@@ -285,7 +285,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
       global.shape[j]->id=strdup(a[3]);
      }
     }
-    gr=get_group_rotation(a[2]);//this shouldn't be used here.
+    gr=get_group_relative(a[2]);//this shouldn't be used here.
     if(gr) {
      free(gr->id);
      gr->id=strdup(a[3]);
@@ -300,7 +300,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
    continue;
 #endif
   }
-  if(!strcmp(command,"dump")) {
+  if(!strcmp(command,"dump")) {//same as debug output... and the periodic data.
    printf("%s set global.camera.p.x %f\n",global.user,global.camera.p.x);
    printf("%s set global.camera.p.y %f\n",global.user,global.camera.p.y);
    printf("%s set global.camera.p.z %f\n",global.user,global.camera.p.z);
@@ -443,6 +443,10 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     global.group_rot[i]->r.x=(degrees){(a[2][0]=='+'?global.group_rot[i]->r.x.d:0)+atoi(a[2]+(a[2][0]=='+'))};
     global.group_rot[i]->r.y=(degrees){(a[3][0]=='+'?global.group_rot[i]->r.y.d:0)+atoi(a[3]+(a[3][0]=='+'))};
     global.group_rot[i]->r.z=(degrees){(a[4][0]=='+'?global.group_rot[i]->r.z.d:0)+atoi(a[4]+(a[4][0]=='+'))};
+    //now to sanitize them into 0 <= degrees < 360
+    global.group_rot[i]->r.x.d -= (-(global.group_rot[i]->r.x.d < 0)+(global.group_rot[i]->r.x.d / 360)) * 360;
+    global.group_rot[i]->r.y.d -= (-(global.group_rot[i]->r.y.d < 0)+(global.group_rot[i]->r.y.d / 360)) * 360;
+    global.group_rot[i]->r.z.d -= (-(global.group_rot[i]->r.z.d < 0)+(global.group_rot[i]->r.z.d / 360)) * 360;
    }
    ret=1;
    continue;
@@ -508,6 +512,8 @@ int export_file(FILE *fp) {//not used yet. maybe export in obj optionally? no. t
 
 int main(int argc,char *argv[]) {
   char redraw;
+  c3_t old_p;
+  c3_rot_t old_r;
   if(argc < 2) {
    fprintf(stderr,"usage: hackvr yourname < from_others > to_others\n");
    return 1;
@@ -518,6 +524,7 @@ int main(int argc,char *argv[]) {
   setbuf(stdin,0);
   setbuf(stdout,0);
   global.debug=DEBUG;
+  global.periodic_output=PERIODIC_OUTPUT;
   global.beep=0;
 #ifdef GRAPHICAL
   graphics_init();
@@ -533,6 +540,24 @@ int main(int argc,char *argv[]) {
      default:
       break;
     }
+    if(global.periodic_output == 1) {//this is the same type of thing the debug output does.
+     global.periodic_output = PERIODIC_OUTPUT;
+     //output any difference between current camera's state
+     //and the camera state the last time we output it.
+     if(memcmp(&old_p,&global.camera.p,sizeof(c3_t))) {
+      old_p.x=global.camera.p.x;
+      old_p.z=global.camera.p.z;
+      old_p.y=global.camera.p.y;
+      printf("%s move %f %f %f\n",global.user,old_p.x,old_p.y,old_p.z);
+     }
+     if(memcmp(&old_r,&global.camera.r,sizeof(c3_rot_t))) {
+      old_r.x=global.camera.r.x;
+      old_r.y=global.camera.r.y;
+      old_r.z=global.camera.r.z;
+      printf("%s rotate %d %d %d\n",global.user,global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
+     }
+    }
+    global.periodic_output--;
 #ifdef GRAPHICAL
     //input_event_handler();//keyboard, mouse AND joysticks all at once?
     graphics_event_handler(redraw);//this thing should call draw_screen when it needs to.
