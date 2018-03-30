@@ -1,6 +1,7 @@
 #!/bin/bash
 turn=$( expr $RANDOM % 2)
-echo "go. player: $turn"
+cat camera.pos
+echo "go. player: $turn" >&2
 stdbuf -oL uniq \
   | grep --line-buffered action \
   | stdbuf -oL cut '-d ' -f1,3 | while read user group;do
