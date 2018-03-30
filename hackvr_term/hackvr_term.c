@@ -14,7 +14,62 @@
 #define FONTW 6
 #define FONTH 10
 
+//////////////////////////////////// hey. you can do some config here. either preload glyphs or re-read font file each time.
+//comment out the next line if you want what is probably the slow version. might be safer and use less memory though.
+//maybe just put the font file in ram. linux caches that crap anyway, right?
+//testing showed preloading was at least 10x faster.
+#define PRELOAD_GLYPHS
+//only 8-bit characters atm.
+//and we'll need to malloc the amount of lines each character will have.
+//and malloc each line in that glyph...
+//or just set it statically.
+
+#ifdef PRELOAD_GLYPHS
+
+#define MAXCHARACTER 256
+#define MAXLINESPERGLYPH 16
+#define MAXCHARSPERGLYPHLINE 256
+char glyphs[MAXCHARACTER][MAXLINESPERGLYPH][MAXCHARSPERGLYPHLINE];
+
+void preload_glyphs() {
+  char line[MAXCHARSPERGLYPHLINE];//tmp storage
+  FILE *fp;
+  int charN;
+  int i;
+  for(i=0;i<MAXCHARACTER;i++) {
+   glyphs[i][0][0]=0;//zero out the first byte of the first line of every glyph. we'll mark the end if we actually read something
+  }
+  if((fp=fopen("font","r")) == NULL) {
+    fprintf(stderr,"hackvr_term: failed to open font file.\n");
+    return;
+  }
+  for(i=0;fgets(line,sizeof(line)-1,fp) != 0;i++) {
+    if(charN != strtol(line,0,16)) {
+     i=0;
+     charN=strtol(line,0,16);
+    }
+    strcpy(glyphs[charN][i],line);
+    glyphs[charN][i+1][0]=0;//mark the end here. if we do it inside the conditional it won't mark the last one.
+  }
+  fclose(fp);
+}
+
 void hackvr_draw_character(int c,int r,const TMTCHAR *ch) {
+  char *line;
+  int i,ret=0;
+  printf("term_%02d_%02d addshape %d 4  -1 -3 0  5 -3 0  5 7 0  -1 7 0\n",c,r,ch->a.bg+15);
+  for(i=0,line=glyphs[ch->c][0];line[0];i++,line=glyphs[ch->c][i]) {
+    ret=1;
+    printf("term_%02d_%02d addshape %d %s",c,r,ch->a.fg == -1 ? 17 : ch->a.fg + 15,line+strlen("XX addshape X"));
+  }
+  if(ret) {//if we drew something we should place it somewhere.
+    printf("term_%02d_%02d move %d %d 0\n",c,r,c*FONTW,-r*FONTH);
+  }
+}
+
+#else
+
+void hackvr_draw_character(int c,int r,const TMTCHAR *ch) {//this is slow but allows you to change the font between each character... if you really wanted that.
  int i;
  FILE *fp;
  char str[16];
@@ -37,6 +92,8 @@ void hackvr_draw_character(int c,int r,const TMTCHAR *ch) {
  if(i) printf("term_%02d_%02d move %d %d 0\n",c,r,c*FONTW,-r*FONTH);
  fclose(fp);
 }
+
+#endif
 
 void callback(tmt_msg_t m,TMT *vt, const void *a,void *vt_old) {
  static int cr_old=0;
@@ -95,6 +152,11 @@ int main(int argc,char *argv[]) {
  int r=atoi(argv[2]);
  int ret=0;
  int c=atoi(argv[1]);
+#ifdef PRELOAD_GLYPHS
+ printf("# hackvr_term: preloading glyphs\n");
+ preload_glyphs();
+ printf("# hackvr_term: done.\n");
+#endif
  setbuf(stdin,0);
  setbuf(stdout,0);
  TMT *vt_old = tmt_open(r,c,NULL,NULL,NULL);
