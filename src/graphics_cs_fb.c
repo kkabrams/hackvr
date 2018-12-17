@@ -66,15 +66,19 @@ void draw_cs_point(int x,int y) {//this should write to a backbuffer then I can 
  if(x > fb_global.info.xres) return;
  if(y > fb_global.info.yres) return;
  if(i > fb_global.fblen) return;
+ //hack to test it with. remove me later.
+ fb_global.current_color=-1;
+ int derp;
+ derp=(fb_global.current_color == -1) ? (rand()) : fb_global.current_color;
  switch(fb_global.draw_mode) {
   case DRAW_MODE_COPY:
-   fb_global.backbuf[i]=fb_global.current_color;
+   fb_global.backbuf[i] = derp;
    break;
   case DRAW_MODE_OR:
-   fb_global.backbuf[i] |= fb_global.current_color;
+   fb_global.backbuf[i] |= derp;
    break;
   case DRAW_MODE_AND:
-   fb_global.backbuf[i] &= fb_global.current_color;
+   fb_global.backbuf[i] &= derp;
    break;
   case DRAW_MODE_CLEAR:
    fb_global.backbuf[i]=0;
@@ -83,6 +87,10 @@ void draw_cs_point(int x,int y) {//this should write to a backbuffer then I can 
    printf("# derp. unknown draw_mode %d\n",fb_global.draw_mode);
    break;
  }
+}
+
+void draw_cs_arc() {//now... how to draw an arc.
+
 }
 
 void draw_cs_line(cs_t p1,cs_t p2) {//error somewhere in here. derp...
@@ -137,12 +145,12 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
   int miny=s.p[0].y;
   int maxx=s.p[0].x;
   int maxy=s.p[0].y;
-  int h;
+  //int h;
   int i;//all cs shapes can have 1, 2, or 3+ points. guess I gotta do that logic here too.
   switch(s.len) {
    case 1:
     //circle
-    h=max(s.p[0].x,s.p[1].x)-min(s.p[0].x,s.p[1].x);
+    //h=max(s.p[0].x,s.p[1].x)-min(s.p[0].x,s.p[1].x);
     //XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
     break;
    default:
@@ -151,13 +159,14 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
       miny=(s.p[i].y<miny)?s.p[i].y:miny;
       maxx=(s.p[i].x>maxx)?s.p[i].x:maxx;
       maxy=(s.p[i].y>maxy)?s.p[i].y:maxy;
-      draw_cs_line(s.p[i],s.p[(i+1)%(s.len+(s.len==1))]);
+    //  draw_cs_line(s.p[i],s.p[(i+1)%(s.len+(s.len==1))]);
     }
-    if(gra_global.mousex >= minx &&
-         gra_global.mousey >= miny &&
-         gra_global.mousex <= maxx &&
-         gra_global.mousey <= maxy) {
-      if(gra_global.buttonpressed) {//if we're inside the bounding box let's make SOMETHING happen.
+    if(gra_global.mouse.x >= minx &&
+         gra_global.mouse.y >= miny &&
+         gra_global.mouse.x <= maxx &&
+         gra_global.mouse.y <= maxy) {
+      if(gra_global.mousemap[0] == -1) {//if we're inside the bounding box let's make SOMETHING happen.
+          gra_global.mousemap[0]=0;
           printf("%s action %s\n",global.user,s.id);
         }
       if(!strncmp(s.id,"term",4)) {
@@ -279,6 +288,10 @@ void red_and_blue_magic() {
 //  XCopyArea(x11_global.dpy,skypixmap,x11_global.backbuffer,x11_global.backgc,((global.camera.yr.d*5)+SKYW)%SKYW,0,WIDTH,gra_global.height/2,0,0);
 //}
 
+void set_color_snow() {
+  fb_global.current_color=-1;//kek
+}
+
 void set_ansi_color(int i) {
   fb_global.current_color=(i&4?0xff0000:0x0) | (i&2 ?0xff00:0x0) | (i&1?0xff:0x0);// :D
 }
@@ -320,8 +333,8 @@ void set_demands_attention() {
 
 #endif
 
-int graphics_sub_init() {
-  int i;
+int graphics_sub_init() {//some of this is keyboard init... should it be moved out? probably.
+  //int i;
   int x,y;
   fb_global.fb=open("/dev/fb0",O_RDWR);
   fb_global.kb=open("/dev/input/event0",O_RDWR);
@@ -361,6 +374,7 @@ int graphics_sub_init() {
 #define KEY_IS_DOWN(a) (fb_global.keystate[a/8] & (1<< (a % 8)))
 
 int graphics_event_handler(int world_changed) { //should calling draw_screen be in here?
+#if 0
  int redraw=0;
   char line[2048];
   char line2[1025];
@@ -571,7 +585,8 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
   redraw=1;
  }
 */
- if(redraw || world_changed) { 
+#endif
+ if(world_changed) {
   gra_global.input_mode=0;
   draw_screen();//includes its own flip.
  }

@@ -14,10 +14,13 @@
 #include <time.h>
 
 #include "config.h"
+#include "math.h"
 #include "common.h"
 #include "graphics_c3.h"//not needed?
 #include "graphics_x11.h"
 #include "graphics_cs.h"
+#include "keyboard_x11.h"
+#include "mouse_x11.h"
 
 //typedef float real; //think this conflicts?
 
@@ -64,6 +67,9 @@ void set_luminosity_color(int lum) {
 
 
 void draw_cs_line(cs_t p1,cs_t p2) {
+  if(x11_global.snow) {
+   //manually draw the line with random grey for each pixel
+  }
   XDrawLine(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p1.x,p1.y,p2.x,p2.y);
 }
 
@@ -91,8 +97,9 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
     //circle
     h=max(s.p[0].x,s.p[1].x)-min(s.p[0].x,s.p[1].x);
     XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
-    if(distance2((c2_t){s.p[0].x,s.p[1].y},(c2_t){gra_global.mousex,gra_global.mousey} ) < h) {
-     if(gra_global.buttonpressed) {
+    if(distance2((c2_t){s.p[0].x,s.p[1].y},(c2_t){gra_global.mouse.x,gra_global.mouse.y} ) < h) {
+     if(gra_global.mousemap[0]==-1) {
+       gra_global.mousemap[0]=0;
        printf("%s action %s\n",global.user,s.id);
      }
      XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h-2,s.p[0].y-h-2,h*2+4,h*2+4,0,360*64);
@@ -106,11 +113,12 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
       maxy=(s.p[i].y>maxy)?s.p[i].y:maxy;
       draw_cs_line(s.p[i],s.p[(i+1)%(s.len+(s.len==1))]);
     }
-    if(gra_global.mousex >= minx &&
-         gra_global.mousey >= miny &&
-         gra_global.mousex <= maxx &&
-         gra_global.mousey <= maxy) {
-      if(gra_global.buttonpressed) {//if we're inside the bounding box let's make SOMETHING happen.
+    if(gra_global.mouse.x >= minx &&
+         gra_global.mouse.y >= miny &&
+         gra_global.mouse.x <= maxx &&
+         gra_global.mouse.y <= maxy) {
+      if(gra_global.mousemap[0]==-1) {//if we're inside the bounding box let's make SOMETHING happen.
+          gra_global.mousemap[0]=0;
           printf("%s action %s\n",global.user,s.id);
         }
       if(!strncmp(s.id,"term",4)) {
@@ -192,6 +200,10 @@ void red_and_blue_magic() {
 //  XCopyArea(x11_global.dpy,skypixmap,x11_global.backbuffer,x11_global.backgc,((global.camera.yr.d*5)+SKYW)%SKYW,0,WIDTH,gra_global.height/2,0,0);
 //}
 
+void set_color_snow() {
+  x11_global.snow=1;//override foreground color in the draw functions. drawing different grey each time.
+}
+
 void set_ansi_color(int i) {
   XSetForeground(x11_global.dpy,x11_global.backgc,x11_global.ansi_color[i].pixel);
 }
@@ -231,6 +243,7 @@ void set_demands_attention() {
  XFree(hints);
 }
 
+/* this needs to be removed.
 void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
   char line[2048];
   char line2[1025];
@@ -239,6 +252,7 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
   radians tmprad2;
   real tmpx;
   int i;
+  c3_group_rot_t *gr;
   int sym=XLookupKeysym(xkey,0);
   real tmpz;
   switch(gra_global.input_mode) {
@@ -264,6 +278,14 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
       tmpz=WALK_SPEED*cos(tmprad2.r);
       snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
       selfcommand(line);
+      break;
+     case XK_space://jump
+      gr=get_group_relative(global.camera.id);
+      if(gr) {
+        gr->v.y=-5;//10 meter jump? too high for my liking.
+      } else {
+        fprintf(stderr,"# camera doesn't have a group relative!!! can't jump. :/\n");
+      }
       break;
      case XK_Left:
       tmprad=d2r((degrees){global.camera.r.y.d+90});
@@ -348,6 +370,7 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
       gra_global.draw3d %= 4;
       break;
      case XK_Escape:
+      fprintf(stderr,"# hackvr exiting.\n");
       exit(0);
      default:
       break;
@@ -385,6 +408,7 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
     break;
  }
 }
+*/
 #endif
 
 int graphics_sub_init() {
@@ -393,8 +417,8 @@ int graphics_sub_init() {
  char tmp[64];
  Cursor cursor;
  XSetWindowAttributes attributes;
-// Window root,child;//why do I have this?
 //  XColor toss;
+ x11_global.snow=0;
  fprintf(stderr,"# Opening X Display... (%s)\n",getenv("DISPLAY"));
  if((x11_global.dpy = XOpenDisplay(0)) == NULL) {
   fprintf(stderr,"# failure.\n");
@@ -422,7 +446,7 @@ int graphics_sub_init() {
   x11_global.w = XCreateWindow(x11_global.dpy,DefaultRootWindow(x11_global.dpy),0,0,WIDTH*(gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)),HEIGHT,1,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)),InputOutput,DefaultVisual(x11_global.dpy,DefaultScreen(x11_global.dpy))\
                    ,CWBackPixel, &attributes);
   set_aspect_ratio();
-  XSelectInput(x11_global.dpy, x11_global.w, PointerMotionMask|StructureNotifyMask|ButtonPressMask|ButtonReleaseMask|KeyPressMask|ExposureMask);
+  XSelectInput(x11_global.dpy, x11_global.w, HV_MOUSE_X11_EVENT_MASK|HV_X11_KB_EVENT_MASK|HV_GRAPHICS_X11_EVENT_MASK);
  }
  XMapWindow(x11_global.dpy,x11_global.w);
  XStoreName(x11_global.dpy,x11_global.w,"hackvr");
@@ -472,42 +496,25 @@ int graphics_sub_init() {
 
 int graphics_event_handler(int world_changed) { //should calling draw_screen be in here?
  int redraw=0;
+ Window root;//just used to sponge up a return value
  XEvent e;
- Window child,root;
- //what sets mask?
- char motionnotify=0;
- unsigned int mask;
  if(global.beep) {
   global.beep=0;
   XBell(x11_global.dpy,1000);
   set_demands_attention();
  }
- while(XPending(x11_global.dpy)) {//these are taking too long?
-  XNextEvent(x11_global.dpy, &e);
-//     fprintf(stderr,"# handling event with type: %d\n",e.type);
-  switch(e.type) {
-//       case Expose:
-//         if(e.xexpose.count == 0) redraw=1;
+ while(XCheckMaskEvent(x11_global.dpy,HV_GRAPHICS_X11_EVENT_MASK,&e)) {//we should squish all of the window events. they just cause a redraw anyway
+   switch(e.type) {
+//     case Expose:
+//       if(e.xexpose.count == 0) redraw=1;
 //         break;
-    case MotionNotify:
-      if(global.debug >= 2) fprintf(stderr,"# MotionNotify\n");
-      motionnotify=1;
-      break;
-    case ButtonPress:
-      if(global.debug >= 2) fprintf(stderr,"# ButtonPress\n");
-      redraw=1;
-      gra_global.buttonpressed=e.xbutton.button;//what's this for? mouse?
-      break;
-    case ButtonRelease:
-      if(global.debug >= 2) fprintf(stderr,"# ButtonRelease\n");
-      redraw=1;
-      gra_global.buttonpressed=0;//what's this for???
-      break;
-    case ConfigureNotify:
-      if(global.debug >= 2) fprintf(stderr,"# ConfigureNotify\n");
-      redraw=1;
-      XGetGeometry(x11_global.dpy,x11_global.w,&root,&global.x,&global.y,&gra_global.width,&gra_global.height,&gra_global.border_width,&gra_global.depth);
-      if(gra_global.height * AR_W / AR_H != gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1))) {
+
+//These are all window events.
+     case ConfigureNotify:
+       if(global.debug >= 2) fprintf(stderr,"# ConfigureNotify\n");
+       redraw=1;
+       XGetGeometry(x11_global.dpy,x11_global.w,&root,&global.x,&global.y,&gra_global.width,&gra_global.height,&gra_global.border_width,&gra_global.depth);
+       if(gra_global.height * AR_W / AR_H != gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1))) {
        // height / AR_H * AR_W = width / (ss / (rab ? ss : 1))
        if(global.debug >= 2) {
         fprintf(stderr,"# %d != %d for some reason. probably your WM not respecting aspect ratio hints or calculating based on them differently. (would cause an off-by-one or so)\n",gra_global.height * AR_W / AR_H , gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)));
@@ -521,26 +528,16 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
       gra_global.mapxoff=gra_global.width/(gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1))/2;
       gra_global.mapyoff=gra_global.height/2;
       break;
-    case KeyPress:
-      if(global.debug >= 2) fprintf(stderr,"# KeyPress\n");
-      redraw=1;
-      x11_keypress_handler(&e.xkey,gra_global.mousex,gra_global.mousey);
-      break;
+
     default:
 //      fprintf(stderr,"# received unknown event with type: %d\n",e.type);
       break;
   }
  }
- if(motionnotify) {
-  XQueryPointer(x11_global.dpy,x11_global.w,&root,&child,&gra_global.rmousex,&gra_global.rmousey,&gra_global.mousex,&gra_global.mousey,&mask);
-  redraw=1;
-//  global.camera.r.x.d=gra_global.mousey - (HEIGHT/2);
-//  global.camera.r.y.d=gra_global.mousex - (LEFT/2);
- }
  //redraw=1;//meh.
  if(redraw || world_changed) { 
   gra_global.input_mode=0;
-  draw_screen();
+  draw_screen();//should this be in here? :?
  }
  return redraw;
 }

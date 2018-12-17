@@ -5,7 +5,7 @@
 extern struct global global;
 
 //might change this to use hashtables for faster lookups.
-c3_group_rot_t *get_group_relative(char *id) {
+c3_group_rot_t *get_group_relative(char *id) {//crashes in here somehwere...
   int i;
   for(i=0;global.group_rot[i];i++) {
     if(!strcmp(global.group_rot[i]->id,id)) {//should I use glob here and return an array?

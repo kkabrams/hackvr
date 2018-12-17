@@ -8,10 +8,13 @@
 #include <sys/select.h> //code to use select instead of non-blocking is commented out. might decide to use it later.
 #include <time.h>
 #include <math.h>
+#include <errno.h>
 
 #include "config.h"
 #include "common.h"
 #include "math.h"
+#include "physics.h"
+#include "input.h" //just the input handler function definitions.
 #ifdef GRAPHICAL
 #include "graphics_c3.h"
 extern struct gra_global gra_global;
@@ -34,18 +37,37 @@ struct global global;
 char *read_line_hack(FILE *fp,int len) {
  short in;
  char *t;
+ errno=0;
  switch(in=fgetc(fp)) {
   case '\n':
    t=malloc(len+1);
    t[len]=0;
    return t;
   case -1:
-   return 0;
+   if(errno == EAGAIN) return 0;
+   if(feof(fp)) {
+    fprintf(stderr,"# reached EOF. exiting.\n");
+    exit(0);
+   }
+   fprintf(stderr,"# some other error happened while reading. %d %d\n",EAGAIN,errno);
+   perror("hackvr");
+   exit(1);
   default:
    if((t=read_line_hack(fp,len+1))) t[len]=in;
    break;
  }
  return t;
+}
+
+int selfcommand(char *s) {
+ char t;
+ if(!strlen(s)) return 0;
+ ungetc(s[strlen(s)-1],stdin);
+ t=s[strlen(s)-1];
+ s[strlen(s)-1]=0;
+ selfcommand(s);
+ if(global.periodic_output==0) putchar(t);//output commands immediately
+ return 0;
 }
 
 //warning: clobbers input
@@ -92,6 +114,13 @@ int glob_match(char *a,char *b) {
 int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw, and 1 to ask for redraw
 // struct c3_shape s;
 // struct c3_line l;
+//move UP, DOWN, LEFT, RIGHT etc shit
+ radians tmprady;
+ //radians tmpradx,tmprady,tmpradz;
+ real tmpx,tmpy,tmpz;
+ char tmp[256];
+//^ there
+
  c3_group_rot_t *gr;
  char *command;
  char *line=0;
@@ -165,7 +194,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     fprintf(stderr,"#   export grou*\n");
     fprintf(stderr,"# * scaleup x y z\n");
     fprintf(stderr,"# * move x y z\n");
-    fprintf(stderr,"# * move forward|backward|left|right\n");
+    fprintf(stderr,"# * move forward|backward|up|down|left|right\n");
     fprintf(stderr,"# that is all.\n");
     continue;
    } else {
@@ -191,7 +220,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     }
     ret=1;
     //now do the same stuff but for the group_rot structs.
-    for(j=1;global.group_rot[j] && j < MAXSHAPES;j++) {//start at 1 so we skip the camera.
+    for(j=1;global.group_rot[j] && j < MAXSHAPES;j++) {//start at 1 so we skip the camera. fuck it. let's delete camera.
      if(glob_match(a[2],global.group_rot[j]->id)) {
       free(global.group_rot[j]->id);
       free(global.group_rot[j]);
@@ -295,10 +324,8 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
    continue;
   }
   if(!strcmp(command,"status")) {
-#ifdef GRAPHICAL
-   fprintf(stderr,"# fps: %d\n",gra_global.fps);
+   fprintf(stderr,"# loops per second: %d\n",global.lps);
    continue;
-#endif
   }
   if(!strcmp(command,"dump")) {//same as debug output... and the periodic data.
    printf("%s set global.camera.p.x %f\n",global.user,global.camera.p.x);
@@ -473,21 +500,33 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     global.group_rot[i]->p.z=(a[4][0]=='+'?global.group_rot[i]->p.z:0)+strtold(a[4]+(a[4][0]=='+'),0);
    }
    else if(len > 2) {
+    tmpy=0;
     if(!strcmp(a[2],"forward")) {
-     //global.
+     tmprady=d2r((degrees){global.camera.r.y.d});
+     //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else if(!strcmp(a[2],"backward")) {
-
+     tmprady=d2r((degrees){global.camera.r.y.d+180});
+     //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else if(!strcmp(a[2],"up")) {
-
+     tmprady=d2r((degrees){global.camera.r.y.d});//doesn't matter.
+     tmpy=WALK_SPEED*1;
     } else if(!strcmp(a[2],"down")) {
-
+     tmprady=d2r((degrees){global.camera.r.y.d});//doesn't matter. yet.
+     tmpy=WALK_SPEED*1;
     } else if(!strcmp(a[2],"left")) {
-
+     tmprady=d2r((degrees){global.camera.r.y.d+90});
+     //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else if(!strcmp(a[2],"right")) {
-
+     tmprady=d2r((degrees){global.camera.r.y.d+270});
+     //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else {
      fprintf(stderr,"# dunno what direction you're talking about. try up, down, left, right, forward, or backward\n");
+     continue;
     }
+    tmpx=WALK_SPEED*sin(tmprady.r);//the camera's y rotation.
+    tmpz=WALK_SPEED*cos(tmprady.r);//these are only based on 
+    snprintf(tmp,sizeof(tmp)-1,"%s move +%f +%f +%f\n",global.user,tmpx,tmpy,tmpz);
+    selfcommand(tmp);
    } else {
     fprintf(stderr,"# ERROR: wrong amount of parts for move. got: %d expected: 4 or 2\n",len);
    }
@@ -512,14 +551,25 @@ int export_file(FILE *fp) {//not used yet. maybe export in obj optionally? no. t
 
 int main(int argc,char *argv[]) {
   char redraw;
+  time_t oldtime;
+  unsigned int lps;
   c3_t old_p;
   c3_rot_t old_r;
-  if(argc < 2) {
-   fprintf(stderr,"usage: hackvr yourname < from_others > to_others\n");
-   return 1;
-  } else {
-   global.user=strdup(argv[1]);
+  if(argc == 2) {
+   if(!strcmp(argv[1],"-h") || !strcmp(argv[1],"--help")) {
+    printf("usage: hackvr file1 file2 file3 ... fileN < from_others > to_others\n");
+    return 0;
+   }
   }
+  if(argc == 1) {
+   //we're just doing stdin
+  }
+  if(argc > 1) {
+   //open every argument and add it to list of files to read..
+   //I could just read 
+  }
+  global.user=getenv("USER");
+
   fcntl(1,F_SETFL,O_NONBLOCK);//won't work
   setbuf(stdin,0);
   setbuf(stdout,0);
@@ -530,8 +580,8 @@ int main(int argc,char *argv[]) {
   graphics_init();
 #endif
   fprintf(stderr,"# entering main loop\n");
-  for(;;) {
-    switch(redraw=load_stdin()) {
+  for(lps=0;;lps++) {
+    switch(redraw=load_stdin()) {//this needs to loop over all opened files.
      case -1:
       return 0;
       break;
@@ -540,7 +590,20 @@ int main(int argc,char *argv[]) {
      default:
       break;
     }
-    if(global.periodic_output == 1) {//this is the same type of thing the debug output does.
+    if(time(0) != oldtime) {
+      global.lps=lps;
+      lps=0;
+      oldtime=time(0);
+    }
+    //fprintf(stderr,"# applying physics...\n");
+    redraw |= apply_physics();
+    //fprintf(stderr,"# derping.\n");
+    if(global.periodic_output == 1) {//this is the same type of thing the debug output does. debug output now goes here.
+#ifdef GRAPHICAL
+     printf("# loops per second: %d mouse.x: %f mouse.y: %f\n",global.lps,gra_global.mouse.x,gra_global.mouse.y);
+#else
+     printf("# loops per second: %d\n",global.lps);
+#endif
      global.periodic_output = PERIODIC_OUTPUT;
      //output any difference between current camera's state
      //and the camera state the last time we output it.
@@ -559,8 +622,9 @@ int main(int argc,char *argv[]) {
     }
     global.periodic_output--;
 #ifdef GRAPHICAL
-    //input_event_handler();//keyboard, mouse AND joysticks all at once?
-    graphics_event_handler(redraw);//this thing should call draw_screen when it needs to.
+    if(graphics_event_handler(redraw) == -1) break;//this thing should call draw_screen when it needs to.
+    if(mouse_event_handler() == -1) break;
+    if(keyboard_event_handler() == -1) break;
 #endif
    sleep(.01);
   }

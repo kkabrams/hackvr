@@ -1,0 +1,13 @@
+#top and bottom square of a corner post.
+n64 addshape 2 4  0 0 0  1 0 0  1 0 1  0 0 1
+n64 addshape 2 4  0 8 0  1 8 0  1 8 1  0 8 1
+
+#outer two sides of a corner post
+n64 addshape 2 4  0 0 0  1 0 0  1 8 0  0 8 0
+n64 addshape 2 4  0 0 0  0 0 1  0 8 1  0 8 0
+
+#the diagonal
+n64 addshape 2 4  1 0 0  1 1 0  7 8 0  7 7 0
+
+#side of yet another corner post I think.
+n64 addshape 2 4  7 8 0  8 8 0  8 0 0  7 0 0

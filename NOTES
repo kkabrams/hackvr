@@ -55,3 +55,11 @@ down  is -Y
 there is no angle 0 actually. 0 < angle <= 360
 
 I think OpenGL does what hackvr does except flipped Z. negative is away instead of closer.
+
+
+:::: COLORS ::::
+
+shit. ansi colors for first 8. add 16 to get ansi colors without being mixed with any shading.
+or some shit like that.
+
+todo: add "snow" color. random shades of grey or random black and white maybe. probably greys.

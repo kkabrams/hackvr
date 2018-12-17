@@ -1,3 +1,0 @@
-#!/bin/sh
-mknod p p
-cat p | tee /dev/stderr | ./draw.sh | hackvr $USER > p

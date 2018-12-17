@@ -1,4 +1,7 @@
 #!/bin/sh
+if [ "_$HACKVR" != "_" -a "_$HACKVR" != "_$0" ];then
+ exec $HACKVR $*
+fi
 if [ $DISPLAY ]; then
  exec hackvr_x11 $*
 else

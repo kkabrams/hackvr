@@ -1,0 +1,59 @@
+#bottom, front, and back of left foot
+porygon addshape 4 4   1 0  1   5 0  1   5 0 11   1 0 11
+porygon addshape 4 4   1 0  1   5 0  1   5 1  0   1 1  0
+porygon addshape 4 4   1 0 11   5 0 11   5 1 12   1 1 12
+#now for the sides of the left foot.
+porygon addshape 4 5   1 0  1   1 1  0   1 3  6   1 1 12  1 0 11
+#inner side of left foot.
+porygon addshape 4 5   5 0  1   5 1  0   5 5  6   5 1 12  5 0 11
+#now for front top half of left foot
+porygon addshape 4 4   1 1 0    5 1  0   5 5  6   1 3 6
+#back top half of left foot
+porygon addshape 4 4   1 1 12   5 1 12   5 5  6   1 3 6
+
+#bottom, front, and back of right foot
+porygon addshape 4 4  13 0  1  17 0  1  17 0 11  13 0 11
+porygon addshape 4 4  13 0  1  17 0  1  17 1  0  13 1  0
+porygon addshape 4 4  13 0 11  17 0 11  17 1 12  13 1 12
+#outer side of right foot:
+porygon addshape 4 5  17 0 1   17 1  0  17 3  6  17 1 12  17 0 11
+#inner side of right root:
+porygon addshape 4 5  13 0 1   13 1  0  13 5  6  13 1 12  13 0 11
+#front half top half of right foot
+porygon addshape 4 4  17 1 0   13 1 0   13 5  6  17 3  6
+#back half top half of right foot
+porygon addshape 4 4  17 1 12  13 1 12  13 5  6  17 3  6
+
+###that's all for feet. might need to fix up the top half two faces for each so that they're flat. :/
+#porygon addshape 5 4  
+#7 to 11 for front, 8 to 10 for back
+#bottom
+porygon addshape 5 4  7 0 2   11 0 2   10 0 8   8 0 8
+#front
+porygon addshape 4 4  7 0 2   11 0 2   13 5 0   5 5 0
+#top front
+porygon addshape 4 4  5 5 0   13 5 0   10 8 3   8 8 3
+
+#porygon's back. from neck to butt. not sure if this should be a triangle or a quadrilateral.. if quad make the backend a hexagon.
+porygon addshape 5 3  8 8 3   10 8 3   9 6 10
+
+#my left side of the body. porygon's right side.
+porygon addshape 5 4  7 0 2   5  5 0   5  5 10   8 0 8
+#my right, porygon's left
+porygon addshape 5 4  11 0 2  13 5 0   13 5 10  10 0 8
+#back end.
+porygon addshape 5 5  8 0 8  10 0 8  13 5 10  9 6 10  5 5 10
+
+#upper left side. porygon's right... this needs to be two shapes. a triangle and a hexagon.
+porygon addshape 4 3  5 5 0    8 8 3      6.5 6.5 3
+porygon addshape 5 5  5 5 0    6.5 6.5 3  8 8 3      9 6 10   5 5 10 
+
+#upper right side. ofc porygon's left.
+porygon addshape 4 3  13 5 0  10 8 3      11.5 6.5 3
+porygon addshape 5 5  13 5 0  11.5 6.5 3  10 8 3     9 6 10   13 5 10
+
+#now the tail..
+# color 4 is blue color 5 is magenta
+#max height 10... tail comes to a square. not a point. gonna use some non-integers here I figure.
+#I think each side will 
+#porygon addshape 4 4  

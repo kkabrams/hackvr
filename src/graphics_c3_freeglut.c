@@ -5,6 +5,8 @@
 #include <assert.h>
 #include <unistd.h>
 #include <dirent.h>
+
+#define __USE_MISC //set for random() in stdlib
 #include <stdlib.h>
 #include <time.h>
 
@@ -419,6 +421,7 @@ int graphics_sub_init() {
  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
  glClearDepth(1.0f);
  glEnable(GL_DEPTH_TEST);
+ glEnable(GL_CULL_FACE);//testing
  glDepthFunc(GL_LEQUAL);
  glShadeModel(GL_SMOOTH);//look up alternatives to all of these functions.
  glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
@@ -435,8 +438,8 @@ void draw_screen() {//welp... do something here.
    glLoadIdentity();//resets the current matrix to default. not translation or rotation will be applied to the shapes going in...
    gr=get_group_relative(global.shape[i]->id);
    if(gr) {
-     glRotatef(gr->r.x
-     glTranslatef(gr->p.x + global.camera.p.x , gr->p.y + global.camera.p.y , gr->p.z + global.camera.p.z);
+     //glRotatef(gr->r.x
+     glTranslatef(gr->p.x + global.camera.p.x , global.camera.p.y - gr->p.y , gr->p.z + global.camera.p.z);
    } else {
      glTranslatef(global.camera.p.x,global.camera.p.y,global.camera.p.z);
    }

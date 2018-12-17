@@ -3,6 +3,8 @@
 
 #include <X11/Xlib.h>
 
+#define HV_GRAPHICS_X11_EVENT_MASK StructureNotifyMask|ExposureMask
+
 struct x11_global {//stores global variables for the x11 *specific* shit.
   XColor colors[256];
   XColor ansi_color[16];
@@ -17,6 +19,8 @@ struct x11_global {//stores global variables for the x11 *specific* shit.
   Pixmap cleanbackbuffer;
   GC gc;
   GC backgc;
+  char snow;
+  cs_t rootmouse;
   int root_window;
 };
 

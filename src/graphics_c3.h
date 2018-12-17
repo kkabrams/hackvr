@@ -4,8 +4,7 @@
 struct gra_global {
   unsigned int width;
   unsigned int height;
-  int mousex;
-  int mousey;
+  c2_t mouse;
   int greyscale;
   int xoff;
   int split_screen;
@@ -15,9 +14,6 @@ struct gra_global {
   char red_and_blue;
   unsigned int depth;//???
   unsigned int border_width;
-  int oldtime;
-  int fps;
-  int oldfps;
   char zsort;
   char drawminimap;
   char input_mode;
@@ -25,9 +21,7 @@ struct gra_global {
   char draw3d;
   int mapxoff;
   int mapyoff;
-  int rmousex;
-  int rmousey;
-  int buttonpressed;
+  int mousemap[10];//you're only going to have 10 buttons on your mouse... right?
   int maxshapes;
 };
 

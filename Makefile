@@ -2,21 +2,22 @@ all: hackvr hackvr_term
 
 .PHONY: hackvr hackvr_term clean install uninstall all
 
+ifeq ($(PREFIX),)
+$(error the PREFIX variable is NOT set)
+endif
+
 hackvr:
 	$(MAKE) -C src all
 
-hackvr_term:
-	$(MAKE) -C hackvr_term all
-
 clean:
 	$(MAKE) -C src clean
-	$(MAKE) -C hackvr_term clean
 
 install: hackvr hackvr_term
 	$(MAKE) -C src install
-	$(MAKE) -C hackvr_term install
-	install -D font/font.hackvr $(PREFIX)/share/hackvr/font.hackvr
+	cp -r bin/ $(PREFIX)/
+	cp -r share/hackvr/ $(PREFIX)/share/
 
 uninstall:
+	## we'll assume PREFIX is set to the hackvr we want to uninstall
 	$(MAKE) -C src uninstall
-	$(MAKE) -C hackvr_term uninstall
+	rm -rf $(PREFIX)/share/hackvr

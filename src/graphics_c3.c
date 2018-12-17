@@ -155,11 +155,11 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
   real delta_x=(global.camera.p.x - final.x);//I guess X needs this flippage too.
   real delta_y=(global.camera.p.y - final.y);//I dunno. Y is weird.
   real delta_z=(final.z - global.camera.p.z);
-//  real d=distance3(camera.p,final);
+  //real d=distance3(global.camera.p,final);
   p2.x=global.zoom * (delta_x * MAGIC(delta_z) - delta_x);
-  p2.y=global.zoom * (delta_y * MAGIC(delta_z) - delta_y);
-//  p2.x=global.zoom * (delta_x * MAGIC(delta_z));
-//  p2.y=global.zoom * (delta_y * MAGIC(delta_z));//dunno if this is better or not.
+  p2.y=global.zoom * (delta_y * MAGIC(delta_z) - delta_y);//this doesn't look right either.
+//  p2.x=global.zoom * (delta_x * MAGIC(d) - delta_x); // this doesn't look quite right
+//  p2.y=global.zoom * (delta_y * MAGIC(d) - delta_y);//dunno if this is better or not.
   return p2;
 }
 
@@ -252,7 +252,7 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
 //  darker is draw_mode_and(); brighter is draw_mode_or(); lol. set some global? XD hackhackhack
 //the color of this shape is set before it gets drawn.
 //which is a grey.
-    if(s.attrib.col < 16) {
+    if(s.attrib.col < 8) {
      set_luminosity_color(s.attrib.lum);
      draw_c2_filled_shape(s3);
      if(s.attrib.lum > 100) {
@@ -261,7 +261,7 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
       draw_mode_and();
      }
     }
-    set_ansi_color(s.attrib.col%16);
+    set_ansi_color(s.attrib.col%8);
     draw_c2_filled_shape(s3);
     draw_mode_copy();
     draw_c2_shape(s3);
@@ -381,23 +381,12 @@ void draw_c3_point_text(c3_t p,char *text) {
  XDrawString(global.dpy,global.backbuffer,global.backgc,p2.x,p2.y+(descent+ascent),tmp,strlen(tmp));
 }*/
 
-//push a string back into stdin so it can be read by the file loader. :P
-int selfcommand(char *s) {
- char t;
- if(!strlen(s)) return 0;
- ungetc(s[strlen(s)-1],stdin);
- t=s[strlen(s)-1];
- s[strlen(s)-1]=0;
- selfcommand(s);
- if(global.periodic_output==0) putchar(t);//output commands immediately
- return 0;
-}
 #endif
 
 void draw_screen() {
   int i;
   int cn=0;//camera number.
-  char tmp[256];
+  //char tmp[256];
   zsort_t zs[SHAPES];
   clear_backbuffer();
   real oldx=global.camera.p.x;
@@ -436,31 +425,6 @@ void draw_screen() {
     }
     if(gra_global.draw3d) {
       draw_c2_line((c2_t){LEFT,0},(c2_t){RIGHT,0}); //horizon
-    }
-    if(time(0) == gra_global.oldtime) {
-     gra_global.fps++;
-    }
-    else {
-     gra_global.oldtime=time(0);
-     gra_global.oldfps=gra_global.fps;
-     gra_global.fps=0;
-     if(global.debug) {//the way I have text done won't scale...
-//      draw_c2_text((cs_t){0,0},global.user);
-//      fprintf(stderr,"\x1b[H");
-//      fprintf(stderr,"\x1b[2J");
-      snprintf(tmp,sizeof(tmp)-1,"debug: %s minimap: %d 3d: %d fps: %d shapes: %d",global.debug?"on":"off",gra_global.drawminimap,gra_global.draw3d,gra_global.oldfps,global.shapes);
-      fprintf(stderr,"%s\n",tmp);
-//      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+10},tmp);
-//      snprintf(tmp,sizeof(tmp)-1,"x: %d y: %d",gra_global.mousex,gra_global.mousey);
-      fprintf(stderr,"%s\n",tmp);
-//      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+20},tmp);
-      snprintf(tmp,sizeof(tmp)-1,"cx: %f cy: %f cz: %f",global.camera.p.x,global.camera.p.y,global.camera.p.z);
-      fprintf(stderr,"%s\n",tmp);
-//      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+30},tmp);
-      snprintf(tmp,sizeof(tmp)-1,"xr: %d yr: %d zr: %d",global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
-      fprintf(stderr,"%s\n",tmp);
-//      draw_c2_text((cs_t){gra_global.xoff,(gra_global.height/2)+40},tmp);
-     }
     }
 ///// shiiiit. I should be applying group rotations to all these shapes before sorting them.
 //when I do that. I need to make sure to take the group rotation out of draw_c3_shape()'s code.
@@ -517,10 +481,10 @@ void draw_screen() {
 //just draw a line from center to 40 away from the center at the angle of the camera's y-rotation
 //this should be minimap shit  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.camera.r.y)));
 //draw a line from the center to 80 away from the center in the angle of what should point at the mouse.
-  //if(points_on_same_side_of_line((c2_t){gra_global.mousex,gra_global.mousey},(c2_t){80,80},(c2_t){0,0},(c2_t){0,80})) {
-  //  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},cs_to_c2((cs_t){gra_global.mousex,gra_global.mousey}))));
+  //if(points_on_same_side_of_line(gra_global.mouse,(c2_t){80,80},(c2_t){0,0},(c2_t){0,80})) {
+  //  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},gra_global.mouse))));
   //}
-  //draw_c2_line((c2_t){0,0},cs_to_c2((cs_t){gra_global.mousex,gra_global.mousey}));
+  //draw_c2_line((c2_t){0,0},gra_global.mouse);
   global.camera.p.x = oldx;
   global.camera.p.z = oldz; //-= cn*CAMERA_SEPARATION;
   flipscreen();
@@ -536,8 +500,8 @@ int graphics_init() {
 
  global.shape[0]=0;//we'll allocate as we need more.
  global.camera.id=strdup(global.user);//make a copy so if we change global.user later we can reattach to this camera.
- global.group_rot[0]=&global.camera;//why do we have the camera in here? we need to prevent this from getting deleted.
- global.group_rot[1]=0;
+ global.group_rot[0]=&global.camera;
+ global.group_rot[1]=0;//why do we have the camera in here? we need to prevent this from getting deleted.
 
  global.camera.p.x=0;
  global.camera.p.y=10;//10 units above the ground should be as low as it goes.

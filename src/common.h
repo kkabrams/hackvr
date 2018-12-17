@@ -48,9 +48,10 @@ typedef struct {
 
 typedef struct {
   char *id;
-  c3_rot_t r;
-  c3_t p;
-  c3_t s;
+  c3_rot_t r;//rotation
+  c3_t p;//position
+  c3_t s;//??? shape??? I dunno.
+  c3_t v;//velocity
 } c3_group_rot_t;
 
 //typedef struct c3_line {//is this even used? I think I just use c3_s_t with 2 points.
@@ -88,6 +89,7 @@ typedef struct c3_shape {//use array or linked list?
   shape_flavor type;
   unsigned char len;
   c3_t p[MAX_SIDES];
+  c3_t v;//velocities.
   struct attrib attrib;
 } c3_s_t;
 
@@ -102,6 +104,7 @@ struct global {
   char selected_object[2000];//meh
   int periodic_output;//if false, we output commands from keypresses as they're being sent to the command interpreter. if true we output every value amount of time. miliseconds probably.
   real mmz;
+  int lps;//loops per second. same as frame per second but also works for headless.
   struct c3_shape *shape[SHAPES];
   int shapes;
   c3_group_rot_t *group_rot[SHAPES];//there can be less of these.
@@ -110,5 +113,7 @@ struct global {
   int derp;
   real split;
 };
+
+int selfcommand(char *);
 
 #endif

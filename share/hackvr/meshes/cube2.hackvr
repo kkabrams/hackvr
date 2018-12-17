@@ -1,0 +1,6 @@
+cube addshape 1 4   -1 -1 -1   1 -1 -1   1 1 -1   -1 1 -1
+cube addshape 2 4   -1 -1 1    1 -1 1    1 1 1    -1 1 1
+cube addshape 3 4   -1 -1 1    -1 1 1   -1 1 -1   -1 -1 -1
+cube addshape 4 4   1  -1 1    1  1 1   1  1 -1    1 -1 -1
+cube addshape 5 4   1 -1 1     -1 -1 1  -1 -1 -1   1 -1 -1
+cube addshape 6 4   1 1  1     -1 1  1  -1 1  -1   1  1 -1

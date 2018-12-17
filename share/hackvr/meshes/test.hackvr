@@ -1,0 +1,5 @@
+dnw.1 addshape 2 4 0 0 0  10 0 0  10 2 0  0 2 0
+dnw.2 addshape 2 4 0 0 0  10 0 0  10 2 0  0 2 0
+dnw.3 addshape 2 4 0 0 0  10 0 0  10 2 0  0 2 0
+dnw.1 rotate 0 0 120
+dnw.2 rotate 0 0 240
