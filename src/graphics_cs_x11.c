@@ -18,6 +18,7 @@
 #include "common.h"
 #include "graphics_c3.h"//not needed?
 #include "graphics_x11.h"
+#include "graphics_c2.h"
 #include "graphics_cs.h"
 #include "keyboard_x11.h"
 #include "mouse_x11.h"
@@ -86,6 +87,7 @@ void draw_cs_text(cs_t p,char *text) {
 void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it could be moved up to graphics.c? probl no.
   //test in here whether a mouse click is within this shape's... bounding box? sure.
   cs_s_t bb;//bounding box
+  cs_t smouse=c2_to_cs(gra_global.mouse);
   int minx=s.p[0].x;
   int miny=s.p[0].y;
   int maxx=s.p[0].x;
@@ -97,7 +99,7 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
     //circle
     h=max(s.p[0].x,s.p[1].x)-min(s.p[0].x,s.p[1].x);
     XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
-    if(distance2((c2_t){s.p[0].x,s.p[1].y},(c2_t){gra_global.mouse.x,gra_global.mouse.y} ) < h) {
+    if(distance2((c2_t){s.p[0].x,s.p[1].y},(c2_t){smouse.x,smouse.y} ) < h) {
      if(gra_global.mousemap[0]==-1) {
        gra_global.mousemap[0]=0;
        printf("%s action %s\n",global.user,s.id);
@@ -113,10 +115,10 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
       maxy=(s.p[i].y>maxy)?s.p[i].y:maxy;
       draw_cs_line(s.p[i],s.p[(i+1)%(s.len+(s.len==1))]);
     }
-    if(gra_global.mouse.x >= minx &&
-         gra_global.mouse.y >= miny &&
-         gra_global.mouse.x <= maxx &&
-         gra_global.mouse.y <= maxy) {
+    if(smouse.x >= minx && //gra_global is a c2_t and these are in cs_t
+         smouse.y >= miny &&
+         smouse.x <= maxx &&
+         smouse.y <= maxy) {
       if(gra_global.mousemap[0]==-1) {//if we're inside the bounding box let's make SOMETHING happen.
           gra_global.mousemap[0]=0;
           printf("%s action %s\n",global.user,s.id);
