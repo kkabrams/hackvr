@@ -22,13 +22,20 @@ hackvr_freeglut: LDLIBS=-lm -lGL -lGLU -lglut
 hackvr_freeglut: hackvr_freeglut.o graphics_c3_freeglut.o math.o physics.o keyboard.o mouse_die.o keyboard_die.o
 
 hackvr_freeglut.o: LDLIBS=-lm -lGL -lGLU -lglut
+hackvr_freeglut.o: CFLAGS+='-DHVR_VERSION="freeglut"'
+
+hackvr_fb.o: CFLAGS+='-DHVR_VERSION="framebuffer"'
 
 graphics_c3_freeglut.o: LDLIBS=-lm -lGL -lGLU -lglut
 
 hackvr_opengl.o: LDLIBS=-lm -lGL -lGLU -lglut
+hackvr_opengl.o: CFLAGS+='-DHVR_VERSION="opengl"'
+
 hackvr_x11.o: LDLIBS=-lm -lX11
+hackvr_x11.o: CFLAGS+='-DHVR_VERSION="x11"'
 
 hackvr_headless.o: CFLAGS=-Wall -pedantic -std=c99 -ffast-math
+hackvr_headless.o: CFLAGS+='-DHVR_VERSION="headless"'
 hackvr_headless.o: LDLIBS=-lm
 
 graphics_c3.o: LDLIBS=-lm

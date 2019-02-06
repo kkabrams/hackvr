@@ -111,6 +111,10 @@ int glob_match(char *a,char *b) {
   return strcmp(a,b);
 }
 
+void hvr_version() {
+  printf("# hackvr version: %s\n",HVR_VERSION);
+}
+
 int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw, and 1 to ask for redraw
 // struct c3_shape s;
 // struct c3_line l;
@@ -172,12 +176,17 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
    command=a[1];
   }
   if(len < 2) {
+   if(!strcmp(id,"version")) {
+    hvr_version();
+    continue;
+   }
    if(!strcmp(id,"help")) {
 #ifdef GRAPHICAL
     fprintf(stderr,"# NOT built headless.\n");
 #else
     fprintf(stderr,"# built headless.\n");
 #endif
+    fprintf(stderr,"# commands that don't get prepended with groupname: help, version\n");
     fprintf(stderr,"# command format:\n");
     fprintf(stderr,"# group names can be globbed in some cases to operate on multiple groups\n");
     fprintf(stderr,"# groupnam* command arguments\n");
@@ -556,6 +565,10 @@ int main(int argc,char *argv[]) {
   c3_t old_p;
   c3_rot_t old_r;
   if(argc == 2) {
+   if(!strcmp(argv[1],"-v") || !strcmp(argv[1],"--version")) {
+    hvr_version();
+    return 0;
+   }
    if(!strcmp(argv[1],"-h") || !strcmp(argv[1],"--help")) {
     printf("usage: hackvr file1 file2 file3 ... fileN < from_others > to_others\n");
     return 0;

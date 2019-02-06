@@ -35,9 +35,9 @@ typedef struct {
  real y;
 } c2_t;
 
-typedef struct {//no screens will ever be bigger than 32k x 32k, right?
- short x;
- short y;
+typedef struct {//x11 wants coords to be integers. let's make this that.
+ int x;
+ int y;
 } cs_t;
 
 typedef struct {
