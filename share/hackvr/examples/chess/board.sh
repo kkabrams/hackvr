@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 width=8
 height=8

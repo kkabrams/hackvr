@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo "$USER move 0 0 -100"
 
 for y in $(seq 1 1 48);do

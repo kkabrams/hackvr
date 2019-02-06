@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 cat <(for i in $(seq 1 32);do
         for j in $(seq 1 32);do
           echo floor addshape 2 4 $i 0 $j $i 0 $[j+1] $[i+1] 0 $[j+1] $[i+1] 0 $j

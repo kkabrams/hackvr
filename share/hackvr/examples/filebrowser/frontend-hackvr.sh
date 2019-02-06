@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ "_$1" = "_" ];then
  echo "I need an argument for what my backend is." >&2
  exit 1

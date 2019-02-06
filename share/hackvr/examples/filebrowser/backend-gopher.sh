@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #give a list of files.
 #wait for a selection on stdin
 #cd or start that file

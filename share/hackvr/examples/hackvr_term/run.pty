@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 mknod p p
 cat <(cat camera.pos | sed 's/USER/'"$USER"'/g') \
     <(./hackvr_data_decode.sh <p \

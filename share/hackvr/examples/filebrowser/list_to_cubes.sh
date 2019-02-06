@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # blank lines deleteallexcept epoch
 # expected input format:
 #

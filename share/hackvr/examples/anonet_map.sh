@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 cat <(printf "%s move 0 0 -270\n" "$USER") \
     <(wget http://hacking.allowed.org/cgi-bin/map_hackvr.cgi -qO- 2>/dev/null) \
     /dev/stdin \

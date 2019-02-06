@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 turn=$( expr $RANDOM % 2)
-cat camera.pos | sed 's/^junk/$USER/g'
+cat camera.pos
 echo "go. player: $turn" >&2
 stdbuf -oL uniq \
   | grep --line-buffered action \

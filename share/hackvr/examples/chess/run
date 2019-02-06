@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 mknod p p
 stdbuf -oL cat camera.pos <(./board.sh) <(cat p | ./gnuchess-to-hackvr.sh) | hackvr "$USER" | ./hackvr-to-gnuchess.sh | gnuchess -x > p
 rm p

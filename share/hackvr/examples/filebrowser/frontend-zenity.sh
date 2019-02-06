@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ "_$1" = "_" ];then
  echo "I need a backend script passed as first argument." >&2
  exit 1
