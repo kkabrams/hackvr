@@ -28,8 +28,8 @@ while read -rN 1 c;do
   xoffset=-6
   yoffset="$(printf '%d - %d\n' $yoffset 10 | bc)"
  fi
- if grep "^$name " ${PREFIX}/share/hackvr/font/font.hackvr 2>&1 > /dev/null;then #don't do this shit unless we actually have something to draw. awk in offsetshape bitches when there's nothing.
-   grep "^$name " ${PREFIX}/share/hackvr/font.hackvr \
+ if grep "^$name " ${PREFIX}/share/hackvr/font/default.hackvr 2>&1 > /dev/null;then #don't do this shit unless we actually have something to draw. awk in offsetshape bitches when there's nothing.
+   grep "^$name " ${PREFIX}/share/hackvr/default.hackvr \
     | sed 's/^'"$name"'/'"$target"'/' \
     | offsetshape.sh "$xoffset" "$yoffset" "$zoffset"
  fi
