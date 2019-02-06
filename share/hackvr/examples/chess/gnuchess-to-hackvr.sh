@@ -1,4 +1,5 @@
 #!/bin/sh
+e=$1
 tee /dev/stderr | while read first second third;do
   if [ "_$first" = "_feature" ];then
     printf "# just gnuchess saying what features it has: %s %s %s\n" "$first" "$second" "$third" >&2
@@ -17,9 +18,9 @@ tee /dev/stderr | while read first second third;do
       y=$(printf "%s\n" "$to" | fold -w1 | tail -n1)
       magic=$(printf "%s\n" "$move" | fold -w1 | tail -n+5 | tr -d '\n')
 ### if the board is on the wall we need to use x and y
-#    printf "piece_%s move %s %s 0\n" "$from" "$x" "$y" | tee /dev/stderr
+#    printf "piece_%s move %s %s %s\n" "$from" "$x" "$y" "$e" | tee /dev/stderr
 ### the board is on the floor atm. use x and z
-    printf "piece_%s move %s 0 %s\n" "$from" "$x" "$y" | tee /dev/stderr
+    printf "piece_%s move %s %s %s\n" "$from" "$x" "$e" "$y" | tee /dev/stderr
 
     printf "#delete the old piece_%s group\n"
     printf "epoch deletegroup piece_%s\n" "$to"
