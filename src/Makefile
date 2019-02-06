@@ -52,12 +52,13 @@ graphics_cs_opengl.o: LDLIBS=-lm -lGL -lGLU -lglut
 math.o: LDLIBS=-lm
 
 install:
-	install -D hackvr $(PREFIX)/bin/hackvr
-	install -D hackvr_headless $(PREFIX)/bin/hackvr_headless
-	install -D hackvr_x11 $(PREFIX)/bin/hackvr_x11
-	install -D hackvr_fb $(PREFIX)/bin/hackvr_fb
-	install -D hackvr_freeglut $(PREFIX)/bin/hackvr_freeglut
-	install -D slowcat $(PREFIX)/bin/slowcat
+	mkdir -p $(PREFIX)/bin
+	install hackvr $(PREFIX)/bin/hackvr
+	install hackvr_headless $(PREFIX)/bin/hackvr_headless
+	install hackvr_x11 $(PREFIX)/bin/hackvr_x11
+	install hackvr_fb $(PREFIX)/bin/hackvr_fb
+	install hackvr_freeglut $(PREFIX)/bin/hackvr_freeglut
+	install slowcat $(PREFIX)/bin/slowcat
 
 uninstall:
 	rm $(PREFIX)/bin/hackvr
