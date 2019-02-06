@@ -1,0 +1,4 @@
+USER move 250 -140 -300
+#these two lines are for when I want a screenshot of the terminal rotated so I can take pretty screeshots
+#USER move 315 -125 -285
+#USER rotate 0 -5 0

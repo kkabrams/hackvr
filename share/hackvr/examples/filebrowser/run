@@ -1,0 +1,3 @@
+#!/bin/bash
+cd "$(dirname "$0")"
+./frontend-hackvr.sh ./backend-gopher.sh $1

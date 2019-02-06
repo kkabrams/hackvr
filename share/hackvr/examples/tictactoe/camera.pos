@@ -1,0 +1,5 @@
+junk set global.zoom 45
+junk set camera.p.z -6
+junk set camera.p.y -1
+junk set camera.p.x 0
+
