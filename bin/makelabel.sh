@@ -4,10 +4,7 @@ target="$1"
 xoffset=$2
 yoffset=$3
 zoffset=$4
-if [ "_$PREFIX" = "_" ];then
- echo '$PREFIX' is not set. I use this to find where my font files are stored. 
- exit 1
-fi
+dirdir0="$(dirname "$(dirname "$0")")"
 if [ "_$1" = "_-h" -o "_$1" = "_--help" -o "_$1" = "_-help" ];then
  echo $USAGE 
  exit 0 #we were asked for help and we succeeded with supplying help. :)
@@ -28,8 +25,8 @@ while read -rN 1 c;do
   xoffset=-6
   yoffset="$(printf '%d - %d\n' $yoffset 10 | bc)"
  fi
- if grep "^$name " ${PREFIX}/share/hackvr/font/default.hackvr 2>&1 > /dev/null;then #don't do this shit unless we actually have something to draw. awk in offsetshape bitches when there's nothing.
-   grep "^$name " ${PREFIX}/share/hackvr/font/default.hackvr \
+ if grep "^$name " "${dirdir0}/share/hackvr/font/default.hackvr" 2>&1 > /dev/null;then #don't do this shit unless we actually have something to draw. awk in offsetshape bitches when there's nothing.
+   grep "^$name " "${dirdir0}/share/hackvr/font/default.hackvr" \
     | sed 's/^'"$name"'/'"$target"'/' \
     | offsetshape.sh "$xoffset" "$yoffset" "$zoffset"
  fi
