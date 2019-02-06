@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 USAGE="usage: makelabel.sh labelname x y z < labelcontent"
 target="$1"
 xoffset=$2
