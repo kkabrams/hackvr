@@ -1,0 +1,42 @@
+/*
+
+so, we have a line.
+
+from 0,0 to 10,0
+
+and we want it to transform into a rectangle at about...
+
+-1,-1 1,-1 1,11 -1,11
+
+I guess we're taking each point and pushing it away from itself.
+
+so 0,0... we can make into a square. we need to push in a direction based on the direction of the other half of the line
+
+so a=points_to_angle(p1,p2)
+
+which is 90deg in this case from 0,0 to 10,0
+and we need to push 0,0 in two directions to create two new points
+at angles...
+90+135 and 90+135+90
+
+a+135 and a+135+90
+
+now to pick an emboldeness amount. sqrt(2) will get us to the original points I guessed at earlier.
+
+#define embolden(p1,p2,angle,dist) 
+
+if(s.len == 2) {
+ a1=points_to_angle(p1,p2);
+ a2=points_to_angle(p2,p1);
+ d=1;//how far to embolden
+ //a2 = (a1 + 180) % 360
+ s[0]=c3_add(s.p[0],(c3_t){sin(a2+45)*d,cos(a2+45)*d,0})
+ s[1]=c3_add(s.p[0],(c3_t){sin(a2-45)*d,cos(a2-45)*d,0})
+ s[2]=c3_add(s.p[1],(c3_t){sin(a1+45)*d,cos(a1+45)*d,0})
+ s[3]=c3_add(s.p[1],(c3_t){sin(a1-45)*d,cos(a1-45)*d,0})
+}
+
+//this can be a script. it'll turn lines into rectangles.
+//could be done with awk probably.
+//base it on offsetshape?
+//maybe just do it in python.

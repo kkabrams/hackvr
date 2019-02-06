@@ -1,0 +1,7 @@
+set terminal x11
+set xrange[-16:16]
+set yrange[-16:16]
+set zrange[-16:16]
+splot '< cat ../meshes/bowser.hackvr | bash ./hackvr2dat.sh' with lines
+pause 1
+reread

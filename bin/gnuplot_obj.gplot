@@ -1,0 +1,7 @@
+set terminal sixelgd
+set xrange[-16:16]
+set yrange[-16:16]
+set zrange[-16:16]
+splot '< ./obj2dat.pl ../meshes/female_basemesh1_2.obj' with lines
+pause 1
+reread
