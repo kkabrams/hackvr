@@ -84,7 +84,7 @@ void draw_cs_point(int x,int y) {//this should write to a backbuffer then I can 
    fb_global.backbuf[i]=0;
    break;
   default:
-   printf("# derp. unknown draw_mode %d\n",fb_global.draw_mode);
+   fprintf(stderr,"# derp. unknown draw_mode %d\n",fb_global.draw_mode);
    break;
  }
 }
