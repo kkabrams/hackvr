@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+export elevation=0
 mknod p p
-stdbuf -oL cat camera.pos <(./board.sh) <(cat p | ./gnuchess-to-hackvr.sh) | hackvr "$USER" | ./hackvr-to-gnuchess.sh | gnuchess -x > p
+stdbuf -oL cat camera.pos <(./board.sh $elevation) <(cat p | ./gnuchess-to-hackvr.sh $elevation) | hackvr "$USER" | ./hackvr-to-gnuchess.sh | gnuchess -x > p
 rm p

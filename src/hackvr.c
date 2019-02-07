@@ -30,6 +30,16 @@ extern struct gra_global gra_global;
 //TODO: will have to make some pixmaps get resized when the window does.
 //for now set them to be as big as you think you'll ever resize the window to.
 
+int lum_based_on_distance(c3_s_t *s) {
+  int i;
+  real sum;
+  for(i=0;i < s->len;i++) {
+    sum+=distance2((c2_t){s->p[i].x,s->p[i].z},(c2_t){0,0});
+  }
+  //sum /= s->len;
+  return sum * 5;
+}
+
 struct global global;
 
 //might be able to make this faster by just using fgets() and not using recursion and malloc.
@@ -112,7 +122,7 @@ int glob_match(char *a,char *b) {
 }
 
 void hvr_version() {
-  printf("# hackvr version: %s\n",HVR_VERSION);
+  fprintf(stderr,"# hackvr version: %s\n",HVR_VERSION);
 }
 
 int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw, and 1 to ask for redraw
@@ -266,7 +276,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      //we don't need this gr anymore.
      //we could clean it up, but its values are already zero.
    }*/
-   printf("# this group doesn't have a gr.\n");
+   fprintf(stderr,"# this group doesn't have a gr.\n");
   }
   if(!strcmp(command,"deletegroup")) {//should the grouprot get deleted too? sure...
    if(len == 3) {
@@ -396,12 +406,12 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     global.shape[i]->len=strtold(a[3],0);
     global.shape[i]->id=strdup(id);
     global.shape[i]->attrib.col=strtold(a[2],0);
-    global.shape[i]->attrib.lum=0;
     for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
      global.shape[i]->p[j].x=strtold(a[(j*3)+4],0);//second arg is just for a return value. set to 0 if you don't want it.
      global.shape[i]->p[j].y=strtold(a[(j*3)+5],0);
      global.shape[i]->p[j].z=strtold(a[(j*3)+6],0);
     }
+    global.shape[i]->attrib.lum=0;//lum_based_on_distance(global.shape[i]);//set to distance from center?
     i++;
     global.shapes=i;
     global.shape[i]=0;
@@ -613,9 +623,9 @@ int main(int argc,char *argv[]) {
     //fprintf(stderr,"# derping.\n");
     if(global.periodic_output == 1) {//this is the same type of thing the debug output does. debug output now goes here.
 #ifdef GRAPHICAL
-     printf("# loops per second: %d mouse.x: %f mouse.y: %f\n",global.lps,gra_global.mouse.x,gra_global.mouse.y);
+     fprintf(stderr,"# loops per second: %d mouse.x: %f mouse.y: %f\n",global.lps,gra_global.mouse.x,gra_global.mouse.y);
 #else
-     printf("# loops per second: %d\n",global.lps);
+     fprintf(stderr,"# loops per second: %d\n",global.lps);
 #endif
      global.periodic_output = PERIODIC_OUTPUT;
      //output any difference between current camera's state
