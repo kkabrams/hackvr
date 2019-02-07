@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 turn=$( expr $RANDOM % 2)
-cat camera.pos
+cat camera.pos board
 echo "go. player: $turn" >&2
-stdbuf -oL uniq \
-  | grep --line-buffered action \
-  | stdbuf -oL cut '-d ' -f1,3 | while read user group;do
+grep --line-buffered action \
+  | while read user derp group;do
+    echo FUCK >&2
     if grep "_reset" <<<$group >/dev/null;then
      printf "%s deleteallexcept .\n" "$user"
      cat board
