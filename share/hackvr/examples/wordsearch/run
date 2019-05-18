@@ -1,0 +1,8 @@
+#!/bin/sh
+# just need to get some way for these to coproc
+if ! which wordsearch >/dev/null;then
+  echo "we need wordsearch installed to generate the puzzle"
+  echo "please read: https://github.com/jamis/wordsearch"
+  exit 1
+fi
+socat exec:hackvr exec:./game.sh

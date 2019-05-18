@@ -44,8 +44,8 @@ physics.o: LDLIBS=-lm
 keyboard.o: LDLIBS=-lm
 
 graphics_cs_x11.o: LDLIBS=-lm -lX11
-mouse_x11.o:-lX11
-keyboard_x11.o:-lX11
+xmouse_x11.o:LDLIBS=-lX11
+keyboard_x11.o:LDLIBS=-lX11
 
 graphics_c2_opengl.o: LDLIBS=-lm -lGL -lGLU -lglut
 graphics_cs_opengl.o: LDLIBS=-lm -lGL -lGLU -lglut
