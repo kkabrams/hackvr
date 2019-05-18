@@ -2,14 +2,14 @@
 ## you might want to edit these to suit your tastes.
 width=10
 height=$width
-words_per_puzzle=$[width+2]
+words_per_puzzle=$[width]
 x=$[-10 * $width / 2]
 y=$[10 * $width / 2]
 z=0
 clicked=""
 wordlist=/usr/share/dict/words
 echo derp
-wordsearch -w <(shuf $wordlist | grep '^.\{1,'"$width"'\}$' | head -n $words_per_puzzle | tee /dev/stderr) --columns $width --rows $height --text | tail -n+4 | head -n $height | while read -r line;do
+wordsearch -w <(shuf $wordlist 2>/dev/null | grep '^.\{1,'"$width"'\}$' 2>/dev/null | head -n $words_per_puzzle | tee /dev/stderr) --columns $width --rows $height --text | tail -n+4 | head -n $height | while read -r line;do
   echo "$line" | tr -d ' ' | fold -w 1 | while read letter;do
     name="_${x}_${y}"
     printf "%s addshape 2 4 %s %s %s  %s %s %s  %s %s %s  %s %s %s\n" \
