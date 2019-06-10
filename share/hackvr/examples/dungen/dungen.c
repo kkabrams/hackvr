@@ -14,15 +14,15 @@ char nfield[256];
 
 void print_field() {
   int i;
-  printf("\x1b[H");
-  for(i=0;i<(16*strlen(a[field[0]]))+1;i++) printf("#");
+  fprintf(stderr,"\x1b[H");
+  for(i=0;i<(16*strlen(a[field[0]]))+1;i++) fprintf(stderr,"#");
   for(i=0;i<256;i++) {
-    if(i%16 == 0) printf("#\n#");
-    printf("%s",a[field[i]]);
+    if(i%16 == 0) fprintf(stderr,"#\n#");
+    fprintf(stderr,"%s",a[field[i]]);
   }
-  printf("#\n");
-  for(i=0;i<(16*strlen(a[field[0]]))+2;i++) printf("#");
-  printf("\n");
+  fprintf(stderr,"#\n");
+  for(i=0;i<(16*strlen(a[field[0]]))+2;i++) fprintf(stderr,"#");
+  fprintf(stderr,"\n");
 }
 
 void prune() {//remove paths into wall
@@ -54,13 +54,19 @@ void grow() {
   memcpy(field,nfield,256);
 }
 
+void dump() {
+  for(i=0;i<256;i++) {
+    printf("%c",field[i]);
+  }
+}
+
 int main(int argc,char *argv[]) {
   int i;
   int seed=time(0) * getpid();
   if(argc > 1) {
     seed=atoi(argv[1]);
   }
-  printf("\x1b[H\x1b[2J");
+  fprintf(stderr,"\x1b[H\x1b[2J");
   srandom(seed);
   a[0x0]="   ";
   a[0x1]="-  ";
@@ -87,5 +93,6 @@ int main(int argc,char *argv[]) {
   }
   prune();
   print_field();
-  printf("seed: %d\n",seed);
+  dump();
+  fprintf(stderr,"seed: %d\n",seed);
 }
