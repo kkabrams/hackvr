@@ -55,6 +55,7 @@ void grow() {
 }
 
 void dump() {
+  int i;
   for(i=0;i<256;i++) {
     printf("%c",field[i]);
   }
