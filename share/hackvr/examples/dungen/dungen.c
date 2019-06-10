@@ -1,4 +1,8 @@
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
 
 #define ITERATIONS 16
 
@@ -52,8 +56,12 @@ void grow() {
 
 int main(int argc,char *argv[]) {
   int i;
+  int seed=time(0) * getpid();
+  if(argc > 1) {
+    seed=atoi(argv[1]);
+  }
   printf("\x1b[H\x1b[2J");
-  srandom(time(0) * getpid());
+  srandom(seed);
   a[0x0]="   ";
   a[0x1]="-  ";
   a[0x2]="  -";
@@ -74,9 +82,10 @@ int main(int argc,char *argv[]) {
   field[7+16] = 0x4;//center top
   for(i=0;i<ITERATIONS;i++) {
     print_field();
-    sleep(1);
+//    sleep(1);
     grow();
   }
   prune();
   print_field();
+  printf("seed: %d\n",seed);
 }
