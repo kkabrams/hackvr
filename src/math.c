@@ -2,7 +2,7 @@
 #include "common.h"
 #include "math.h"
 
-extern struct global global;
+extern struct hvr_global global;
 
 //might change this to use hashtables for faster lookups.
 c3_group_rot_t *get_group_relative(char *id) {//crashes in here somehwere...
