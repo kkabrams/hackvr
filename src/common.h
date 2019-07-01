@@ -93,7 +93,7 @@ typedef struct c3_shape {//use array or linked list?
   struct attrib attrib;
 } c3_s_t;
 
-struct global {
+struct hvr_global {//namespace conflict with libidc
   int x;
   int y;
   char beep;//1 or 0
@@ -112,6 +112,7 @@ struct global {
   real zoom;
   int derp;
   real split;
+  int selfpipe[2];
 };
 
 int selfcommand(char *);
