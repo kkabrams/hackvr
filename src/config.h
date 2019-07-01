@@ -21,7 +21,7 @@
 #define MAXHEIGHT 3000
 #define HEIGHT 240
 #define DEFAULT_MINIMAP 0
-#define FORCE_REDRAW 1
+#define FORCE_REDRAW 0
 
 #define MAXSHAPES 65535
 
