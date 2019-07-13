@@ -6,24 +6,8 @@
 
 #define ITERATIONS 16
 
-//nsew
-char *a[16];
-
 char field[256];
 char nfield[256];
-
-void print_field() {
-  int i;
-  fprintf(stderr,"\x1b[H");
-  for(i=0;i<(16*strlen(a[field[0]]))+1;i++) fprintf(stderr,"#");
-  for(i=0;i<256;i++) {
-    if(i%16 == 0) fprintf(stderr,"#\n#");
-    fprintf(stderr,"%s",a[field[i]]);
-  }
-  fprintf(stderr,"#\n");
-  for(i=0;i<(16*strlen(a[field[0]]))+2;i++) fprintf(stderr,"#");
-  fprintf(stderr,"\n");
-}
 
 void prune() {//remove paths into wall
   int i;
@@ -56,9 +40,7 @@ void grow() {
 
 void dump() {
   int i;
-  for(i=0;i<256;i++) {
-    printf("%c",field[i]);
-  }
+  write(1,field,sizeof(field));
 }
 
 int main(int argc,char *argv[]) {
@@ -67,33 +49,13 @@ int main(int argc,char *argv[]) {
   if(argc > 1) {
     seed=atoi(argv[1]);
   }
-  fprintf(stderr,"\x1b[H\x1b[2J");
   srandom(seed);
-  a[0x0]="   ";
-  a[0x1]="-  ";
-  a[0x2]="  -";
-  a[0x3]="---";
-  a[0x4]=" . ";
-  a[0x5]="-. ";
-  a[0x6]=" .-";
-  a[0x7]="-.-";
-  a[0x8]=" ' ";
-  a[0x9]="-' ";
-  a[0xa]=" '-";
-  a[0xb]="-'-";
-  a[0xc]=" | ";
-  a[0xd]="-| ";
-  a[0xe]=" |-";
-  a[0xf]="-|-";
-
   field[7+16] = 0x4;//center top
   for(i=0;i<ITERATIONS;i++) {
-    print_field();
-//    sleep(1);
+    if(argc > 2) dump();
     grow();
   }
   prune();
-  print_field();
   dump();
   fprintf(stderr,"seed: %d\n",seed);
 }
