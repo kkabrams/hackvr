@@ -23,7 +23,7 @@
 #define SKYW (WIDTH*5)
 #define SKYH (HEIGHT/2)
 
-extern struct global global;
+extern struct hvr_global global;
 struct gra_global gra_global;
 
 #ifdef GRAPHICAL
@@ -459,6 +459,11 @@ void draw_screen() {
      draw_c3_shape(*(zs[i].s));
     //}
    }
+   //we check here to see if the mouse button is still down
+   if(gra_global.mousemap[0]==-1) {
+     printf("%s action %f %f\n",global.user,gra_global.mouse.x,gra_global.mouse.y);
+     gra_global.mousemap[0]=0;
+   }
 /*
  if(gra_global.drawminimap == 1) {
   set_color();
@@ -488,6 +493,13 @@ void draw_screen() {
   global.camera.p.x = oldx;
   global.camera.p.z = oldz; //-= cn*CAMERA_SEPARATION;
   flipscreen();
+}
+
+void redraw() {//something is requesting a redraw.
+  if(gra_global.force_redraw == 0) {
+    gra_global.force_redraw=1;//this is to prevent drawing way too often.
+    write(gra_global.redraw[1],"redraw plzkthx!\n",16);
+  }
 }
 
 int graphics_init() {
