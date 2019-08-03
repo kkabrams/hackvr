@@ -7,13 +7,17 @@
 #include "keyboard.h"
 #include "keyboard_x11.h" //for event mask and key definitions
 
-extern struct global global;
+extern struct hvr_global global;
 
 #include "graphics_c3.h"
 extern struct gra_global gra_global;
 
 #include "graphics_x11.h"
 extern struct x11_global x11_global;
+
+int keyboard_init() {//return the fd that events should be read from.
+  return x11_global.fd;//good for now?
+}
 
 //I need some xkey -> HVK conversion
 hvk_t x11_keypress_handler(XKeyEvent *);
