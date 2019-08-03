@@ -35,7 +35,7 @@
 //Pixmap skypixmap;
 //char sky[SKYH][SKYW];
 
-extern struct global global;
+extern struct hvr_global global;
 extern struct gra_global gra_global;
 struct x11_global x11_global;
 
@@ -123,7 +123,7 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
           gra_global.mousemap[0]=0;
           printf("%s action %s\n",global.user,s.id);
         }
-      if(!strncmp(s.id,"term",4)) {
+      if(!strncmp(s.id,"term",4)) {//that's a terrible way to do that
        gra_global.input_mode=1;
       }
       bb.id=strdup("boundingbox");
@@ -427,6 +427,7 @@ int graphics_sub_init() {
   exit(1);
  }
  else fprintf(stderr,"# done.\n");
+ x11_global.fd=ConnectionNumber(x11_global.dpy);//we need to to pass to libidc
  x11_global.color_map=DefaultColormap(x11_global.dpy, DefaultScreen(x11_global.dpy));
  fprintf(stderr,"# generating colors...\n");
  for(i=0;ansi_color[i];i++) {
@@ -537,7 +538,7 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
   }
  }
  //redraw=1;//meh.
- if(redraw || world_changed) { 
+ if(redraw || world_changed) {
   gra_global.input_mode=0;
   draw_screen();//should this be in here? :?
  }
