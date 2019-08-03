@@ -9,6 +9,7 @@
 #include <time.h>
 #include <math.h>
 #include <errno.h>
+#include <signal.h>
 
 #include "config.h"
 #include "common.h"
@@ -19,6 +20,11 @@
 #include "graphics_c3.h"
 extern struct gra_global gra_global;
 #endif
+
+#include <idc.h>
+extern struct idc_global idc;
+
+struct hvr_global global;
 
 //TODO: optimizations
 //TODO: store caches of cs_t, c2_t, and c3_t numbers.
@@ -40,7 +46,6 @@ int lum_based_on_distance(c3_s_t *s) {
   return sum * 5;
 }
 
-struct global global;
 
 //might be able to make this faster by just using fgets() and not using recursion and malloc.
 /* does not return the newline. */
@@ -69,14 +74,11 @@ char *read_line_hack(FILE *fp,int len) {
  return t;
 }
 
-int selfcommand(char *s) {
- char t;
- if(!strlen(s)) return 0;
- ungetc(s[strlen(s)-1],stdin);
- t=s[strlen(s)-1];
- s[strlen(s)-1]=0;
- selfcommand(s);
- if(global.periodic_output==0) putchar(t);//output commands immediately
+int selfcommand(char *s) {//send this line to be handled by ourselves and output to stdout
+ if(global.localecho) {
+   write(global.selfpipe[1],s,strlen(s));
+ }
+ write(1,s,strlen(s));//stdout
  return 0;
 }
 
@@ -125,58 +127,44 @@ void hvr_version() {
   fprintf(stderr,"# hackvr version: %s\n",HVR_VERSION);
 }
 
-int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw, and 1 to ask for redraw
-// struct c3_shape s;
-// struct c3_line l;
-//move UP, DOWN, LEFT, RIGHT etc shit
- radians tmprady;
- //radians tmpradx,tmprady,tmpradz;
- real tmpx,tmpy,tmpz;
+int hackvr_handler(char *line);
+
+void hackvr_handler_idc(struct shit *me,char *line) {
+  switch(hackvr_handler(line)) {
+    case -1:
+      exit(0);
+    case 0:
+      break;
+    case 1:
+    #ifdef GRAPHICAL
+      redraw();
+    #endif
+      break;
+    default:
+      break;
+  }
+}
+
+//this function returns -1 to quit, 0 to not ask for a redraw, and 1 to ask for redraw
+int hackvr_handler(char *line) {
+  int ret=0;
+  int len;
+  int j,i,k,l;
+  c3_group_rot_t *gr;
+  real tmpx,tmpy,tmpz;
+  char **a;
  char tmp[256];
-//^ there
+// radians tmpradx,tmprady,tmpradz;
+  radians tmprady;
 
- c3_group_rot_t *gr;
- char *command;
- char *line=0;
- char *id;
- char **a=0;
- int len;
- int ret=0;
- int j,k,l;
- int counter;
- //struct timeval timeout;
- //fd_set master;
- //fd_set readfs;
- //FD_ZERO(&master);
- //FD_ZERO(&readfs);
- //FD_SET(0,&master);//just stdin.
- int i;//used to store the last triangle. even though I have a global for that. >_>
+  char *id;
+  //might use these so make command code easier to read.
+  char *command;
+  //char **args;
 
-// fprintf(stderr,"# entering load_stdin()\n");
-//#ifdef _HACKVR_USE_NONBLOCK_
- for(i=0;global.shape[i];i++) ;//hop to the end.
- fcntl(0,F_SETFL,O_NONBLOCK);
- if(feof(stdin))  {
-  clearerr(stdin);
- }
-//#else
-/* readfs=master;
- timeout.tv_sec=0;
- timeout.tv_usec=1;
- if((j=select(1,&readfs,0,0,&timeout)) == -1) {
-  perror("select");
-  return 0;
- }
- if(FD_ISSET(0,&readfs)) {*/
-//#endif
- counter=0;
-// printf("#right before main read loop\n");
-// fflush(stdout);
- for(counter=0;counter < 100 && (line=line?free(line),read_line_hack(stdin,0):read_line_hack(stdin,0));counter++) {//load as long there's something to load
-  if(*line == '#') continue;
+  if(*line == '#') return 0;
 //  fprintf(stderr,"# read command: %s\n",line);
- if(a) free(a);//use a static char pointer array so I don't have to use the heap. possible optimization.
- a=line_splitter(line,&len);
+  a=line_splitter(line,&len);
 //  for(i=0;i<len;i++) {
 //   printf("\"%s\" ",a[i]);
 //  }
@@ -188,7 +176,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
   if(len < 2) {
    if(!strcmp(id,"version")) {
     hvr_version();
-    continue;
+    return 0;
    }
    if(!strcmp(id,"help")) {
 #ifdef GRAPHICAL
@@ -215,10 +203,10 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     fprintf(stderr,"# * move x y z\n");
     fprintf(stderr,"# * move forward|backward|up|down|left|right\n");
     fprintf(stderr,"# that is all.\n");
-    continue;
+    return ret;
    } else {
     //fprintf(stderr,"# ur not doing it right. '%s'\n",id);
-    continue;
+    return ret;
    }
   }
   ret=1;
@@ -252,7 +240,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      global.group_rot[k]=global.group_rot[l];
      global.group_rot[l]=0;
     }
-    continue;
+    return ret;
    }
   }
   if(!strcmp(command,"apply")) {
@@ -310,7 +298,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      global.group_rot[l]=0;
     }
     ret=1;
-    continue;
+    return ret;
    }
   }
   if(!strcmp(command,"assimilate")) {//um... what do we do with the group_rotation?
@@ -323,7 +311,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     }
    }
    ret=1;
-   continue;
+   return ret;
   }
   if(!strcmp(command,"renamegroup")) {//this command doesn't need globbing
    if(len == 4) {
@@ -340,11 +328,11 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     }
    }
    ret=1;
-   continue;
+   return ret;
   }
   if(!strcmp(command,"status")) {
    fprintf(stderr,"# loops per second: %d\n",global.lps);
-   continue;
+   return ret;
   }
   if(!strcmp(command,"dump")) {//same as debug output... and the periodic data.
    printf("%s set global.camera.p.x %f\n",global.user,global.camera.p.x);
@@ -354,13 +342,13 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
    printf("%s set global.camera.r.y %d\n",global.user,global.camera.r.y.d);
    printf("%s set global.camera.r.z %d\n",global.user,global.camera.r.z.d);
    printf("%s set global.zoom %f\n",global.user,global.zoom);
-   continue;
+   return ret;
   }
   if(!strcmp(command,"quit")) {
    return -1;
   }
   if(!strcmp(command,"set")) { //set variable //TODO: add more things to this.
-   if(len != 3 && len != 4) continue;
+   if(len != 3 && len != 4) return ret;
    if(len == 4) {
     if(0);
 #ifdef GRAPHICAL
@@ -371,35 +359,43 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     else if(!strcmp(a[2],"camera.r.x")) global.camera.r.x.d=atoi(a[3]);
     else if(!strcmp(a[2],"camera.r.y")) global.camera.r.y.d=atoi(a[3]);
     else if(!strcmp(a[2],"camera.r.z")) global.camera.r.z.d=atoi(a[3]);
+    else if(!strcmp(a[2],"input_mode")) gra_global.input_mode=atoi(a[3]);
 #endif
-    else fprintf(stderr,"# unknown variable: %s\n",a[2]);
+    else {
+     fprintf(stderr,"# unknown variable: %s\n",a[2]);
+     fprintf(stderr,"# variables: camera.{p,r}.{x,y,z}, global.zoom, input_mode");
+    }
     ret=1;
-    continue;
+    return ret;
    }
 #ifdef GRAPHICAL
    if(!strcmp(a[2],"global.beep")) global.beep=1;
    else if(!strcmp(a[2],"force_redraw")) gra_global.force_redraw^=1;
    else if(!strcmp(a[2],"red_and_blue")) { gra_global.red_and_blue^=1; set_aspect_ratio(); }
 #endif
-   else { fprintf(stderr,"# unknown variable: %s\n",a[2]); continue; }
+   else {
+    fprintf(stderr,"# unknown variable: %s\n",a[2]);
+    fprintf(stderr,"# variables: global.beep, force_redraw, red_and_blue\n");
+    return ret;
+   }
    fprintf(stderr,"# %s toggled!\n",a[2]);
    ret=1;
-   continue;
+   return ret;
   }
   if(!strcmp(command,"control")) {//change what shape key commands  affect.
    if(len > 2) {
-    free(global.user);
+    free(global.user);//need to ensure this is on the heap
     global.user=strdup(a[2]); // :D
    }
    ret=0;//doesn't change anything yet...
-   continue;
+   return ret;
   }
   if(!strcmp(command,"addshape")) {//need to add a grouprot with this.
    if(len > 3) {
     if(len != ((strtold(a[3],0)+(strtold(a[3],0)==1))*3)+4) {
      fprintf(stderr,"# ERROR: wrong amount of parts for addshape. got: %d expected %d\n",len,((int)strtold(a[3],0)+(strtold(a[3],0)==1))*3+4);
      fprintf(stderr,"# usage: addshape color number x y z x y z repeated number of time.\n");
-     continue;
+     return ret;
     }
     for(i=0;global.shape[i];i++) { if(i>= MAXSHAPES) abort();}//just take me to the end.
     global.shape[i]=malloc(sizeof(struct c3_shape));
@@ -435,7 +431,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     }
    }
    ret=1;
-   continue;
+   return ret;
   }
   if(!strcmp(command,"export")) {//dump shapes and group rotation for argument (or all if arg is *)
    if(len > 2) {
@@ -455,7 +451,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      }
     }
    }
-   continue;
+   return ret;
   }
 //should scaleup even be inside hackvr? seems like something an external program could do... but it wouldn't act on hackvr's state. so nevermind.
   if(!strcmp(command,"scaleup")) {//should this scale separately so it can be a deform too?
@@ -468,8 +464,7 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      }
     }
    }
-   ret=1;
-   continue;
+   return 1;
   }
   if(!strcmp(command,"rotate")) {
    if(len > 4) {
@@ -495,7 +490,32 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
     global.group_rot[i]->r.z.d -= (-(global.group_rot[i]->r.z.d < 0)+(global.group_rot[i]->r.z.d / 360)) * 360;
    }
    ret=1;
-   continue;
+   return ret;
+  }
+  if(!strcmp(command,"physics")) {
+   apply_physics();//lol
+  }
+  if(!strcmp(command,"periodic")) {
+#ifdef GRAPHICAL
+//     fprintf(stderr,"# loops per second: %d mouse.x: %f mouse.y: %f\n",global.lps,gra_global.mouse.x,gra_global.mouse.y);
+#else
+     fprintf(stderr,"# loops per second: %d\n",global.lps);
+#endif
+     global.periodic_output = PERIODIC_OUTPUT;
+     //output any difference between current camera's state
+     //and the camera state the last time we output it.
+     if(memcmp(&global.old_p,&global.camera.p,sizeof(c3_t))) {
+      global.old_p.x=global.camera.p.x;
+      global.old_p.z=global.camera.p.z;
+      global.old_p.y=global.camera.p.y;
+      printf("%s move %f %f %f\n",global.user,global.old_p.x,global.old_p.y,global.old_p.z);
+     }
+     if(memcmp(&global.old_r,&global.camera.r,sizeof(c3_rot_t))) {
+      global.old_r.x=global.camera.r.x;
+      global.old_r.y=global.camera.r.y;
+      global.old_r.z=global.camera.r.z;
+      printf("%s rotate %d %d %d\n",global.user,global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
+     }
   }
   if(!strcmp(command,"move")) {
    if(len > 2) {
@@ -540,22 +560,21 @@ int load_stdin() {//this function returns -1 to quit, 0 to not ask for a redraw,
      //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else {
      fprintf(stderr,"# dunno what direction you're talking about. try up, down, left, right, forward, or backward\n");
-     continue;
+     return ret;
     }
     tmpx=WALK_SPEED*sin(tmprady.r);//the camera's y rotation.
-    tmpz=WALK_SPEED*cos(tmprady.r);//these are only based on 
+    tmpz=WALK_SPEED*cos(tmprady.r);//these are only based on
     snprintf(tmp,sizeof(tmp)-1,"%s move +%f +%f +%f\n",global.user,tmpx,tmpy,tmpz);
     selfcommand(tmp);
    } else {
     fprintf(stderr,"# ERROR: wrong amount of parts for move. got: %d expected: 4 or 2\n",len);
    }
    ret=1;
-   continue;
+   return ret;
   }
   fprintf(stderr,"# I don't know what command you're talking about. %s\n",command);
   //I used to have free(line) here, but this place is never gotten to if a command is found so it wasn't getting released.
- }
- return ret;
+  return ret;
 }
 
 int export_file(FILE *fp) {//not used yet. maybe export in obj optionally? no. that should be an external program
@@ -568,12 +587,22 @@ int export_file(FILE *fp) {//not used yet. maybe export in obj optionally? no. t
  return 0;
 }
 
+#ifdef GRAPHICAL
+void redraw_handler(struct shit *me,char *line) {
+  if(gra_global.force_redraw) {
+    graphics_event_handler(1);
+    gra_global.force_redraw=0;
+  }
+}
+#endif
+
+void alarm_handler(int sig) {
+  selfcommand("periodic");
+  alarm(10);//no...
+}
+
 int main(int argc,char *argv[]) {
-  char redraw;
-  time_t oldtime;
-  unsigned int lps;
-  c3_t old_p;
-  c3_rot_t old_r;
+  int i;
   if(argc == 2) {
    if(!strcmp(argv[1],"-v") || !strcmp(argv[1],"--version")) {
     hvr_version();
@@ -589,9 +618,10 @@ int main(int argc,char *argv[]) {
   }
   if(argc > 1) {
    //open every argument and add it to list of files to read..
-   //I could just read 
+   //I could just read
   }
-  global.user=getenv("USER");
+  global.user=strdup(getenv("USER"));//this gets free()d later so we need to strdup it.
+  global.localecho=1;
 
   fcntl(1,F_SETFL,O_NONBLOCK);//won't work
   setbuf(stdin,0);
@@ -599,57 +629,30 @@ int main(int argc,char *argv[]) {
   global.debug=DEBUG;
   global.periodic_output=PERIODIC_OUTPUT;
   global.beep=0;
+
+  //libidc init
+  for(i=0;i<100;i++) {
+    idc.fds[i].fd=-1;
+  }
+  idc.shitlen=0;
+
 #ifdef GRAPHICAL
   graphics_init();
+
+  fprintf(stderr,"# x11 fd: %d",input_init());
+  i=add_fd(input_init(),input_event_handler);
+  idc.fds[i].read_lines_for_us=0;
+
+  pipe(gra_global.redraw);
+  add_fd(gra_global.redraw[0],redraw_handler);//lol. write a byte to other half of pipe to redraw screen.
 #endif
+  add_fd(0,hackvr_handler_idc);//looks like default mode is to exit on EOF of stdin
+  pipe(global.selfpipe);
+  add_fd(global.selfpipe[0],hackvr_handler_idc);//looks like default mode is to exit on EOF of stdin
+  //signal(SIGALRM,alarm_handler);
+  //alarm(10);
   fprintf(stderr,"# entering main loop\n");
-  for(lps=0;;lps++) {
-    switch(redraw=load_stdin()) {//this needs to loop over all opened files.
-     case -1:
-      return 0;
-      break;
-     case 0:
-      break;
-     default:
-      break;
-    }
-    if(time(0) != oldtime) {
-      global.lps=lps;
-      lps=0;
-      oldtime=time(0);
-    }
-    //fprintf(stderr,"# applying physics...\n");
-    redraw |= apply_physics();
-    //fprintf(stderr,"# derping.\n");
-    if(global.periodic_output == 1) {//this is the same type of thing the debug output does. debug output now goes here.
-#ifdef GRAPHICAL
-     fprintf(stderr,"# loops per second: %d mouse.x: %f mouse.y: %f\n",global.lps,gra_global.mouse.x,gra_global.mouse.y);
-#else
-     fprintf(stderr,"# loops per second: %d\n",global.lps);
-#endif
-     global.periodic_output = PERIODIC_OUTPUT;
-     //output any difference between current camera's state
-     //and the camera state the last time we output it.
-     if(memcmp(&old_p,&global.camera.p,sizeof(c3_t))) {
-      old_p.x=global.camera.p.x;
-      old_p.z=global.camera.p.z;
-      old_p.y=global.camera.p.y;
-      printf("%s move %f %f %f\n",global.user,old_p.x,old_p.y,old_p.z);
-     }
-     if(memcmp(&old_r,&global.camera.r,sizeof(c3_rot_t))) {
-      old_r.x=global.camera.r.x;
-      old_r.y=global.camera.r.y;
-      old_r.z=global.camera.r.z;
-      printf("%s rotate %d %d %d\n",global.user,global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
-     }
-    }
-    global.periodic_output--;
-#ifdef GRAPHICAL
-    if(graphics_event_handler(redraw) == -1) break;//this thing should call draw_screen when it needs to.
-    if(mouse_event_handler() == -1) break;
-    if(keyboard_event_handler() == -1) break;
-#endif
-   sleep(.01);
-  }
+  select_on_everything();
+
   return 0;
 }
