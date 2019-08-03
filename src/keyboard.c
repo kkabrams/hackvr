@@ -2,21 +2,22 @@
 #include "keyboard.h" //HVK values
 #include "common.h"
 
-extern struct global global;
+extern struct hvr_global global;
 
 #include "graphics_c3.h"
 extern struct gra_global gra_global;
 
 char keyboard_map[1024]={0};
 
-int keyboard_event_handler() {
+//return 0 is all is fine, -1 if we need to exit
+void keyboard_event_handler() {
   int k;
   char line[2560];
   c3_group_rot_t *gr;
   int e;//it is HVK_ values. positive or negative for press and release. 0 for nothing.
-  if((e=get_keyboard_event())) {
+  while((e=get_keyboard_event())) {
     k=(e<0?-e:e);//absolute value
-    printf("key: %d\n",k);
+    fprintf(stderr,"# key: %d\n",k);
     if(e < 0) { //key release
       keyboard_map[k]=-1;
       //update keyboard state map?
@@ -44,26 +45,32 @@ int keyboard_event_handler() {
 
 //// keys that keep doing stuff if they're held down.
   if(keyboard_map[HVK_FORWARD]==1) {//do velocity? maybe...
+    keyboard_map[HVK_FORWARD]=0;
     snprintf(line,sizeof(line)-1,"%s move forward\n",global.user);
     selfcommand(line);//moving forward at a speed based on the framerate... :/
   }
   if(keyboard_map[HVK_BACKWARD]==1) {
+    keyboard_map[HVK_BACKWARD]=0;
     snprintf(line,sizeof(line)-1,"%s move backward\n",global.user);
     selfcommand(line);
   }
   if(keyboard_map[HVK_LEFT]==1) {
+    keyboard_map[HVK_LEFT]=0;
     snprintf(line,sizeof(line)-1,"%s move left\n",global.user);
     selfcommand(line);
   }
   if(keyboard_map[HVK_RIGHT]==1) {
+    keyboard_map[HVK_RIGHT]=0;
     snprintf(line,sizeof(line)-1,"%s move right\n",global.user);
     selfcommand(line);
   }
   if(keyboard_map[HVK_UP]==1) {
+    keyboard_map[HVK_UP]=0;
     snprintf(line,sizeof(line)-1,"%s move up\n",global.user);
     selfcommand(line);
   }
   if(keyboard_map[HVK_DOWN]==1) {
+    keyboard_map[HVK_DOWN]=0;
     snprintf(line,sizeof(line)-1,"%s move down\n",global.user);
     selfcommand(line);
   }
@@ -76,7 +83,7 @@ int keyboard_event_handler() {
   }
   if(keyboard_map[HVK_ESCAPE]==1) {
     keyboard_map[HVK_ESCAPE]=0;
-    return -1;
+    snprintf(line,sizeof(line)-1,"%s quit\n",global.user);
+    selfcommand(line);
   }
- return 0;//I dunno.
 }
