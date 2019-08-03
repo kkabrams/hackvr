@@ -19,6 +19,7 @@ struct gra_global {
   char input_mode;
   char drawsky;
   char draw3d;
+  int redraw[2];//pipe fd
   int mapxoff;
   int mapyoff;
   int mousemap[10];//you're only going to have 10 buttons on your mouse... right?
@@ -44,5 +45,6 @@ c3_t rotate_c3_yr(c3_t p1,c3_t p2,radians yr);
 c3_t rotate_c3_zr(c3_t p1,c3_t p2,radians zr);
 
 int compar(zsort_t *a,zsort_t *b);
+void redraw();
 
 #endif
