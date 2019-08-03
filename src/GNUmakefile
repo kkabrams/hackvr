@@ -59,7 +59,7 @@ graphics_c2_opengl.o: LDLIBS=-lm -lidc -lGL -lGLU -lglut
 graphics_cs_opengl.o: LDLIBS=-lm -lidc -lGL -lGLU -lglut
 math.o: LDLIBS=-lm -lidc
 
-install:
+install: all
 	mkdir -p $(PREFIX)/bin
 	install hackvr $(PREFIX)/bin/hackvr
 	install hackvr_headless $(PREFIX)/bin/hackvr_headless
