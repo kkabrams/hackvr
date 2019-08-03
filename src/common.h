@@ -93,9 +93,11 @@ typedef struct c3_shape {//use array or linked list?
   struct attrib attrib;
 } c3_s_t;
 
-struct hvr_global {//namespace conflict with libidc
+struct hvr_global {
   int x;
   int y;
+  c3_rot_t old_r;
+  c3_t old_p;
   char beep;//1 or 0
   int math_error;
   char *user;
@@ -112,6 +114,7 @@ struct hvr_global {//namespace conflict with libidc
   real zoom;
   int derp;
   real split;
+  char localecho;
   int selfpipe[2];
 };
 
