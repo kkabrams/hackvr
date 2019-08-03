@@ -1,6 +1,6 @@
 #include "common.h"
 
-extern struct global global;
+extern struct hvr_global global;
 extern struct gra_global gra_global;
 
 #define MINIMUM_Y 10
