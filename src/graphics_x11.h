@@ -14,6 +14,7 @@ struct x11_global {//stores global variables for the x11 *specific* shit.
   XColor redblue[2];
   Colormap color_map;
   Display *dpy;
+  int fd;
   Window w;
   Pixmap backbuffer;
   Pixmap cleanbackbuffer;
