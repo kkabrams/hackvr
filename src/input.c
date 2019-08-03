@@ -3,6 +3,7 @@
 #include "graphics_x11.h"
 #include "keyboard_x11.h"
 #include "mouse_x11.h"
+#include "input.h"
 
 extern struct x11_global x11_global;
 
