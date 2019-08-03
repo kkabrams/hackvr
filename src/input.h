@@ -3,7 +3,8 @@
 
 #include <idc.h>
 
-int input_event_handler(struct shit *me,char *line);
+int input_init();
+void input_event_handler(struct shit *me,char *line);
 int mouse_event_handler();
 int keyboard_event_handler();
 
