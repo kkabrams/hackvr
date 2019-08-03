@@ -27,7 +27,7 @@ hvk_t get_keyboard_event() {
   int l;
   memset(&ie,0,sizeof(ie));
   if(kbfd == -1) {
-    kbfd=open(KBDEV,O_RDWR); 
+    kbfd=open(KBDEV,O_RDWR);
     fcntl(kbfd,F_SETFL,O_NONBLOCK);
   }
   if(kbfd == -1) {
