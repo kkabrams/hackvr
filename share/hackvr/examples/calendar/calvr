@@ -1,0 +1,115 @@
+#!/usr/bin/env -S hackvr_coproc /bin/bash
+#draw a 7x7 grid
+#top row gets the day names
+#figure out what the first day of the week for that month is
+#then looping is easy after that
+#use date with format string of day-of-week for an alternate time of the viewing month's first day
+
+### :D atq in my calendar?
+# atq files are stored in: /var/spool/cron/atjobs/
+# filename format: %1c %5x %8x
+# order: queue, job number, time / 60
+
+set -eo pipefail
+year=2020
+month=2
+day=1
+
+cw=30
+ch=30
+
+yoff=51
+xoff=90
+backup=238
+
+printf "%s move %s 0 -%s\n" "$USER" "$xoff" "$backup"
+
+refresh="yep"
+
+stdbuf -oL grep -v '^#' | while true;do
+  if [ "$refresh" ];then
+    unset refresh
+    first_dow="$(date -d $month/1/$year +%w)"
+    monthname="$(date -d $month/$day/$year +%B)"
+    dow=$first_dow
+    row=0
+    d=1
+    days_in_month=$(cal -d "$year-$month" | tr ' ' '\n' | grep . | tail -n1)
+    printf "%s %s\n" "${monthname}" "${year}" | makelabel.sh "_MONTH_" $[$xoff / 2] $[$yoff + $ch + 5] 0
+    printf "<==\n" | makelabel.sh "_prevmonth_" $[0 - $cw] $[$yoff + $ch + 5] 0
+    printf "==>\n" | makelabel.sh "_nextmonth_" $[$xoff * 2 + $cw] $[$yoff + $ch + 5] 0
+
+    while [ "$d" -le "$days_in_month" ];do
+#      printf "%s %s : %s\n" "$row" "$dow" "$d"
+      if [ -f ~/.local/var/cal/${year}_${month}_${d} ];then
+        color=4
+      else
+        color=5
+      fi
+      printf "%s addshape %s 4  %s %s 0  %s %s 0  %s %s 0  %s %s 0\n" \
+             "_day_${d}_" "${color}" \
+             "$[$dow*$cw]"     "$[-1*$row*$ch + $yoff]" \
+             "$[$dow*$cw+$cw]" "$[-1*$row*$ch + $yoff]" \
+             "$[$dow*$cw+$cw]" "$[-1*$row*$ch+$ch + $yoff]" \
+             "$[$dow*$cw]"     "$[-1*$row*$ch+$ch + $yoff]"
+      printf "%s\n" "${d}" | makelabel.sh "_day_${d}_" "$[$dow*$cw + 1]" "$[-1*$row*$ch + $yoff + 1]" 0
+      d=$[$d+1]
+      dow=$[$dow + 1]
+      if [ $dow = 7 ];then
+        dow=0
+        row=$[$row + 1]
+      fi
+    done
+    day="$(date +%e | tr -d ' ')"
+#    printf "%s move 0 0 3\n" "_${day}_"
+  fi
+  read group action target
+  #xmessage "$group $action $target"
+  if [ "$action" = "action" ];then
+    if [ "$target" = "_nextmonth_" ];then
+      month=$[month + 1]
+      if [ $month = 13 ];then
+        month=1
+        year=$[$year + 1]
+      fi
+      printf "%s deleteallexcept %s\n" "$USER" "$USER"
+      refresh="yep"
+    fi
+    if [ "$target" = "_prevmonth_" ];then
+      month=$[month - 1]
+      if [ $month = 0 ];then
+        month=12
+        year=$[$year - 1]
+      fi
+      printf "%s deleteallexcept %s\n" "$USER" "$USER"
+      refresh="yep"
+    fi
+    if [ "$target" = "_MONTH_" ];then
+      month="$(xmessage -buttons January:1,February:2,March:3,April:4,May:5,June:6,July:7,August:8,September:9,October:10,November:11,December:12 'pick a month';echo $?)"
+      printf "%s deleteallexcept %s\n" "$USER" "$USER"
+      refresh="yep"
+    fi
+    if printf "%s\n" "$target" | grep '^_day_' 2>&1 >/dev/null;then
+      d="$(printf "%s\n" "$target" | cut -d_ -f3)"
+      file=~/.local/var/cal/${year}_${month}_${d}
+      if [ -e "${file}" ];then
+        derp=exists
+      else
+        derp=notexists
+      fi
+      x-terminal-emulator -e nano "${file}"
+      if [ -e "${file}" ];then
+        merp=exists
+      else
+        merp=notexists
+      fi
+      if [ "${derp}" != "${merp}" ];then
+        printf "%s deleteallexcept %s\n" "$USER"
+        refresh="yep"
+      fi
+    fi
+  fi
+  if [ "$action" = "quit" ];then
+    exit
+  fi
+done
