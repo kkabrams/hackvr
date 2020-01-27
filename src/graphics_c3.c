@@ -452,7 +452,7 @@ void draw_screen() {
       //XSetForeground(global.dpy,global.backgc,global.green.pixel);
 //     } else {
 //     }
-     zs[i].s->attrib.lum=200-((int)(zs[i].d * 4.0l))%200; 
+     zs[i].s->attrib.lum=200-((int)(zs[i].d * 4.0l))%200;
     }
     //if(between_angles(points_to_angle((c2_t){zs[i].s->p[0].x,zs[i].s->p[0].z},(c2_t){camera.p.x,camera.p.z}),d2r(camera.yr+45),d2r(camera.yr+135))) {
 //     set_color_based_on_distance(zs[i].d);
@@ -503,7 +503,7 @@ void redraw() {//something is requesting a redraw.
 }
 
 int graphics_init() {
-//some of these values set 
+//some of these values set
  global.zoom=25.0l;//I think if this is set to 1, then 1 3d unit is 1 2d unit?
  global.camera.r.x.d=0;
  global.camera.r.y.d=0;//we should be facing east.
