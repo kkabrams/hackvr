@@ -49,6 +49,7 @@ while(<FILE>) {
 #convert to triangles
 foreach $tmp (@faces) {
  @points=split(/ /,$tmp);
+## this map is to split off the vertex texture and vertex normal parts of the face.
  @points = map { $_ =~ s/\/.+$//g; $_; } @points;
 # print @points;
  for($i=2;$i<(@points);$i++) {
