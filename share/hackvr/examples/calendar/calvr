@@ -63,7 +63,9 @@ stdbuf -oL grep -v '^#' | while true;do
     day="$(date +%e | tr -d ' ')"
 #    printf "%s move 0 0 3\n" "_${day}_"
   fi
-  read group action target
+  if ! read group action target;then
+    exit
+  fi
   #xmessage "$group $action $target"
   if [ "$action" = "action" ];then
     if [ "$target" = "_nextmonth_" ];then
