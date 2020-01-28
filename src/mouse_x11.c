@@ -4,7 +4,7 @@
 #include "graphics_c2.h"
 #include "graphics_x11.h"
 
-extern struct global global;
+extern struct hvr_global global;
 extern struct gra_global gra_global;
 extern struct x11_global x11_global;
 
@@ -20,13 +20,22 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
   char redrawplzkthx=0;
   cs_t mouse;
   cs_t rmouse;
+//  char cmd[512];
   while(XCheckMaskEvent(x11_global.dpy,HV_MOUSE_X11_EVENT_MASK,&e)) {//we want to collapse mouse stuff to one for each loop.
     switch(e.type) {
-      case ButtonPress: //e.xbutton.button == 1 for first button. we don't need to start at 1. let's start at 0 with the -1
+      case ButtonPress: //e.xbutton.button == 1 for first button. we don't need to start at 1. let's start at 0 with the -1 //scroll wheel up is 3, down is 4
+        if(e.xbutton.button == 4) {//scroll wheel up
+          selfcommand("epoch move forward\n");//need to implement this syntax in hackvr
+        }
+        if(e.xbutton.button == 5) {//scroll wheel down
+          selfcommand("epoch move backward\n");
+        }
+        printf("# button press %d\n",e.xbutton.button-1);
         gra_global.mousemap[e.xbutton.button-1]=1;
         redrawplzkthx=1;
         break;
       case ButtonRelease:
+        printf("# button release %d\n",e.xbutton.button-1);
         gra_global.mousemap[e.xbutton.button-1]=-1;//we can trigger on -1 or on 1 then set back to 0 to prevent double-trigger
         redrawplzkthx=1;
         break;
@@ -45,6 +54,9 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
     //return 1;
     //we're not going to set camera based on mousex and y here.
     //but just so I can get it out of the graphics code...
+    //self-command myself to rotate myself?
+    //snprintf(cmd,sizeof(cmd),"%s rotate +%d +%d +%d\n",global.user,3,11,1);
+    //selfcommand(cmd);
     //global.camera.r.x.d=((gra_global.height/2) - gra_global.mouse.y);
     //global.camera.r.y.d=(gra_global.mouse.x - (gra_global.width/2));
   }
