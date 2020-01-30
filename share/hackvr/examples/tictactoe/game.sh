@@ -4,7 +4,7 @@ BOARDFILE=board_orig
 cat camera.pos $BOARDFILE
 echo "go. player: $turn" >&2
 grep --line-buffered action \
-  | tee /dev/stderr | while read user derp group;do
+  | while read user derp group;do
 #    echo FUCK >&2
     if grep "_reset" <<<$group >/dev/null;then
      printf "%s deleteallexcept .\n" "$user"
