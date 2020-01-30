@@ -100,7 +100,7 @@ stdbuf -oL grep -v '^#' | while true;do
         derp=notexists
       fi
       x-terminal-emulator -e nano "${file}"
-      if [ -s "${file}" ];then
+      if [ ! -s "${file}" ];then
         rm "${file}"
       fi
       if [ -e "${file}" ];then
