@@ -19,7 +19,7 @@ cw=30
 ch=30
 
 yoff=51
-xoff=90
+xoff=105
 backup=238
 
 printf "%s move %s 0 -%s\n" "$USER" "$xoff" "$backup"
@@ -35,9 +35,24 @@ stdbuf -oL grep -v '^#' | while true;do
     row=0
     d=1
     days_in_month=$(cal -d "$year-$month" | tr ' ' '\n' | grep . | tail -n1)
+    printf "_MONTH_ addshape 1 4  %s %s 0  %s %s 0  %s %s 0  %s %s 0\n" \
+           $[0]          $[1*$ch + $yoff] \
+           $[$cw * 7 -1] $[1*$ch + $yoff] \
+           $[$cw * 7 -1] $[1*$ch+($ch/2) + $yoff - 1] \
+           $[0]          $[1*$ch+($ch/2) + $yoff - 1]
     printf "%s %s\n" "${monthname}" "${year}" | makelabel.sh "_MONTH_" $[$xoff / 2] $[$yoff + $ch + 5] 0
-    printf "<==\n" | makelabel.sh "_prevmonth_" $[0 - $cw] $[$yoff + $ch + 5] 0
-    printf "==>\n" | makelabel.sh "_nextmonth_" $[$xoff * 2 + $cw] $[$yoff + $ch + 5] 0
+    printf "_prevmonth_ addshape 1 4  %s %s 0  %s %s 0  %s %s 0  %s %s 0\n" \
+           $[-$cw] $[1*$ch + $yoff] \
+           $[-1]   $[1*$ch + $yoff] \
+           $[-1]   $[1*$ch+($ch/2) + $yoff - 1] \
+           $[-$cw] $[1*$ch+($ch/2) + $yoff - 1]
+    printf "<==\n" | makelabel.sh "_prevmonth_" $[0 - $cw + 1] $[$yoff + $ch + 5] 0
+    printf "_nextmonth_ addshape 1 4  %s %s 0  %s %s 0  %s %s 0  %s %s 0\n" \
+           $[$cw * 7]    $[1*$ch + $yoff] \
+           $[$cw * 8 -1] $[1*$ch + $yoff] \
+           $[$cw * 8 -1] $[1*$ch+($ch/2) + $yoff - 1] \
+           $[$cw * 7]    $[1*$ch+($ch/2) + $yoff - 1]
+    printf "==>\n" | makelabel.sh "_nextmonth_" $[$cw * 7 + 1] $[$yoff + $ch + 5] 0
 
     while [ "$d" -le "$days_in_month" ];do
 #      printf "%s %s : %s\n" "$row" "$dow" "$d"
