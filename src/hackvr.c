@@ -153,7 +153,7 @@ int hackvr_handler(char *line) {
   c3_group_rot_t *gr;
   real tmpx,tmpy,tmpz;
   char **a;
- char tmp[256];
+  char tmp[256];
 // radians tmpradx,tmprady,tmpradz;
   radians tmprady;
 
@@ -161,7 +161,7 @@ int hackvr_handler(char *line) {
   //might use these so make command code easier to read.
   char *command;
   //char **args;
-
+  if(!line) return -1;//EOF
   if(*line == '#') return 0;
 //  fprintf(stderr,"# read command: %s\n",line);
   a=line_splitter(line,&len);
