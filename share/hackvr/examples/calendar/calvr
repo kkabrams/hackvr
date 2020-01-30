@@ -74,7 +74,6 @@ stdbuf -oL grep -v '^#' | while true;do
         month=1
         year=$[$year + 1]
       fi
-      printf "%s deleteallexcept %s\n" "$USER" "$USER"
       refresh="yep"
     fi
     if [ "$target" = "_prevmonth_" ];then
@@ -83,12 +82,10 @@ stdbuf -oL grep -v '^#' | while true;do
         month=12
         year=$[$year - 1]
       fi
-      printf "%s deleteallexcept %s\n" "$USER" "$USER"
       refresh="yep"
     fi
     if [ "$target" = "_MONTH_" ];then
       month="$(xmessage -buttons January:1,February:2,March:3,April:4,May:5,June:6,July:7,August:8,September:9,October:10,November:11,December:12 'pick a month';echo $?)"
-      printf "%s deleteallexcept %s\n" "$USER" "$USER"
       refresh="yep"
     fi
     if printf "%s\n" "$target" | grep '^_day_' 2>&1 >/dev/null;then
@@ -109,12 +106,17 @@ stdbuf -oL grep -v '^#' | while true;do
         merp=notexists
       fi
       if [ "${derp}" != "${merp}" ];then
-        printf "%s deleteallexcept %s\n" "$USER"
         refresh="yep"
       fi
     fi
   fi
   if [ "$action" = "quit" ];then
     exit
+  fi
+  if [ "$refresh" ];then
+    ### I /might/ want to just make all of the calendar parts
+    ### start with _cal_* so I can deletegroup _cal_*
+    ### instead of nuking the world except the user.
+    printf "%s deleteallexcept %s\n" "$USER" "$USER"
   fi
 done
