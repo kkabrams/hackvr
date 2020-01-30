@@ -30,7 +30,7 @@ stdbuf -oL grep -v '^#' | while true;do
   if [ "$refresh" ];then
     unset refresh
     first_dow="$(date -d $month/1/$year +%w)"
-    monthname="$(date -d $month/$day/$year +%B)"
+    monthname="$(date -d $month/1/$year +%B)"
     dow=$first_dow
     row=0
     d=1
@@ -42,16 +42,16 @@ stdbuf -oL grep -v '^#' | while true;do
     while [ "$d" -le "$days_in_month" ];do
 #      printf "%s %s : %s\n" "$row" "$dow" "$d"
       if [ -f ~/.local/var/cal/${year}_${month}_${d} ];then
-        color=4
+        color=$[4+16]
       else
-        color=5
+        color=$[5+16]
       fi
       printf "%s addshape %s 4  %s %s 0  %s %s 0  %s %s 0  %s %s 0\n" \
              "_day_${d}_" "${color}" \
-             "$[$dow*$cw]"     "$[-1*$row*$ch + $yoff]" \
-             "$[$dow*$cw+$cw]" "$[-1*$row*$ch + $yoff]" \
-             "$[$dow*$cw+$cw]" "$[-1*$row*$ch+$ch + $yoff]" \
-             "$[$dow*$cw]"     "$[-1*$row*$ch+$ch + $yoff]"
+             "$[$dow*$cw]"       "$[-1*$row*$ch + $yoff]" \
+             "$[$dow*$cw+$cw-1]" "$[-1*$row*$ch + $yoff]" \
+             "$[$dow*$cw+$cw-1]" "$[-1*$row*$ch+$ch-1 + $yoff]" \
+             "$[$dow*$cw]"       "$[-1*$row*$ch+$ch-1 + $yoff]"
       printf "%s\n" "${d}" | makelabel.sh "_day_${d}_" "$[$dow*$cw + 1]" "$[-1*$row*$ch + $yoff + 1]" 0
       d=$[$d+1]
       dow=$[$dow + 1]
@@ -97,8 +97,10 @@ stdbuf -oL grep -v '^#' | while true;do
         derp=notexists
       fi
       x-terminal-emulator -e nano "${file}"
-      if [ ! -s "${file}" ];then
-        rm "${file}"
+      if [ -e "${file}" ];then
+        if [ ! -s "${file}" ];then
+          rm "${file}"
+        fi
       fi
       if [ -e "${file}" ];then
         merp=exists
