@@ -11,6 +11,7 @@ void handler(struct shit *me,char *line) {
 
 int main(int argc,char *argv[]) {
   int i;
+  setvbuf(stdout,NULL,_IOLBF,0);
   for(i=0;i<100;i++) {
     idc.fds[i].fd=-1;
   }
