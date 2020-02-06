@@ -6,8 +6,11 @@ CFLAGS=-Wall -pedantic -std=c99 -DGRAPHICAL -ffast-math -I$(PREFIX)/include
 LDFLAGS=-L$(PREFIX)/lib
 
 #all: hackvr_headless hackvr_x11 hackvr_opengl slowcat ### when hackvr_opengl gets useful at all I'll start including it in default build.
-all: hackvr_headless hackvr_x11
+all: hackvr_headless hackvr_x11 slowcat nonblocktail
 # hackvr_fb hackvr_freeglut slowcat
+
+nonblocktail: LDLIBS=-lidc
+nonblocktail: nonblocktail.c
 
 hackvr_headless: LDLIBS=-lm -lidc
 hackvr_headless: hackvr_headless.o math.o physics.o
@@ -64,9 +67,10 @@ install: all
 	install hackvr $(PREFIX)/bin/hackvr
 	install hackvr_headless $(PREFIX)/bin/hackvr_headless
 	install hackvr_x11 $(PREFIX)/bin/hackvr_x11
-	install hackvr_fb $(PREFIX)/bin/hackvr_fb
-	install hackvr_freeglut $(PREFIX)/bin/hackvr_freeglut
 	install slowcat $(PREFIX)/bin/slowcat
+	install nonblocktail $(PREFIX)/bin/nonblocktail
+#	install hackvr_fb $(PREFIX)/bin/hackvr_fb
+#	install hackvr_freeglut $(PREFIX)/bin/hackvr_freeglut
 
 uninstall:
 	rm $(PREFIX)/bin/hackvr
