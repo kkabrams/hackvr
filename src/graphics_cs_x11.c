@@ -508,9 +508,10 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
  }
  while(XCheckMaskEvent(x11_global.dpy,HV_GRAPHICS_X11_EVENT_MASK,&e)) {//we should squish all of the window events. they just cause a redraw anyway
    switch(e.type) {
-//     case Expose:
-//       if(e.xexpose.count == 0) redraw=1;
-//         break;
+     case Expose:
+       //if(e.xexpose.count == 0) redraw=1;
+       redraw=1;
+       break;
 
 //These are all window events.
      case ConfigureNotify:
