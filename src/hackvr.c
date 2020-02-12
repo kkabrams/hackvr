@@ -531,6 +531,9 @@ int hackvr_handler(char *line) {
      global.group_rot[i]->r.x=(degrees){0};//only set these if new.
      global.group_rot[i]->r.y=(degrees){0};
      global.group_rot[i]->r.z=(degrees){0};
+     global.group_rot[i]->p.x=0;//why were these not set before?
+     global.group_rot[i]->p.y=0;
+     global.group_rot[i]->p.z=0;
     }
    }
    if(len > 4) { //if we have > 4 we're doing relative movement

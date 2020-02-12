@@ -208,9 +208,9 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
       //s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y)));
       s2.p[i]=c3_add(gr->p,rotate_c3_xr(
                            rotate_c3_yr(
-                           rotate_c3_zr(s.p[i],gr->p,d2r(gr->r.z)
-                                             ),gr->p,d2r(gr->r.y)
-                                             ),gr->p,d2r(gr->r.x)
+                           rotate_c3_zr(s.p[i],(c3_t){0,0,0},d2r(gr->r.z)
+                                             ),(c3_t){0,0,0},d2r(gr->r.y)
+                                             ),(c3_t){0,0,0},d2r(gr->r.x)
                                        )
                     );
      } else {
