@@ -187,6 +187,9 @@ int hackvr_handler(char *line) {
     fprintf(stderr,"# commands that don't get prepended with groupname: help, version\n");
     fprintf(stderr,"# command format:\n");
     fprintf(stderr,"# group names can be globbed in some cases to operate on multiple groups\n");
+    fprintf(stderr,"# some commands that take numbers as arguments can be made to behave relative\n");
+    fprintf(stderr,"# by putting + before the number. makes negative relative a bit odd like:\n");
+    fprintf(stderr,"#   user move +-2 +-2 0\n");
     fprintf(stderr,"# groupnam* command arguments\n");
     fprintf(stderr,"# commands:\n");
     fprintf(stderr,"#   deleteallexcept grou*\n");
@@ -200,8 +203,9 @@ int hackvr_handler(char *line) {
     fprintf(stderr,"#   addshape color N x1 y1 z1 ... xN yN zN\n");
     fprintf(stderr,"#   export grou*\n");
     fprintf(stderr,"# * scaleup x y z\n");
-    fprintf(stderr,"# * move x y z\n");
+    fprintf(stderr,"# * move [+]x [+]y [+]z\n");
     fprintf(stderr,"# * move forward|backward|up|down|left|right\n");
+    fprintf(stderr,"# * rotate [+]x [+]y [+]z\n");
     fprintf(stderr,"# that is all.\n");
     return ret;
    } else {
@@ -556,10 +560,10 @@ int hackvr_handler(char *line) {
      tmprady=d2r((degrees){global.camera.r.y.d});//doesn't matter. yet.
      tmpy=WALK_SPEED*1;
     } else if(!strcmp(a[2],"left")) {
-     tmprady=d2r((degrees){global.camera.r.y.d+90});
+     tmprady=d2r((degrees){global.camera.r.y.d+270});
      //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else if(!strcmp(a[2],"right")) {
-     tmprady=d2r((degrees){global.camera.r.y.d+270});
+     tmprady=d2r((degrees){global.camera.r.y.d+90});
      //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else {
      fprintf(stderr,"# dunno what direction you're talking about. try up, down, left, right, forward, or backward\n");
