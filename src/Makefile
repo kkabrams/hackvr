@@ -41,7 +41,7 @@ hackvr_opengl.o: CFLAGS+='-DHVR_VERSION="opengl"'
 hackvr_x11.o: LDLIBS=-lm -lidc -lX11
 hackvr_x11.o: CFLAGS+='-DHVR_VERSION="x11"'
 
-hackvr_headless.o: CFLAGS=-Wall -pedantic -std=c99 -ffast-math -I/home/epoch/.local/include
+hackvr_headless.o: CFLAGS=-Wall -pedantic -std=c99 -ffast-math -I$(PREFIX)/include
 hackvr_headless.o: CFLAGS+='-DHVR_VERSION="headless"'
 hackvr_headless.o: LDLIBS=-lm -lidc
 
