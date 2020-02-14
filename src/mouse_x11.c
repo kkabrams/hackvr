@@ -1,3 +1,4 @@
+#include <stdio.h>//for fprintf stderr. remove me later.
 #include "mouse_x11.h"
 #include "common.h"
 #include "graphics_c3.h"
@@ -48,7 +49,8 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
     }
   }
   if(motion_notify) {
-    //mouse.x and mouse.y are shorts. this function expects ints. why are these shorts?
+    //mouse.x and mouse.y are both ints now...
+    //fprintf(stderr,"# mouse.x: %f mouse.y: %f\n# width: %u height: %u\n",gra_global.mouse.x,gra_global.mouse.y,gra_global.width,gra_global.height);
     XQueryPointer(x11_global.dpy,x11_global.w,&root,&child,&rmouse.x,&rmouse.y,&mouse.x,&mouse.y,&mask);
     gra_global.mouse=cs_to_c2(mouse);
     //return 1;
@@ -57,8 +59,10 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
     //self-command myself to rotate myself?
     //snprintf(cmd,sizeof(cmd),"%s rotate +%d +%d +%d\n",global.user,3,11,1);
     //selfcommand(cmd);
-    //global.camera.r.x.d=((gra_global.height/2) - gra_global.mouse.y);
-    //global.camera.r.y.d=(gra_global.mouse.x - (gra_global.width/2));
+    //global.camera.r.x.d=(gra_global.height - gra_global.mouse.y);//up and down camera controls backwards
+    //fprintf(stderr,"# mouse.x: %f mouse.y: %f\n# width: %u height: %u\n",gra_global.mouse.x,gra_global.mouse.y,gra_global.width,gra_global.height);
+    global.camera.r.x.d=(gra_global.mouse.y);
+    global.camera.r.y.d=(gra_global.mouse.x);
   }
   if(redrawplzkthx) {
     redraw();
