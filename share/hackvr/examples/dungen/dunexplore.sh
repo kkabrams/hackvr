@@ -19,7 +19,7 @@ while read group action target;do
         tmp2=$(printf "%s\n" "${target}" | sed 's/_open/_close/')
         printf "%s renamegroup %s %s\n" ${tmp} ${tmp} ${tmp2}
         ) &
-      else
+      elif printf "%s\n" "${target}" | grep ^door_close;then
         tmp=$(printf "%s\n" "${target}" | sed 's/_close/_OPENING/')
         printf "%s renamegroup %s %s\n" ${target} ${target} ${tmp}
         (
