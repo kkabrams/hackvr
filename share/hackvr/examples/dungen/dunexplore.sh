@@ -5,7 +5,7 @@
 echo $USER addshape 4 3  -1 0 -1  0 0 2  1 0 -1 ; echo $USER move 0 2 0
 ./dungen $seed | ./dun2hackvr
 while read group action target;do
-  if [ $action = "action" ];then
+  if [ "$action" = "action" ];then
     if printf "%s\n" "${target}" | grep ^door_;then
       printf "# clicked a door! %s\n" "${target}" >&2
       if printf "%s\n" "${target}" | grep ^door_open;then
