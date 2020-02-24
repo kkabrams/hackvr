@@ -523,6 +523,7 @@ int graphics_init() {
  global.camera.p.y=10;//10 units above the ground should be as low as it goes.
  global.camera.p.z=-6;
 
+ gra_global.oldcamera=global.camera.r;
  gra_global.input_mode=DEFAULT_INPUT_MODE;
  gra_global.split_screen=SPLIT_SCREEN;
  gra_global.split_flip=-1;
