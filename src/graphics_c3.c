@@ -204,6 +204,9 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
   c3_group_rot_t *gr=get_group_relative(s.id);
   if(s.len > 1) {
    for(i=0;i<s.len+(s.len==1);i++) {//apply the group's rotation and store in s2.
+    if(!strcmp(s.id,global.user)) {//we need to rotate camera objects (an avatar maybe) only along the y axis, and in the opposite direction than everything else rotates
+     s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],(c3_t){0,0,0},d2r((degrees){0-(gr->r.y.d)})));
+    } else {
      if(gr) {
       //s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y)));
       s2.p[i]=c3_add(gr->p,rotate_c3_xr(
@@ -216,6 +219,7 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
      } else {
       s2.p[i]=s.p[i];
      }
+    }
    }
   }
   if(s.len == 1) {
@@ -423,8 +427,8 @@ void draw_screen() {
      //draw_sky();//???p?
      //XCopyArea(global.dpy,skypixmap,global.backbuffer,global.backgc,((camera.yr*5)+SKYW)%SKYW,0,WIDTH,global.height/2,0,0);
     }
-    if(gra_global.draw3d) {
-      draw_c2_line((c2_t){LEFT,0},(c2_t){RIGHT,0}); //horizon
+    if(gra_global.draw3d) {//wtf? why do I not compensate for camaera rotation along the x and z?
+      //draw_c2_line((c2_t){LEFT,0},(c2_t){RIGHT,0}); //horizon
     }
 ///// shiiiit. I should be applying group rotations to all these shapes before sorting them.
 //when I do that. I need to make sure to take the group rotation out of draw_c3_shape()'s code.
