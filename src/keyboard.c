@@ -17,7 +17,7 @@ void keyboard_event_handler() {
   int e;//it is HVK_ values. positive or negative for press and release. 0 for nothing.
   while((e=get_keyboard_event())) {
     k=(e<0?-e:e);//absolute value
-    fprintf(stderr,"# key: %d\n",k);
+    //fprintf(stderr,"# key: %d\n",k);
     if(e < 0) { //key release
       keyboard_map[k]=-1;
       //update keyboard state map?
