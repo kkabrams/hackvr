@@ -38,12 +38,14 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
           printf("# gra_global.input_mode == %d\n",gra_global.input_mode);
         }
         printf("# button press %d\n",butt);
+        gra_global.dragstart[butt]=gra_global.mouse;
         gra_global.mousemap[butt]=1;
         redrawplzkthx=1;
         break;
       case ButtonRelease:
         printf("# button release %d\n",e.xbutton.button-1);
         gra_global.mousemap[e.xbutton.button-1]=-1;//we can trigger on -1 or on 1 then set back to 0 to prevent double-trigger
+        gra_global.oldcamera=global.camera.r;
         redrawplzkthx=1;
         break;
       case MotionNotify:
@@ -68,8 +70,8 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
     //global.camera.r.x.d=(gra_global.height - gra_global.mouse.y);//up and down camera controls backwards
     //fprintf(stderr,"# mouse.x: %f mouse.y: %f\n# width: %u height: %u\n",gra_global.mouse.x,gra_global.mouse.y,gra_global.width,gra_global.height);
     if(gra_global.mousemap[2] == 1) {//if "right" click is held down
-      global.camera.r.x.d=(gra_global.mouse.y);
-      global.camera.r.y.d=(gra_global.mouse.x);
+      global.camera.r.x.d=gra_global.oldcamera.x.d + (gra_global.mouse.y - gra_global.dragstart[2].y);
+      global.camera.r.y.d=gra_global.oldcamera.y.d + (gra_global.mouse.x - gra_global.dragstart[2].x);
     }
   }
   if(redrawplzkthx) {
