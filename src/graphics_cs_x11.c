@@ -120,11 +120,8 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
          smouse.x <= maxx &&
          smouse.y <= maxy) {
       if(gra_global.mousemap[0]==-1) {//if we're inside the bounding box let's make SOMETHING happen.
-          gra_global.mousemap[0]=0;
-          printf("%s action %s\n",global.user,s.id);
-        }
-      if(!strncmp(s.id,"term",4)) {//that's a terrible way to do that
-       gra_global.input_mode=1;
+        gra_global.mousemap[0]=0;
+        printf("%s action %s\n",global.user,s.id);
       }
       bb.id=strdup("boundingbox");
       bb.len=4;
@@ -540,7 +537,6 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
  }
  //redraw=1;//meh.
  if(redraw || world_changed) {
-  gra_global.input_mode=0;
   draw_screen();//should this be in here? :?
  }
  return redraw;
