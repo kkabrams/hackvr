@@ -1,12 +1,24 @@
-#!/bin/sh
-s=1 1 2  3  5  8  13
-x=0 0 1  0 -5 -5 
-y=0 1 0 -3 -3  0 
+#!/usr/bin/env bash
+z=0
+a=1
+b=1
 
-for i in 1 1 2 3 5 8 13 21 34 55 89;do
-  x=0 
-  y=0
-  w=i
-  h=i
-  addshape 2 4 x y 0 x+w y 0 x+w y+h 0 x y+h 0
+for i in $(seq 1 10);do
+  if [ $[$i % 2] = 0 ];then
+    x=$[$z]
+    y=0
+  else
+    x=0
+    y=$[$z]
+  fi
+
+  w=$a
+  h=$a
+
+  echo fib_$a addshape 2 4 $x $y 0 $[$x+$w] $y 0 $[$x+$w] $[$y+$h] 0 $x $[$y+$h] 0
+  z=$a
+  s=$[$a+$b]
+  a=$b
+  b=$s
+
 done
