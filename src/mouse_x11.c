@@ -19,20 +19,26 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
   unsigned int mask;//just dummies
   char motion_notify=0;
   char redrawplzkthx=0;
+  int butt;
   cs_t mouse;
   cs_t rmouse;
 //  char cmd[512];
   while(XCheckMaskEvent(x11_global.dpy,HV_MOUSE_X11_EVENT_MASK,&e)) {//we want to collapse mouse stuff to one for each loop.
     switch(e.type) {
       case ButtonPress: //e.xbutton.button == 1 for first button. we don't need to start at 1. let's start at 0 with the -1 //scroll wheel up is 3, down is 4
-        if(e.xbutton.button == 4) {//scroll wheel up
+        butt=e.xbutton.button-1;
+        if(butt == 3) {//scroll wheel up
           selfcommand("epoch move forward\n");//need to implement this syntax in hackvr
         }
-        if(e.xbutton.button == 5) {//scroll wheel down
+        if(butt == 4) {//scroll wheel down
           selfcommand("epoch move backward\n");
         }
-        printf("# button press %d\n",e.xbutton.button-1);
-        gra_global.mousemap[e.xbutton.button-1]=1;
+        if(butt == 1) {//middle-click
+          gra_global.input_mode ^= 1;
+          printf("# gra_global.input_mode == %d\n",gra_global.input_mode);
+        }
+        printf("# button press %d\n",butt);
+        gra_global.mousemap[butt]=1;
         redrawplzkthx=1;
         break;
       case ButtonRelease:
@@ -61,8 +67,10 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
     //selfcommand(cmd);
     //global.camera.r.x.d=(gra_global.height - gra_global.mouse.y);//up and down camera controls backwards
     //fprintf(stderr,"# mouse.x: %f mouse.y: %f\n# width: %u height: %u\n",gra_global.mouse.x,gra_global.mouse.y,gra_global.width,gra_global.height);
-    global.camera.r.x.d=(gra_global.mouse.y);
-    global.camera.r.y.d=(gra_global.mouse.x);
+    if(gra_global.mousemap[2] == 1) {//if "right" click is held down
+      global.camera.r.x.d=(gra_global.mouse.y);
+      global.camera.r.y.d=(gra_global.mouse.x);
+    }
   }
   if(redrawplzkthx) {
     redraw();
