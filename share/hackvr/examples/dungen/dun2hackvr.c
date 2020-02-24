@@ -3,8 +3,6 @@
 #include <unistd.h>
 
 //nsew
-char *a[16];
-
 char field[256];
 
 #define NORTH_EXIT 8
@@ -16,12 +14,7 @@ int deg[]={0,180,270,90};
 
 void print_field() {
   int i,d;
-  int row;
   for(i=0;i<256;i++) {
-    if(i%16 == 0) {//next row of data.
-      //start position is... 7+16, which is second row, 7th column
-      row++;
-    }
     //we need to draw the room here.
     //each room will be... 16x16? sure....
     //we can use bitmasks to find which sides of the room need to be whole walls
