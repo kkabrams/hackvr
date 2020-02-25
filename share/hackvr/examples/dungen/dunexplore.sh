@@ -9,7 +9,7 @@ while read group action target;do
     if printf "%s\n" "${target}" | grep ^door_;then
       printf "# clicked a door! %s\n" "${target}" >&2
       if printf "%s\n" "${target}" | grep ^door_open;then
-        derp=$(printf "%s\n" "${target}" | sed 's/_open/_CLOSING/')
+        tmp=$(printf "%s\n" "${target}" | sed 's/_open/_CLOSING/')
         printf "%s renamegroup %s %s\n" ${target} ${target} ${tmp} 
         (
         for i in $(seq 1 5 90);do
