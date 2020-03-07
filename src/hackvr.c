@@ -151,6 +151,8 @@ int hackvr_handler(char *line) {
   int len;
   int j,i,k,l;
   c3_group_rot_t *gr;
+  c3_s_t *s;
+  c3_s_t s2;
   real tmpx,tmpy,tmpz;
   char **a;
   char tmp[256];
@@ -246,29 +248,6 @@ int hackvr_handler(char *line) {
     }
     return ret;
    }
-  }
-  if(!strcmp(command,"apply")) {
-   /*gr=get_group_relative(a[2]);
-   if(gr) {
-     for(j=0;global.shape[j] && j < MAXSHAPES;j++) {
-       if(!glob_match(a[2],global.shape[j].id)) {
-         for(k=0;k<global.shape[j].len+(global.shape[j].len==1);k++) {
-           //apply the movement stored in this gr to the shapes themselves.
-           //after taking into account the rotation.
-           //this code is the same as the code in graphics_c3 but this is object specific.
-           global.shape[j].p[k]=c3_add(gr->p,rotate_c3_yr(global.shape[j].p[k]);
-         }
-         gr->p.x=gr->p.y=gr->p.z=0;
-
-         gr->r.x=0;
-         gr->r.y=0;
-         gr->r.z=0;
-       }
-     }
-     //we don't need this gr anymore.
-     //we could clean it up, but its values are already zero.
-   }*/
-   fprintf(stderr,"# this group doesn't have a gr.\n");
   }
   if(!strcmp(command,"deletegroup")) {//should the grouprot get deleted too? sure...
    if(len == 3) {
@@ -439,19 +418,19 @@ int hackvr_handler(char *line) {
   }
   if(!strcmp(command,"export")) {//dump shapes and group rotation for argument (or all if arg is *)
    if(len > 2) {
-    for(i=0;global.shape[i];i++) {//require a[2], if not it'll segfault. derrrr, epoch.
-     if(!glob_match(a[2],global.shape[i]->id)) {
+    for(i=0;global.shape[i];i++) {
+//     if(!glob_match(a[2],global.shape[i]->id)) {
       printf("%s_%s addshape %d %d",id,global.shape[i]->id,global.shape[i]->attrib.col,global.shape[i]->len);
       for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
        printf(" %f %f %f",global.shape[i]->p[j].x,global.shape[i]->p[j].y,global.shape[i]->p[j].z);
       }//possible TODO: should I combine the string and output it all at once instead of throughout a loop?
       printf("\n");
-     }
+//     }
     }
     for(i=0;global.group_rot[i];i++) {
      if(!glob_match(a[2],global.group_rot[i]->id)) {
-      printf("%s_%s rotate %d %d %d\n",id,a[2],global.group_rot[i]->r.x.d,global.group_rot[i]->r.y.d,global.group_rot[i]->r.z.d);
-      printf("%s_%s move %f %f %f\n",id,a[2],global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);
+/*      printf("%s_%s rotate %d %d %d\n",id,a[2],global.group_rot[i]->r.x.d,global.group_rot[i]->r.y.d,global.group_rot[i]->r.z.d);
+      printf("%s_%s move %f %f %f\n",id,a[2],global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);*/
      }
     }
    }
@@ -521,9 +500,30 @@ int hackvr_handler(char *line) {
       printf("%s rotate %d %d %d\n",global.user,global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
      }
   }
-  if(!strcmp(command,"move")) {
+  if(!strcmp(command,"flatten")) {
+   if(len > 1) {
+    //for each shape, we need to apply_group_relative..
+    gr = get_group_relative(id);
+    for(i=0;global.shape[i];i++) {
+     if(!strcmp(global.shape[i]->id,id)) {
+      //this doesn't need to bother with free() or malloc(). it does struct assignment. ;)
+      (*global.shape[i])=apply_group_relative((*global.shape[i]),gr);//the old id string gets used in here
+     }
+    }
+    //clean out the gr struct so it won't be applied anymore.
+    //might split the rotation and translation into separate commands later.
+    gr->r.x.d=0;
+    gr->r.y.d=0;
+    gr->r.z.d=0;
+    gr->p.x=0;
+    gr->p.y=0;
+    gr->p.z=0;
+   }
+   return ret;
+  }
+  if(!strcmp(command,"move")) {//this is only moving the first group_rot it finds instead of all group_rots that match the pattern
    if(len > 2) {
-    for(i=0;global.group_rot[i];i++) {
+    for(i=0;global.group_rot[i];i++) {//make this faster. hash table?
      if(!strcmp(global.group_rot[i]->id,id)) {
       break;
      }
