@@ -79,14 +79,26 @@ hvk_t x11_passthru(XKeyEvent *xkey) {
 hvk_t x11_keypress_handler(XKeyEvent *xkey) {//this only needs to return HVK_ keys based on the XKeyEvent's value... this could be a sparse array.
   int sym=XLookupKeysym(xkey,0);
   switch(sym) {
-    case XK_r: return HVK_UP;
-    case XK_w: return HVK_FORWARD;
-    case XK_space: return HVK_JUMP;
-    case XK_s: return HVK_BACKWARD;
-    case XK_a: return HVK_LEFT;
-    case XK_d: return HVK_RIGHT;
-    case XK_Escape: return HVK_ESCAPE;
-    case XK_f: return HVK_MAGIC;
+    case XK_r:
+      return HVK_UP;
+    case XK_w: case XK_Up:
+      return HVK_FORWARD;
+    case XK_space:
+      return HVK_JUMP;
+    case XK_s: case XK_Down:
+      return HVK_BACKWARD;
+    case XK_Left:
+      return HVK_TURNLEFT;
+    case XK_Right:
+      return HVK_TURNRIGHT;
+    case XK_a:
+      return HVK_LEFT;
+    case XK_d:
+      return HVK_RIGHT;
+    case XK_Escape:
+      return HVK_ESCAPE;
+    case XK_f:
+      return HVK_DOWN;
     default: return 0;//HVK_NONE;//0
   }
   return 0;
