@@ -75,7 +75,16 @@ void keyboard_event_handler() {
     selfcommand(line);
   }
   //don't forget to add the rotation keys.
-
+  if(keyboard_map[HVK_TURNLEFT] == 1) {
+    keyboard_map[HVK_TURNLEFT]=0;
+    snprintf(line,sizeof(line)-1,"%s rotate +0 +-%d +0\n",global.user,5);
+    selfcommand(line);
+  }
+  if(keyboard_map[HVK_TURNRIGHT] == 1) {
+    keyboard_map[HVK_TURNRIGHT]=0;
+    snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,5);
+    selfcommand(line);
+  }
   // ^ here
   if(keyboard_map[HVK_DEBUG]==1) {
     keyboard_map[HVK_DEBUG]=0;//make sure we don't hold-down toggle it. just on press.
