@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include <string.h>
+
 #include "common.h"
 #include "math.h"
 
@@ -121,4 +123,63 @@ int point_inside_concave_shape(c2_t p1,c2_s_t s) {//hrm...
     //}
   }
   return 1;
+}
+
+void print_point(c3_t p) {
+  printf("%lF %lF %lF\n",p.x,p.y,p.z);
+}
+
+c3_s_t apply_group_relative(c3_s_t s,c3_group_rot_t *group_rot) {
+  c3_s_t s2;
+  c3_group_rot_t *gr;
+  int i;
+  s2.len=s.len;
+  s2.id=s.id;
+  if(group_rot) {
+   gr=group_rot;
+  } else {
+   gr=get_group_relative(s.id);
+  }
+  if(!gr) { //shit. we have a shape but not relatives for it. oh well.
+    //printf("# no group relative.\n");
+    return s;
+  }
+  if(s.len < 1) {//wtf is wrong with this shape?
+    //printf("# wtf?\n");
+    return s;
+  }
+  if(s.len == 1) {//we're a circle. we /really/ have two points stored though.
+    real dist=distance3(s.p[0],s.p[1]);
+    s2.p[0]=s.p[0];
+    s2.p[1]=c3_add(s.p[0],(c3_t){dist,0,0});
+  }
+  if(s.len > 1) {//we're a polygon.
+   for(i=0;i<s.len+(s.len==1);i++) {//apply the group's rotation and store in s2.
+    if(!strcmp(s.id,global.user)) {//we need to rotate camera objects (an avatar maybe) only along the y axis, and in the opposite direction than everything else rotates
+     s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],(c3_t){0,0,0},d2r((degrees){0-(gr->r.y.d)})));
+    } else {
+     if(gr) {
+      //s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y)));
+      s2.p[i]=c3_add(gr->p,rotate_c3_xr(
+                           rotate_c3_yr(
+                           rotate_c3_zr(s.p[i],(c3_t){0,0,0},d2r(gr->r.z)
+                                             ),(c3_t){0,0,0},d2r(gr->r.y)
+                                             ),(c3_t){0,0,0},d2r(gr->r.x)
+                                       )
+                    );
+     } else {
+      s2.p[i]=s.p[i];
+     }
+    }
+   }
+  }
+  return s2;
+}
+
+c3_t c3_add(c3_t p1,c3_t p2) {
+ return (c3_t){p1.x+p2.x,p1.y+p2.y,p1.z+p2.z};
+}
+
+real distance3(c3_t p1,c3_t p2) {
+ return sqrt(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) )+( (p1.z-p2.z)*(p1.z-p2.z) ));
 }

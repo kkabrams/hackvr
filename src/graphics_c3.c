@@ -41,9 +41,6 @@ real distance2(c2_t p1,c2_t p2) {
  return sqrt(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) ));
 }
 */
-real distance3(c3_t p1,c3_t p2) {
- return sqrt(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) )+( (p1.z-p2.z)*(p1.z-p2.z) ));
-}
 
 /* moved to math.c
 int between_angles(degrees d,real lower,real upper) {
@@ -124,10 +121,6 @@ int get_2D_intersection_Y(x,y,d,x,z,d) {
 }
 */
 
-c3_t c3_add(c3_t p1,c3_t p2) {
- return (c3_t){p1.x+p2.x,p1.y+p2.y,p1.z+p2.z};
-}
-
 c3_t c3_subtract(c3_t p1,c3_t p2) {
  return (c3_t){p1.x-p2.x,p1.y-p2.y,p1.z-p2.z};
 }
@@ -197,40 +190,17 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
   c3_s_t s2;//post rotation
   c2_s_t s3;//post projection
   radians r;
-  s2.id=s.id;//it shouldn't disappear and we shouldn't need to make a copy.
-  s2.len=s.len;
   s3.id=s.id;
   s3.len=s.len;
-  c3_group_rot_t *gr=get_group_relative(s.id);
-  if(s.len > 1) {
-   for(i=0;i<s.len+(s.len==1);i++) {//apply the group's rotation and store in s2.
-    if(!strcmp(s.id,global.user)) {//we need to rotate camera objects (an avatar maybe) only along the y axis, and in the opposite direction than everything else rotates
-     s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],(c3_t){0,0,0},d2r((degrees){0-(gr->r.y.d)})));
-    } else {
-     if(gr) {
-      //s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y)));
-      s2.p[i]=c3_add(gr->p,rotate_c3_xr(
-                           rotate_c3_yr(
-                           rotate_c3_zr(s.p[i],(c3_t){0,0,0},d2r(gr->r.z)
-                                             ),(c3_t){0,0,0},d2r(gr->r.y)
-                                             ),(c3_t){0,0,0},d2r(gr->r.x)
-                                       )
-                    );
-     } else {
-      s2.p[i]=s.p[i];
-     }
-    }
-   }
-  }
-  if(s.len == 1) {
-    real dist=distance3(s.p[0],s.p[1]);
-    s2.p[0]=s.p[0];
-    s2.p[1]=c3_add(s.p[0],(c3_t){dist,0,0});
-  }
+
+  //c3_group_rot_t gr=get_group_relative(s.id);//it doesn't matter if I get it here or not, I'm not looping the next call.
+  //this function will get the group relative by itself if the argument is NULL
+  s2=apply_group_relative(s,NULL);//math.c
+
   //all s2 needs to bet set before this loop.
   for(i=0;i<s.len+(s.len==1);i++) {//
    r=points_to_angle((c2_t){global.camera.p.x,global.camera.p.z},(c2_t){s2.p[i].x,s2.p[i].z});
-   if(between_angles(r2d(r),(360-global.camera.r.y.d-45+360+90)%360,(360-global.camera.r.y.d+45+360+90)%360)) {
+   if(between_angles(r2d(r),(360-global.camera.r.y.d-(gra_global.fieldofview/2)+360+90)%360,(360-global.camera.r.y.d+(gra_global.fieldofview/2)+360+90)%360)) {
     drawthefucker=1;//damn it. somewhere in this shape needs to be drawn.
    }
   }
@@ -532,6 +502,8 @@ int graphics_init() {
  gra_global.red_and_blue=RED_AND_BLUE;
  gra_global.greyscale=1;
  gra_global.zsort=1;
+ gra_global.fieldofview=FIELDOFVIEW;//config.h
+
  if(gra_global.red_and_blue) {
   gra_global.width=WIDTH;
  } else {

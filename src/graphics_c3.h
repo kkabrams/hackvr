@@ -26,6 +26,7 @@ struct gra_global {
   c2_t dragstart[10];//mouse coordinates where a drag was started
   c3_rot_t oldcamera;
   int maxshapes;
+  int fieldofview;
 };
 
 typedef struct {
