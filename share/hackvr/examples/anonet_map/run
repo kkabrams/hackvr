@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+nonblocktail <(./map) /dev/stdin \
+  | hackvr \
+  | while read group action target;do
+      if [ $action = "action" ];then
+        printf "%s\n" "$target" | tee /dev/stderr | grep '^<\(.*\)>$' | sed 's/^<\(.*\)>$/\1/g' | tr '\n' '\0' | xargs -n1 -0 copy_start_nevermind.sh &
+      fi
+    done 

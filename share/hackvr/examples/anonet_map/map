@@ -1,0 +1,58 @@
+#!/bin/bash
+paths="$(ncat --recv-only 21.41.41.1 64777 | sort | uniq)"
+nodes=$(printf "%s\n" "$paths" | tr ' ' '\n' | sort | uniq)
+nodes_count="$(printf "%s\n" "$nodes" | tr ' ' '\n' | wc -l | tr -cd '0-9')"
+#echo $nodes
+#echo $nodes_count
+echo $USER move 0 0 -17
+coords="$( (for node in $nodes;do
+  printf "AS%s addshape 4 2  0 8 0  0 0 0\n" "$node"
+  printf "AS* rotate 0 0 +%d\n" "$[360 / ${nodes_count} ]"
+  printf "AS* flatten\n"
+done 
+printf "* export *\n"
+) | hackvr_headless 2>/dev/null | sed 's/^*_AS//g' | cut '-d ' -f5,6)"
+#printf "%s\n" "$coords"
+xcoords="$(printf "%s\n" "$coords" | cut '-d ' -f1)"
+ycoords="$(printf "%s\n" "$coords" | cut '-d ' -f2)"
+
+#echo $xcoords
+#echo $ycoords
+
+edges=$(printf "%s\n" "$paths" | tr '\n' '\0' | xargs -n1 -0 ./paths-to-edges | sort | uniq | tr ' ' '_')
+
+index_of() {
+  printf "%s\n" "$nodes" | grep -n '^'"$1"'$' | cut -d: -f1
+}
+
+xcoord_by_ASN() {
+  printf "%s\n" "$xcoords" | head -n "$(index_of $1)" | tail -n1
+}
+
+ycoord_by_ASN() {
+  printf "%s\n" "$ycoords" | head -n "$(index_of $1)" | tail -n1
+}
+
+line_between_nodes() {
+  a=$(printf "%s\n" "$1" | cut -d_ -f1)
+  b=$(printf "%s\n" "$1" | cut -d_ -f2)
+  printf "%s->%s addshape 2 2 %s %s 0 %s %s 0\n" "$a" "$b" $(xcoord_by_ASN $a) $(ycoord_by_ASN $a) $(xcoord_by_ASN $b) $(ycoord_by_ASN $b)
+}
+
+for node in $nodes;do
+  printf "<whois://whois.ano/AS%s> addshape 5 4  -1 8 0  -1 10 0  1 10 0  1 8 0\n" "$node"
+  printf "<whois://whois.ano/AS* rotate 0 0 +%d\n" "$[360 / ${nodes_count} ]"
+  printf "<whois://whois.ano/AS* flatten\n"
+  makelabel.sh AS$node $( echo | awk "{print $(xcoord_by_ASN $node) * 13}" ) $( echo | awk "{print $(ycoord_by_ASN $node) * 13}" ) -10 <<< $node
+  printf "AS%s scaleup .1 .1 .1\n" "$node"
+done
+
+for i in $edges;do
+  line_between_nodes "$i"
+done
+
+#for i in ${!nodes[@]};do
+#  echo $i
+#  echo ${nodes[$i]}
+#  node=$(printf "%s\n" "${nodes}" | head -n${i} | tail -n1)
+#done
