@@ -27,6 +27,7 @@ xoff=105
 backup=238
 
 WORKING_DIR=~/.local/var/cal
+mkdir -p $WORKING_DIR
 
 cd "${WORKING_DIR}"
 #git pull
