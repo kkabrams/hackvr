@@ -23,12 +23,12 @@ while read -rN 1 c;do
  name="$(printf "%02x" "'$c")"
  if [ "$name" = "0a" ]; then
   xoffset=-6
-  yoffset="$(printf '%d - %d\n' $yoffset 10 | bc)"
+  yoffset="$(printf '%s - %s\n' $yoffset 10 | bc)"
  fi
  if grep "^$name " "${dirdir0}/share/hackvr/font/default.hackvr" 2>&1 > /dev/null;then #don't do this shit unless we actually have something to draw. awk in offsetshape bitches when there's nothing.
    grep "^$name " "${dirdir0}/share/hackvr/font/default.hackvr" \
     | sed 's/^'"$name"'/'"$target"'/' \
     | offsetshape.sh "$xoffset" "$yoffset" "$zoffset"
  fi
- xoffset="$(printf '%d + %d\n' $xoffset 6 | bc)"
+ xoffset="$(printf '%s + %s\n' $xoffset 6 | bc)"
 done
