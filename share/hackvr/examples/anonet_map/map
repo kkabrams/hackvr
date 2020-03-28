@@ -44,7 +44,7 @@ for node in $nodes;do
   printf "<whois://whois.ano/AS* rotate 0 0 +%d\n" "$[360 / ${nodes_count} ]"
   printf "<whois://whois.ano/AS* flatten\n"
   makelabel.sh AS$node $( echo | awk "{print $(xcoord_by_ASN $node) * 13}" ) $( echo | awk "{print $(ycoord_by_ASN $node) * 13}" ) -10 <<< $node
-  printf "AS%s scaleup .1 .1 .1\n" "$node"
+  printf "AS%s scale .1 .1 .1\n" "$node"
 done
 
 for i in $edges;do
