@@ -65,7 +65,6 @@ math.o: LDLIBS=-lm -lidc -lhashtable
 install: all
 	mkdir -p $(PREFIX)/bin
 	install hackvr $(PREFIX)/bin/hackvr
-	install -t $(PREFIX)/bin hackvr_uri
 	install hackvr_headless $(PREFIX)/bin/hackvr_headless
 	install hackvr_x11 $(PREFIX)/bin/hackvr_x11
 	install slowcat $(PREFIX)/bin/slowcat

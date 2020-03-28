@@ -1,0 +1,7 @@
+#!/bin/bash
+#this is a version of hackvr that will attempt to launch URIs that your user actions on.
+hackvr \
+  | tee \
+     >(sed -un "s/$USER  *action  *<\([^ ]*\)>/\1/p" \
+        | stdbuf -o0 tr '\n' '\0' \
+        | xargs -n1 -0 copy_start_nevermind.sh 2>&1 >/dev/null) 
