@@ -235,6 +235,7 @@ int hackvr_handler(char *line) {
     //now do the same stuff but for the group_rot structs.
     for(j=1;global.group_rot[j] && j < MAXSHAPES;j++) {//start at 1 so we skip the camera. fuck it. let's delete camera.
      if(glob_match(a[2],global.group_rot[j]->id)) {
+      ht_delete(&global.ht_group,global.group_rot[j]->id);
       free(global.group_rot[j]->id);
       free(global.group_rot[j]);
       global.group_rot[j]=0;
@@ -269,6 +270,7 @@ int hackvr_handler(char *line) {
     //now for the group_rot struct that goes with it. there should only be one, but might be a few due to bugs elsewhere. heh. let's just get all of them I guess.
     for(j=1;global.group_rot[j] && j < MAXSHAPES;j++) {//start at 1 to skip passed the camera. it isn't malloc()d and will crash if we try to free it.
      if(!glob_match(a[2],global.group_rot[j]->id)) {
+      ht_delete(&global.ht_group,global.group_rot[j]->id);
       free(global.group_rot[j]->id);
       free(global.group_rot[j]);
       global.group_rot[j]=0;
@@ -304,7 +306,7 @@ int hackvr_handler(char *line) {
       global.shape[j]->id=strdup(a[3]);
      }
     }
-    gr=get_group_relative(a[2]);//this shouldn't be used here.
+    gr=get_group_relative(a[2]);//this shouldn't be used here. why?
     if(gr) {
      free(gr->id);
      gr->id=strdup(a[3]);
@@ -365,7 +367,7 @@ int hackvr_handler(char *line) {
    ret=1;
    return ret;
   }
-  if(!strcmp(command,"control")) {//change what shape key commands  affect.
+  if(!strcmp(command,"control")) {
    if(len > 2) {
     free(global.user);//need to ensure this is on the heap
     global.user=strdup(a[2]); // :D
@@ -403,6 +405,7 @@ int hackvr_handler(char *line) {
     }
     if(global.group_rot[i] == 0) {//we have ourselves a new grouprot!
      global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
+     ht_setkey(&global.ht_group,id,global.group_rot[i]);//point directly at it...
      global.group_rot[i]->id=strdup(id);
      global.group_rot[i+1]=0;
      global.group_rot[i]->p.x=0;
@@ -437,7 +440,7 @@ int hackvr_handler(char *line) {
    return ret;
   }
 //should scaleup even be inside hackvr? seems like something an external program could do... but it wouldn't act on hackvr's state. so nevermind.
-  if(!strcmp(command,"scaleup")) {//should this scale separately so it can be a deform too?
+  if(!strcmp(command,"scale")) {//this doesn't just scale *up*, it can scale down too. also, make the group relative stuff keep scale factors. we can flatten if we want later.
    for(i=0;global.shape[i];i++) {
     if(!glob_match(id,global.shape[i]->id)) { //we're allowing globbing in this command I guess.
      for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
@@ -452,25 +455,25 @@ int hackvr_handler(char *line) {
   if(!strcmp(command,"rotate")) {
    if(len > 4) {
     for(i=0;global.group_rot[i];i++) {
-     if(!strcmp(global.group_rot[i]->id,id)) {
-      break;
+     if(!glob_match(id,global.group_rot[i]->id)) {
+      if(global.group_rot[i] == 0) {//we have ourselves a new grouprot!
+       global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
+       ht_setkey(&global.ht_group,id,global.group_rot[i]);
+       global.group_rot[i]->id=strdup(id);
+       global.group_rot[i+1]=0;
+       global.group_rot[i]->p.x=0;//only set these if new.
+       global.group_rot[i]->p.y=0;
+       global.group_rot[i]->p.z=0;
+      }
+      global.group_rot[i]->r.x=(degrees){(a[2][0]=='+'?global.group_rot[i]->r.x.d:0)+atoi(a[2]+(a[2][0]=='+'))};
+      global.group_rot[i]->r.y=(degrees){(a[3][0]=='+'?global.group_rot[i]->r.y.d:0)+atoi(a[3]+(a[3][0]=='+'))};
+      global.group_rot[i]->r.z=(degrees){(a[4][0]=='+'?global.group_rot[i]->r.z.d:0)+atoi(a[4]+(a[4][0]=='+'))};
+      //now to sanitize them into 0 <= degrees < 360
+      global.group_rot[i]->r.x.d -= (-(global.group_rot[i]->r.x.d < 0)+(global.group_rot[i]->r.x.d / 360)) * 360;
+      global.group_rot[i]->r.y.d -= (-(global.group_rot[i]->r.y.d < 0)+(global.group_rot[i]->r.y.d / 360)) * 360;
+      global.group_rot[i]->r.z.d -= (-(global.group_rot[i]->r.z.d < 0)+(global.group_rot[i]->r.z.d / 360)) * 360;
      }
     }
-    if(global.group_rot[i] == 0) {//we have ourselves a new grouprot!
-     global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
-     global.group_rot[i]->id=strdup(id);
-     global.group_rot[i+1]=0;
-     global.group_rot[i]->p.x=0;//only set these if new.
-     global.group_rot[i]->p.y=0;
-     global.group_rot[i]->p.z=0;
-    }
-    global.group_rot[i]->r.x=(degrees){(a[2][0]=='+'?global.group_rot[i]->r.x.d:0)+atoi(a[2]+(a[2][0]=='+'))};
-    global.group_rot[i]->r.y=(degrees){(a[3][0]=='+'?global.group_rot[i]->r.y.d:0)+atoi(a[3]+(a[3][0]=='+'))};
-    global.group_rot[i]->r.z=(degrees){(a[4][0]=='+'?global.group_rot[i]->r.z.d:0)+atoi(a[4]+(a[4][0]=='+'))};
-    //now to sanitize them into 0 <= degrees < 360
-    global.group_rot[i]->r.x.d -= (-(global.group_rot[i]->r.x.d < 0)+(global.group_rot[i]->r.x.d / 360)) * 360;
-    global.group_rot[i]->r.y.d -= (-(global.group_rot[i]->r.y.d < 0)+(global.group_rot[i]->r.y.d / 360)) * 360;
-    global.group_rot[i]->r.z.d -= (-(global.group_rot[i]->r.z.d < 0)+(global.group_rot[i]->r.z.d / 360)) * 360;
    }
    ret=1;
    return ret;
@@ -501,23 +504,28 @@ int hackvr_handler(char *line) {
      }
   }
   if(!strcmp(command,"flatten")) {
-   if(len > 1) {
-    //for each shape, we need to apply_group_relative..
-    gr = get_group_relative(id);
-    for(i=0;global.shape[i];i++) {
-     if(!strcmp(global.shape[i]->id,id)) {
-      //this doesn't need to bother with free() or malloc(). it does struct assignment. ;)
-      (*global.shape[i])=apply_group_relative((*global.shape[i]),gr);//the old id string gets used in here
+   if(len > 1) {//we need to loop over each group_rot
+    for(i=0;global.group_rot[i];i++) {
+     //this need to be replaced with a "loop over all group_relatives that match a glob"
+     //might also store the hash table as a tree.
+     //descend down tree like this:
+     //tree[id[0]]->c[id[1]]->c[id[2]]
+     //then for each child after we get to the *, we use every one of those.
+     if(!glob_match(id,global.group_rot[i]->id)) {
+      gr=get_group_relative(global.group_rot[i]->id);
+      for(j=0;global.shape[j];j++) {
+       if(!strcmp(global.shape[j]->id,global.group_rot[i]->id)) {
+        (*global.shape[j])=apply_group_relative((*global.shape[j]),0);
+       }
+      }
+      gr->r.x.d=0;
+      gr->r.y.d=0;
+      gr->r.z.d=0;
+      gr->p.x=0;
+      gr->p.y=0;
+      gr->p.z=0;
      }
     }
-    //clean out the gr struct so it won't be applied anymore.
-    //might split the rotation and translation into separate commands later.
-    gr->r.x.d=0;
-    gr->r.y.d=0;
-    gr->r.z.d=0;
-    gr->p.x=0;
-    gr->p.y=0;
-    gr->p.z=0;
    }
    return ret;
   }
@@ -530,6 +538,7 @@ int hackvr_handler(char *line) {
     }
     if(global.group_rot[i] == 0) {//we have ourselves a new grouprot!
      global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
+     ht_setkey(&global.ht_group,id,global.group_rot[i]);
      global.group_rot[i]->id=strdup(id);
      global.group_rot[i+1]=0;
      global.group_rot[i]->r.x=(degrees){0};//only set these if new.
@@ -558,7 +567,7 @@ int hackvr_handler(char *line) {
      tmpy=WALK_SPEED*1;
     } else if(!strcmp(a[2],"down")) {
      tmprady=d2r((degrees){global.camera.r.y.d});//doesn't matter. yet.
-     tmpy=WALK_SPEED*1;
+     tmpy=-WALK_SPEED*1;
     } else if(!strcmp(a[2],"left")) {
      tmprady=d2r((degrees){global.camera.r.y.d+270});
      //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
@@ -629,6 +638,8 @@ int main(int argc,char *argv[]) {
   }
   global.user=strdup(getenv("USER"));//this gets free()d later so we need to strdup it.
   global.localecho=1;
+
+  inittable(&global.ht_group,65536);
 
   fcntl(1,F_SETFL,O_NONBLOCK);//won't work
   setbuf(stdin,0);
