@@ -28,4 +28,6 @@
 #define DEFAULT_INPUT_MODE 0
 #define ROTATE_STEP 5
 
+#define FIELDOFVIEW 160
+
 #endif
