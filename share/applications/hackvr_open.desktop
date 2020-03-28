@@ -5,5 +5,5 @@ Type=Application
 NoDisplay=false
 Exec="hackvr_open" %f
 Name=hackvr_open
-MimeType=text/hackvr
+MimeType=application/hackvr
 Comment=hackvr_open
