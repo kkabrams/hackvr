@@ -1,10 +1,8 @@
+PREFIX:=/usr/local
+
 all: hackvr hackvr_term
 
 .PHONY: hackvr hackvr_term clean install uninstall all
-
-ifeq ($(PREFIX),)
-$(error the PREFIX variable is NOT set)
-endif
 
 hackvr:
 	$(MAKE) -C src all

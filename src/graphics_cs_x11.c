@@ -86,7 +86,7 @@ void draw_cs_text(cs_t p,char *text) {
 
 void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it could be moved up to graphics.c? probl no.
   //test in here whether a mouse click is within this shape's... bounding box? sure.
-  cs_s_t bb;//bounding box
+  //cs_s_t bb;//bounding box
   cs_t smouse=c2_to_cs(gra_global.mouse);
   int minx=s.p[0].x;
   int miny=s.p[0].y;
@@ -115,26 +115,30 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
       maxy=(s.p[i].y>maxy)?s.p[i].y:maxy;
       draw_cs_line(s.p[i],s.p[(i+1)%(s.len+(s.len==1))]);
     }
+    //fix the comparison here and also fix the hilighting shape
     if(smouse.x >= minx && //gra_global is a c2_t and these are in cs_t
-         smouse.y >= miny &&
-         smouse.x <= maxx &&
-         smouse.y <= maxy) {
-      if(gra_global.mousemap[0]==-1) {//if we're inside the bounding box let's make SOMETHING happen.
-        gra_global.mousemap[0]=0;
-        printf("%s action %s\n",global.user,s.id);
+       smouse.y >= miny &&
+       smouse.x <= maxx &&
+       smouse.y <= maxy) {
+//      if(wn_PnPoly(smouse,s.p,s.len) != 0 && s.len > 2) {
+        if(gra_global.mousemap[0] == -1) {//if we're inside the bounding box let's make SOMETHING happen.
+          gra_global.mousemap[0]=0;
+          printf("%s action %s\n",global.user,s.id);
+//        }
+/*        bb.id=strdup("boundingbox");
+        bb.len=4;
+        bb.p[0].x=minx;
+        bb.p[0].y=miny;
+        bb.p[1].x=minx;
+        bb.p[1].y=maxy;
+        bb.p[2].x=maxx;
+        bb.p[2].y=maxy;
+        bb.p[3].x=maxx;
+        bb.p[3].y=miny;
+        draw_cs_filled_shape(bb);
+        free(bb.id);
+*/
       }
-      bb.id=strdup("boundingbox");
-      bb.len=4;
-      bb.p[0].x=minx;
-      bb.p[0].y=miny;
-      bb.p[1].x=minx;
-      bb.p[1].y=maxy;
-      bb.p[2].x=maxx;
-      bb.p[2].y=maxy;
-      bb.p[3].x=maxx;
-      bb.p[3].y=miny;
-      draw_cs_filled_shape(bb);
-      free(bb.id);
     }
     break;
   }
@@ -505,7 +509,7 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
  }
  while(XCheckMaskEvent(x11_global.dpy,HV_GRAPHICS_X11_EVENT_MASK,&e)) {//we should squish all of the window events. they just cause a redraw anyway
    switch(e.type) {
-     case Expose:
+     case Expose: case NoExpose: case MapNotify:
        //if(e.xexpose.count == 0) redraw=1;
        redraw=1;
        break;
@@ -531,7 +535,7 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
        break;
 
     default:
-//       fprintf(stderr,"# received unknown event with type: %d\n",e.type);
+      fprintf(stderr,"# received unknown event with type: %d\n",e.type);
       break;
   }
  }

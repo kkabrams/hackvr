@@ -6,6 +6,8 @@
 #ifndef _HACKVR_COMMON_H_
 #define _HACKVR_COMMON_H_
 
+#include <hashtable.h>
+
 #define TOP     240.0
 #define BOTTOM  -240.0
 #define RIGHT   320.0
@@ -110,6 +112,7 @@ struct hvr_global {
   struct c3_shape *shape[SHAPES];
   int shapes;
   c3_group_rot_t *group_rot[SHAPES];//there can be less of these.
+  struct hashtable ht_group;
   c3_group_rot_t camera;
   real zoom;
   int derp;

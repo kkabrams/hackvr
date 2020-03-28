@@ -9,8 +9,18 @@ extern struct hvr_global global;
 //might change this to use hashtables for faster lookups.
 c3_group_rot_t *get_group_relative(char *id) {//crashes in here somehwere...
   int i;
+  c3_group_rot_t *gr;
+  struct entry *tmp;
+  if((tmp=ht_getnode(&global.ht_group,id))) {
+    gr=tmp->target;
+    return gr;
+  }//if this didn't work, do fallback...
   for(i=0;global.group_rot[i];i++) {
     if(!strcmp(global.group_rot[i]->id,id)) {//should I use glob here and return an array?
+      if(gr != global.group_rot[i]) {
+        fprintf(stderr,"# %s ? %s ? %s\n",tmp->original,gr->id,global.group_rot[i]->id);
+        fprintf(stderr,"# %16x != %16x. wtf?\n",gr,global.group_rot[i]);
+      }
       return global.group_rot[i];
     }
   }
@@ -135,6 +145,7 @@ c3_s_t apply_group_relative(c3_s_t s,c3_group_rot_t *group_rot) {
   int i;
   s2.len=s.len;
   s2.id=s.id;
+  s2.attrib=s.attrib;
   if(group_rot) {
    gr=group_rot;
   } else {
@@ -183,3 +194,85 @@ c3_t c3_add(c3_t p1,c3_t p2) {
 real distance3(c3_t p1,c3_t p2) {
  return sqrt(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) )+( (p1.z-p2.z)*(p1.z-p2.z) ));
 }
+
+/* epoch copied this from: http://geomalgorithms.com/a03-_inclusion.html */
+/* then edited it to work with hackvr ofc */
+
+// Copyright 2000 softSurfer, 2012 Dan Sunday
+// This code may be freely used and modified for any purpose
+// providing that this copyright notice is included with it.
+// SoftSurfer makes no warranty for this code, and cannot be held
+// liable for any real or imagined damage resulting from its use.
+// Users of this code must verify correctness for their application.
+ 
+
+// a Point is defined by its coordinates {int x, y;}
+//===================================================================
+ 
+
+// isLeft(): tests if a point is Left|On|Right of an infinite line.
+//    Input:  three points P0, P1, and P2
+//    Return: >0 for P2 left of the line through P0 and P1
+//            =0 for P2  on the line
+//            <0 for P2  right of the line
+//    See: Algorithm 1 "Area of Triangles and Polygons"
+inline int
+isLeft( cs_t P0, cs_t P1, cs_t P2 )
+{
+    return ( (P1.x - P0.x) * (P2.y - P0.y)
+            - (P2.x -  P0.x) * (P1.y - P0.y) );
+}
+//===================================================================
+
+
+// cn_PnPoly(): crossing number test for a point in a polygon
+//      Input:   P = a point,
+//               V[] = vertex points of a polygon V[n+1] with V[n]=V[0]
+//      Return:  0 = outside, 1 = inside
+// This code is patterned after [Franklin, 2000]
+int
+cn_PnPoly( cs_t P, cs_t *V, int n )
+{
+    int    cn = 0;    // the  crossing number counter
+
+    // loop through all edges of the polygon
+    for (int i=0; i<n; i++) {    // edge from V[i]  to V[i+1]
+       if (((V[i].y <= P.y) && (V[i+1].y > P.y))     // an upward crossing
+        || ((V[i].y > P.y) && (V[i+1].y <=  P.y))) { // a downward crossing
+            // compute  the actual edge-ray intersect x-coordinate
+            float vt = (float)(P.y  - V[i].y) / (V[i+1].y - V[i].y);
+            if (P.x <  V[i].x + vt * (V[i+1].x - V[i].x)) // P.x < intersect
+                 ++cn;   // a valid crossing of y=P.y right of P.x
+        }
+    }
+    return (cn&1);    // 0 if even (out), and 1 if  odd (in)
+
+}
+//===================================================================
+
+
+// wn_PnPoly(): winding number test for a point in a polygon
+//      Input:   P = a point,
+//               V[] = vertex points of a polygon V[n+1] with V[n]=V[0]
+//      Return:  wn = the winding number (=0 only when P is outside)
+int
+wn_PnPoly( cs_t P, cs_t *V, int n )
+{
+    int    wn = 0;    // the  winding number counter
+
+    // loop through all edges of the polygon
+    for (int i=0; i<(n-1); i++) {   // edge from V[i] to  V[i+1]
+        if (V[i].y <= P.y) {          // start y <= P.y
+            if (V[i+1].y  > P.y)      // an upward crossing
+                 if (isLeft( V[i], V[i+1], P) > 0)  // P left of  edge
+                     ++wn;            // have  a valid up intersect
+        }
+        else {                        // start y > P.y (no test needed)
+            if (V[i+1].y  <= P.y)     // a downward crossing
+                 if (isLeft( V[i], V[i+1], P) < 0)  // P right of  edge
+                     --wn;            // have  a valid down intersect
+        }
+    }
+    return wn;
+}
+//===================================================================

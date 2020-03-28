@@ -24,4 +24,8 @@ c3_t c3_add(c3_t p1,c3_t p2);
 real distance3(c3_t p1,c3_t p2);
 void print_point(c3_t p);
 
+int isLeft(cs_t, cs_t, cs_t);
+int cn_PnPoly(cs_t, cs_t *, int);
+int wn_PnPoly(cs_t, cs_t *, int);
+
 #endif
