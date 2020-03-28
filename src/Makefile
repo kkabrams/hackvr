@@ -9,13 +9,13 @@ LDFLAGS=-L$(PREFIX)/lib
 all: hackvr_headless hackvr_x11 slowcat nonblocktail
 # hackvr_fb hackvr_freeglut slowcat
 
-nonblocktail: LDLIBS=-lidc
+nonblocktail: override LDLIBS+=-lidc
 nonblocktail: nonblocktail.c
 
-hackvr_headless: LDLIBS=-lm -lidc -lhashtable
+hackvr_headless: override LDLIBS+=-lm -lidc -lhashtable
 hackvr_headless: hackvr_headless.o math.o physics.o
 
-hackvr_x11: LDLIBS=-lm -lidc -lX11 -lhashtable
+hackvr_x11: override LDLIBS+=-lm -lidc -lX11 -lhashtable
 hackvr_x11: hackvr_x11.o graphics_c3.o graphics_c2.o graphics_cs_x11.o math.o physics.o keyboard.o mouse_x11.o keyboard_x11.o input.o
 #notice how all the targets have generic graphics objects up until a specific one.
 
