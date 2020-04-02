@@ -1,15 +1,15 @@
 #!/bin/bash
-paths="$(ncat --recv-only 21.41.41.1 64777 | sort | uniq | tee /var/cache/hackvr/anonet_data.new)"
+paths="$(ncat --recv-only 21.41.41.1 64777 | sort | uniq | tee ${PREFIX}/var/cache/hackvr/anonet_data.new)"
 
-MAP=/var/cache/hackvr/anonet_map.hackvr
+MAP=${PREFIX}/var/cache/hackvr/anonet_map.hackvr
 
 #see if the data actually changed before regenerating this shit...
-if cmp /var/cache/hackvr/anonet_data.new /var/cache/hackvr/anonet_data.old ; then
+if cmp ${PREFIX}/var/cache/hackvr/anonet_data.new ${PREFIX}/var/cache/hackvr/anonet_data.old ; then
   cat $MAP
   exit 0
 fi
 
-mv /var/cache/hackvr/anonet_data.new /var/cache/hackvr/anonet_data.old
+mv ${PREFIX}/var/cache/hackvr/anonet_data.new ${PREFIX}/var/cache/hackvr/anonet_data.old
 
 > $MAP
 
