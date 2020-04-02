@@ -1,5 +1,18 @@
 #!/bin/bash
-paths="$(ncat --recv-only 21.41.41.1 64777 | sort | uniq)"
+paths="$(ncat --recv-only 21.41.41.1 64777 | sort | uniq | tee ${PREFIX}/var/cache/hackvr/anonet_data.new)"
+
+MAP=${PREFIX}/var/cache/hackvr/anonet_map.hackvr
+
+#see if the data actually changed before regenerating this shit...
+if cmp ${PREFIX}/var/cache/hackvr/anonet_data.new ${PREFIX}/var/cache/hackvr/anonet_data.old ; then
+  cat $MAP
+  exit 0
+fi
+
+mv ${PREFIX}/var/cache/hackvr/anonet_data.new ${PREFIX}/var/cache/hackvr/anonet_data.old
+
+> $MAP
+
 nodes=$(printf "%s\n" "$paths" | tr ' ' '\n' | sort | uniq)
 nodes_count="$(printf "%s\n" "$nodes" | tr ' ' '\n' | wc -l | tr -cd '0-9')"
 #echo $nodes
@@ -45,11 +58,11 @@ for node in $nodes;do
   printf "<whois://whois.ano/AS* flatten\n"
   makelabel.sh AS$node $( echo | awk "{print $(xcoord_by_ASN $node) * 13}" ) $( echo | awk "{print $(ycoord_by_ASN $node) * 13}" ) -10 <<< $node
   printf "AS%s scale .1 .1 .1\n" "$node"
-done
+done | tee -a $MAP
 
 for i in $edges;do
   line_between_nodes "$i"
-done
+done | tee -a $MAP
 
 #for i in ${!nodes[@]};do
 #  echo $i
