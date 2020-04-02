@@ -12,14 +12,15 @@ c3_group_rot_t *get_group_relative(char *id) {//crashes in here somehwere...
   c3_group_rot_t *gr;
   struct entry *tmp;
   if((tmp=ht_getnode(&global.ht_group,id))) {
-    gr=tmp->target;
+    gr=tmp->target;//target is a void *
     return gr;
   }//if this didn't work, do fallback...
   for(i=0;global.group_rot[i];i++) {
     if(!strcmp(global.group_rot[i]->id,id)) {//should I use glob here and return an array?
       if(gr != global.group_rot[i]) {
-        fprintf(stderr,"# %s ? %s ? %s\n",tmp->original,gr->id,global.group_rot[i]->id);
-        fprintf(stderr,"# %16x != %16x. wtf?\n",gr,global.group_rot[i]);
+        //fprintf(stderr,"# %s ? %s ? %s\n",tmp->original,gr->id,global.group_rot[i]->id);
+        //fprintf(stderr,"# %16x != %16x. wtf?\n",gr,global.group_rot[i]);
+        fprintf(stderr,"ht method != loop method\n");
       }
       return global.group_rot[i];
     }
