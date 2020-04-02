@@ -4,4 +4,4 @@ hackvr \
   | tee \
      >(sed -un "s/$USER  *action  *<\([^ ]*\)>/\1/p" \
         | stdbuf -o0 tr '\n' '\0' \
-        | xargs -n1 -0 copy_start_nevermind.sh 2>&1 >/dev/null) 
+        | xargs -n1 -P 0 -0 copy_start_nevermind.sh 2>&1 >/dev/null) 
