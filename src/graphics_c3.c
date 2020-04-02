@@ -476,7 +476,7 @@ void redraw() {//something is requesting a redraw.
   }
 }
 
-int graphics_init() {
+int graphics_init() {//return the fd needed to read graphics events.
 //some of these values set
  global.zoom=25.0l;//I think if this is set to 1, then 1 3d unit is 1 2d unit?
  global.camera.r.x.d=0;
@@ -515,6 +515,5 @@ int graphics_init() {
  gra_global.drawminimap=DEFAULT_MINIMAP;
  gra_global.draw3d=2;
  gra_global.force_redraw=FORCE_REDRAW;
- graphics_sub_init();
- return 0;//we're fine
+ return graphics_sub_init();
 }

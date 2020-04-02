@@ -1,6 +1,8 @@
 #ifndef _HACKVR_GRAPHICS_H_
 #define _HACKVR_GRAPHICS_H_
 
+#include <idc.h>
+
 struct gra_global {
   unsigned int width;
   unsigned int height;
@@ -36,7 +38,7 @@ typedef struct {
 
 int graphics_init();
 int graphics_sub_init();
-int graphics_event_handler();
+void graphics_event_handler(struct shit *me,char *line);
 void draw_screen();
 void set_aspect_ratio();
 int selfcommand(char *s);

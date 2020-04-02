@@ -3,7 +3,7 @@
 
 #include <X11/Xlib.h>
 
-#define HV_GRAPHICS_X11_EVENT_MASK StructureNotifyMask|ExposureMask
+#define HV_GRAPHICS_X11_EVENT_MASK StructureNotifyMask|ExposureMask|VisibilityChangeMask|FocusChangeMask
 
 struct x11_global {//stores global variables for the x11 *specific* shit.
   XColor colors[256];

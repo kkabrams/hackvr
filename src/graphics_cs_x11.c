@@ -495,11 +495,11 @@ int graphics_sub_init() {
  }
  fprintf(stderr,"# done.\n");
 */
- return 0;//we're fine
+ return x11_global.fd;//we're fine
 }
 
-int graphics_event_handler(int world_changed) { //should calling draw_screen be in here?
- int redraw=0;
+void graphics_event_handler(struct shit *me,char *line) {//line should always be empty
+ int redrawplzkthx=0;
  Window root;//just used to sponge up a return value
  XEvent e;
  if(global.beep) {
@@ -509,15 +509,14 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
  }
  while(XCheckMaskEvent(x11_global.dpy,HV_GRAPHICS_X11_EVENT_MASK,&e)) {//we should squish all of the window events. they just cause a redraw anyway
    switch(e.type) {
-     case Expose: case NoExpose: case MapNotify:
+     case Expose: case NoExpose: case MapNotify: case FocusIn: case FocusOut: case VisibilityNotify:
        //if(e.xexpose.count == 0) redraw=1;
-       redraw=1;
+       redrawplzkthx=1;
        break;
 
-//These are all window events.
      case ConfigureNotify:
        if(global.debug >= 2) fprintf(stderr,"# ConfigureNotify\n");
-       redraw=1;
+       redrawplzkthx=1;
        XGetGeometry(x11_global.dpy,x11_global.w,&root,&global.x,&global.y,&gra_global.width,&gra_global.height,&gra_global.border_width,&gra_global.depth);
        if(gra_global.height * AR_W / AR_H != gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1))) {
          // height / AR_H * AR_W = width / (ss / (rab ? ss : 1))
@@ -536,12 +535,10 @@ int graphics_event_handler(int world_changed) { //should calling draw_screen be 
 
     default:
       fprintf(stderr,"# received unknown event with type: %d\n",e.type);
+      fprintf(stderr,"# let's redraw anyway.\n");
+      redrawplzkthx=1;
       break;
   }
  }
- //redraw=1;//meh.
- if(redraw || world_changed) {
-  draw_screen();//should this be in here? :?
- }
- return redraw;
+ if(redrawplzkthx) redraw();
 }

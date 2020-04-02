@@ -131,16 +131,16 @@ int hackvr_handler(char *line);
 
 void hackvr_handler_idc(struct shit *me,char *line) {
   switch(hackvr_handler(line)) {
-    case -1:
+    case -1://quit
       exit(0);
-    case 0:
+    case 0://don't redraw
       break;
-    case 1:
+    case 1://redraw please.
     #ifdef GRAPHICAL
       redraw();
     #endif
       break;
-    default:
+    default://no idea.
       break;
   }
 }
@@ -604,9 +604,9 @@ int export_file(FILE *fp) {//not used yet. maybe export in obj optionally? no. t
 }
 
 #ifdef GRAPHICAL
-void redraw_handler(struct shit *me,char *line) {
+void redraw_handler(struct shit *me,char *line) {//how do we strip out extra redraws?
   if(gra_global.force_redraw) {
-    graphics_event_handler(1);
+    draw_screen();
     gra_global.force_redraw=0;
   }
 }
@@ -655,14 +655,15 @@ int main(int argc,char *argv[]) {
   idc.shitlen=0;
 
 #ifdef GRAPHICAL
-  graphics_init();
+  i=add_fd(graphics_init(),graphics_event_handler);
+  idc.fds[i].read_lines_for_us=0;
 
-  fprintf(stderr,"# x11 fd: %d",input_init());
+  fprintf(stderr,"# x11 fd: %d\n",input_init());
   i=add_fd(input_init(),input_event_handler);
   idc.fds[i].read_lines_for_us=0;
 
   pipe(gra_global.redraw);
-  add_fd(gra_global.redraw[0],redraw_handler);//lol. write a byte to other half of pipe to redraw screen.
+  add_fd(gra_global.redraw[0],redraw_handler);//write a line to get a redraw?
 #endif
   add_fd(0,hackvr_handler_idc);//looks like default mode is to exit on EOF of stdin
   pipe(global.selfpipe);
