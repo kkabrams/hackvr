@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 turn=$( expr $RANDOM % 2)
 echo "go. player: $turn"
-socat exec:./game.sh exec:hackvr
+hackvr_coproc ./game.sh

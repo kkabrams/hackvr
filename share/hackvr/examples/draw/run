@@ -1,3 +1,3 @@
 #!/bin/sh
 mknod p p
-cat p | tee /dev/stderr | ./draw.sh | hackvr $USER > p
+hackvr_coproc ./draw.sh
