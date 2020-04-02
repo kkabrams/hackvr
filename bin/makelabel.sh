@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 USAGE="usage: makelabel.sh labelname x y z < labelcontent"
-target="$1"
+target="$(printf "%s\n" "$1" | sed 's|\([/\&]\)|\\\1|g')"
 xoffset=$2
 yoffset=$3
 zoffset=$4
