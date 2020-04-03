@@ -151,8 +151,6 @@ int hackvr_handler(char *line) {
   int len;
   int j,i,k,l;
   c3_group_rot_t *gr;
-  c3_s_t *s;
-  c3_s_t s2;
   real tmpx,tmpy,tmpz;
   char **a;
   char tmp[256];
@@ -531,12 +529,10 @@ int hackvr_handler(char *line) {
   }
   if(!strcmp(command,"move")) {//this is only moving the first group_rot it finds instead of all group_rots that match the pattern
    if(len > 2) {
-    for(i=0;global.group_rot[i];i++) {//make this faster. hash table?
-     if(!strcmp(global.group_rot[i]->id,id)) {
-      break;
-     }
-    }
-    if(global.group_rot[i] == 0) {//we have ourselves a new grouprot!
+    gr=get_group_relative(id);//this returns a pointer...
+    if(gr == 0) {//we have ourselves a new grouprot!
+     //figure out where the end is anyway. -_-
+     for(i=0;global.group_rot[i];i++);
      global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
      ht_setkey(&global.ht_group,id,global.group_rot[i]);
      global.group_rot[i]->id=strdup(id);
