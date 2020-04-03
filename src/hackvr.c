@@ -202,6 +202,7 @@ int hackvr_handler(char *line) {
     fprintf(stderr,"#   set\n");
     fprintf(stderr,"#   addshape color N x1 y1 z1 ... xN yN zN\n");
     fprintf(stderr,"#   export grou*\n");
+    fprintf(stderr,"#   ping any-string-without-spaces\n");
     fprintf(stderr,"# * scaleup x y z\n");
     fprintf(stderr,"# * move [+]x [+]y [+]z\n");
     fprintf(stderr,"# * move forward|backward|up|down|left|right\n");
@@ -346,7 +347,11 @@ int hackvr_handler(char *line) {
 #endif
     else {
      fprintf(stderr,"# unknown variable: %s\n",a[2]);
+#ifdef GRAPHICAL
      fprintf(stderr,"# variables: camera.{p,r}.{x,y,z}, global.zoom, input_mode");
+#else
+     fprintf(stderr,"# don't have any variables to set in headles mode.\n");
+#endif
     }
     ret=1;
     return ret;
@@ -358,7 +363,11 @@ int hackvr_handler(char *line) {
 #endif
    else {
     fprintf(stderr,"# unknown variable: %s\n",a[2]);
+#ifdef GRAPHICAL
     fprintf(stderr,"# variables: global.beep, force_redraw, red_and_blue\n");
+#else
+    fprintf(stderr,"# don't have any variables to toggle in headless mode.\n");
+#endif
     return ret;
    }
    fprintf(stderr,"# %s toggled!\n",a[2]);
@@ -436,6 +445,14 @@ int hackvr_handler(char *line) {
     }
    }
    return ret;
+  }
+  if(!strcmp(command,"ping")) {
+    if(len > 2) {
+      printf("%s pong %s\n",global.user,a[2]);
+    } else {
+      printf("%s pong\n",global.user);
+    }
+    return ret;
   }
 //should scaleup even be inside hackvr? seems like something an external program could do... but it wouldn't act on hackvr's state. so nevermind.
   if(!strcmp(command,"scale")) {//this doesn't just scale *up*, it can scale down too. also, make the group relative stuff keep scale factors. we can flatten if we want later.
@@ -535,6 +552,7 @@ int hackvr_handler(char *line) {
      for(i=0;global.group_rot[i];i++);
      global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
      ht_setkey(&global.ht_group,id,global.group_rot[i]);
+     gr=global.group_rot[i];
      global.group_rot[i]->id=strdup(id);
      global.group_rot[i+1]=0;
      global.group_rot[i]->r.x=(degrees){0};//only set these if new.
@@ -546,9 +564,9 @@ int hackvr_handler(char *line) {
     }
    }
    if(len > 4) { //if we have > 4 we're doing relative movement
-    global.group_rot[i]->p.x=(a[2][0]=='+'?global.group_rot[i]->p.x:0)+strtold(a[2]+(a[2][0]=='+'),0);
-    global.group_rot[i]->p.y=(a[3][0]=='+'?global.group_rot[i]->p.y:0)+strtold(a[3]+(a[3][0]=='+'),0);
-    global.group_rot[i]->p.z=(a[4][0]=='+'?global.group_rot[i]->p.z:0)+strtold(a[4]+(a[4][0]=='+'),0);
+    gr->p.x=(a[2][0]=='+'?gr->p.x:0)+strtold(a[2]+(a[2][0]=='+'),0);
+    gr->p.y=(a[3][0]=='+'?gr->p.y:0)+strtold(a[3]+(a[3][0]=='+'),0);
+    gr->p.z=(a[4][0]=='+'?gr->p.z:0)+strtold(a[4]+(a[4][0]=='+'),0);
    }
    else if(len > 2) {
     tmpy=0;

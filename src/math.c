@@ -13,7 +13,7 @@ c3_group_rot_t *get_group_relative(char *id) {//crashes in here somehwere...
   struct entry *tmp;
   if((tmp=ht_getnode(&global.ht_group,id))) {
     gr=tmp->target;//target is a void *
-    return gr;
+    if(gr) return gr;
   }//if this didn't work, do fallback...
   //fprintf(stderr,"# !!! hash table failed for %s\n",id);
   for(i=0;global.group_rot[i];i++) {
