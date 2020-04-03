@@ -480,7 +480,7 @@ int graphics_init() {//return the fd needed to read graphics events.
 //some of these values set
  global.zoom=25.0l;//I think if this is set to 1, then 1 3d unit is 1 2d unit?
  global.camera.r.x.d=0;
- global.camera.r.y.d=0;//we should be facing east.
+ global.camera.r.y.d=0;//we should be facing east. but we're facing north? increasing z goes farther away from camera. :/
  global.camera.r.z.d=0;
  global.mmz=1;//this is minimap zoom.
 
