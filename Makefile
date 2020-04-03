@@ -1,8 +1,8 @@
 PREFIX:=/usr/local
 
-all: hackvr hackvr_term
+all: hackvr
 
-.PHONY: hackvr hackvr_term clean install uninstall all
+.PHONY: hackvr clean install uninstall all
 
 hackvr:
 	$(MAKE) -C src all
@@ -10,12 +10,14 @@ hackvr:
 clean:
 	$(MAKE) -C src clean
 
-install: hackvr hackvr_term
+install: hackvr
 	$(MAKE) -C src install
-	cp -r bin/ $(PREFIX)/
-	cp -r share/hackvr/ $(PREFIX)/share/
+	install -t $(PREFIX)/bin bin/*
+	install -t $(PREFIX)/share/applications share/applications/*
+	cp -r share/hackvr $(PREFIX)/share/hackvr
 
 uninstall:
 	## we'll assume PREFIX is set to the hackvr we want to uninstall
 	$(MAKE) -C src uninstall
+	rm -f $(PREFIX)/share/applications/hackvr
 	rm -rf $(PREFIX)/share/hackvr
