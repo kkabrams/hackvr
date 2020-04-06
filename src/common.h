@@ -49,10 +49,10 @@ typedef struct {
 } c3_rot_t;
 
 typedef struct {
-  char *id;
+  char *id;//for the camera this is $USER, right?
   c3_rot_t r;//rotation
   c3_t p;//position
-  c3_t s;//??? shape??? I dunno.
+  c3_t s;//??? shape??? I dunno. really. wtf was this for?
   c3_t v;//velocity
 } c3_group_rot_t;
 
@@ -113,7 +113,8 @@ struct hvr_global {
   int shapes;
   c3_group_rot_t *group_rot[SHAPES];//there can be less of these.
   struct hashtable ht_group;
-  c3_group_rot_t camera;
+  c3_group_rot_t eye[MAX_SIDES];//lol. 1000 eyes! array of group_rots for each eye. how to arrange eyes?
+  c3_group_rot_t camera;//should there be an array for this? camera has .s which is a shape struct. each point is the eye?
   real zoom;
   int derp;
   real split;

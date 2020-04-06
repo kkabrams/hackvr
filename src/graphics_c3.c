@@ -127,12 +127,17 @@ c3_t c3_subtract(c3_t p1,c3_t p2) {
 
 //how is this supposed to work? x is distance?
 #define MAGIC(x) (1.0l-(1.0l/pow(1.01l,(x)))) //??? might want to have some changables in here
+//#define MAGIC(x) (-250.0l / x )
 
+#define TOO_CLOSE (.25l)
+#define TOO_FAR (15l)
+
+//input is distance from camera point.
 real magic(real x) {
   return MAGIC(x);
 }
 
-c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
+c2_t c3_to_c2(c3_group_rot_t eye,c3_t p3) { //DO NOT DRAW STUFF IN HERE
   c2_t p2;
   c3_t tmp1;
 //  c3_t tmp2;
@@ -140,18 +145,19 @@ c2_t c3_to_c2(c3_t p3) { //DO NOT DRAW STUFF IN HERE
   c3_t final;
 //these rotations need to be about the previous axis after the axis itself has been rotated.
 //this rotation needs to not be applied to objects attached to the camera?
-  tmp1=rotate_c3_yr(p3,global.camera.p,d2r(global.camera.r.y));//rotate everything around the camera's location.
+  tmp1=rotate_c3_yr(p3,eye.p,d2r(eye.r.y));//rotate everything around the camera's location.
   //now to rotate the shape around it's group's center.
   //final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
-  final=rotate_c3_xr(tmp1,global.camera.p,d2r(global.camera.r.x));
+  final=rotate_c3_xr(tmp1,eye.p,d2r(eye.r.x));
 //  final=rotate_c3_zr(tmp2,camera.p,d2r(camera.zr));
-  real delta_x=(global.camera.p.x - final.x);//I guess X needs this flippage too.
-  real delta_y=(global.camera.p.y - final.y);//I dunno. Y is weird.
-  real delta_z=(final.z - global.camera.p.z);
+  real delta_x=(eye.p.x - final.x);//I guess X needs this flippage too.
+  real delta_y=(eye.p.y - final.y);//I dunno. Y is weird.
+  real delta_z=(final.z - eye.p.z);
   //real d=distance3(global.camera.p,final);
   p2.x=global.zoom * (delta_x * MAGIC(delta_z) - delta_x);
   p2.y=global.zoom * (delta_y * MAGIC(delta_z) - delta_y);//this doesn't look right either.
-//  p2.x=global.zoom * (delta_x * MAGIC(d) - delta_x); // this doesn't look quite right
+
+  //  p2.x=global.zoom * (delta_x * MAGIC(d) - delta_x); // this doesn't look quite right
 //  p2.y=global.zoom * (delta_y * MAGIC(d) - delta_y);//dunno if this is better or not.
   return p2;
 }
@@ -164,7 +170,9 @@ void draw_minimap_shape(c3_s_t s) {//this should replace the draw_minimap_line a
   int i=0;
   //if(gra_global.drawminimap == 1) {
     for(i=0;i<s.len+(s.len==1);i++) {
-      s2.p[i]=(c2_t){(s.p[i].z - global.camera.p.z) * global.mmz,(s.p[i].x - global.camera.p.x) * global.mmz};
+      //s2.p[i]=(c2_t){(s.p[i].z - global.camera.p.z) * global.mmz,(s.p[i].x - global.camera.p.x) * global.mmz};
+      //s2.p[i]=(c2_t){(global.camera.p.z - s.p[i].z) * global.mmz,(global.camera.p.x - s.p[i].x) * global.mmz};
+      s2.p[i]=(c2_t){(global.camera.p.z - s.p[i].z) * global.mmz,(s.p[i].x - global.camera.p.x) * global.mmz};
     }
     draw_c2_shape(s2);
  // }
@@ -184,12 +192,14 @@ void draw_minimap_line(c3_t p1,c3_t p2) {
 }
 */
 
-void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shit in here too? probably...
+void draw_c3_shape(c3_group_rot_t eye,c3_s_t s) {//outlined. needs to be filled? //draw minimap shit in here too? probably...
   int i;
   char drawthefucker=0;//I don't wanna!
   c3_s_t s2;//post rotation
   c2_s_t s3;//post projection
-  radians r;
+  //radians rx;
+  radians ry;
+  real d;
   s3.id=s.id;
   s3.len=s.len;
 
@@ -197,19 +207,31 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
   //this function will get the group relative by itself if the argument is NULL
   s2=apply_group_relative(s,NULL);//math.c
 
+  for(i=0;i<s.len+(s.len==1);i++) {
+    d=distance3(s2.p[i],eye.p);
+    if(d > TOO_FAR) {
+      //return;//
+    }
+    if(d < TOO_CLOSE) {//how close is too close?
+      //return;//ha. not going to draw a shape that we're too close to.
+    }
+  }
   //all s2 needs to bet set before this loop.
   for(i=0;i<s.len+(s.len==1);i++) {//
-   r=points_to_angle((c2_t){global.camera.p.x,global.camera.p.z},(c2_t){s2.p[i].x,s2.p[i].z});
-   if(between_angles(r2d(r),(360-global.camera.r.y.d-(gra_global.fieldofview/2)+360+90)%360,(360-global.camera.r.y.d+(gra_global.fieldofview/2)+360+90)%360)) {
+   ry=points_to_angle((c2_t){eye.p.x,eye.p.z},(c2_t){s2.p[i].x,s2.p[i].z});
+   //rx=points_to_angle((c2_t){eye.p.y,eye.p.z},(c2_t){s2.p[i].y,s2.p[i].z});
+   if(between_angles(r2d(ry),(360-eye.r.y.d-(gra_global.fieldofview/2)+360+90)%360,(360-eye.r.y.d+(gra_global.fieldofview/2)+360+90)%360)
+      //&& between_angles(r2d(rx),(360-eye.r.x.d-(gra_global.fieldofview/2)+360)%360,(360-eye.r.x.d+(gra_global.fieldofview/2)+360)%360)
+     ) {
     drawthefucker=1;//damn it. somewhere in this shape needs to be drawn.
    }
   }
   if(!drawthefucker) return;//fuck yeah. didn't have to do all that other crap.
   for(i=0;i<s.len+(s.len==1);i++) {
 //   if(s.len > 1) draw_minimap_line(s2.p[i],s2.p[(i+1)%s2.len]);//we shouldn't draw circles in here. //yeah. we probably should.
-   s3.p[i]=c3_to_c2(s2.p[i]);//we need to convert all points in the shape if we have to draw any parts of it.
+   s3.p[i]=c3_to_c2(eye,s2.p[i]);//we need to convert all points in the shape if we have to draw any parts of it.
   }
-  //draw_minimap_shape(s2);
+  draw_minimap_shape(s2);
   if(gra_global.draw3d == 1) {
     set_ansi_color(s.attrib.col%16);
     draw_c2_shape(s3);
@@ -257,8 +279,8 @@ void draw_graph(real (*fun)(real x)) {
  }
 }
 
-cs_t c3_to_cs(c3_t p) {
- return c2_to_cs(c3_to_c2(p));
+cs_t c3_to_cs(c3_group_rot_t eye,c3_t p) {
+ return c2_to_cs(c3_to_c2(eye,p));
 }
 
 real shitdist2(c3_t p1,c3_t p2) {
@@ -274,9 +296,9 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  c3_group_rot_t *gr=get_group_relative(s->id);
  for(i=0;i< s->len+(s->len==1);i++) {
   if(gr) {
-   curdist=shitdist2(global.camera.p,rotate_c3_yr(c3_add(gr->p,s->p[i]),gr->p,d2r(gr->r.y)));
+   curdist=shitdist2(p,rotate_c3_yr(c3_add(gr->p,s->p[i]),gr->p,d2r(gr->r.y)));
   } else {
-   curdist=shitdist2(global.camera.p,s->p[i]);//if there's no gr we're basically just this point. no rotation, not offests.
+   curdist=shitdist2(p,s->p[i]);//if there's no gr we're basically just this point. no rotation, not offests.
   }
   if(curdist > maxdist) maxdist=curdist;
  }
@@ -326,8 +348,8 @@ void HatchLines(c2_t p1,c2_t p2,c2_t p3,int density) {
 //black out the rest of the triangle first?
 //sounds alright to me...
 
-void draw_c3_text(c3_t p,char *text) {
- c2_t p2=c3_to_c2(p);
+void draw_c3_text(c3_group_rot_t eye,c3_t p,char *text) {
+ c2_t p2=c3_to_c2(eye,p);
  draw_c2_text(p2,text);
 }
 
@@ -359,27 +381,25 @@ void draw_c3_point_text(c3_t p,char *text) {
 
 void draw_screen() {
   int i;
-  int cn=0;//camera number.
+  int en=0;//eye number. different from "camera number" because a camera can have multiple eyes... a camera is like a "shape"??? hrm..
   //char tmp[256];
   zsort_t zs[SHAPES];
   clear_backbuffer();
-  real oldx=global.camera.p.x;
-  real oldz=global.camera.p.z;
-
-  for(i=0;global.shape[i];i++) zs[i].s=global.shape[i];
-  for(i=0;global.shape[i];i++) zs[i].d=shitdist(zs[i].s,global.camera.p);
-  qsort(&zs,i,sizeof(zs[0]),(int (*)(const void *,const void *))compar);//sort these zs structs based on d. farthest first.
-  if(i > 0 && zs[i-1].s) strcpy(global.selected_object,zs[i-1].s->id);
 
   if(gra_global.split_screen > 1) {
-//oh... this will need to be a couple more lines... of what? I forgot. -Sep 2017
-   radians tmprad=d2r((degrees){global.camera.r.y.d+90});
-   radians tmprad2=d2r((degrees){global.camera.r.y.d+90});
-   global.camera.p.z-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*cos( tmprad.r ));
-   global.camera.p.x-=(gra_global.split_flip)*((gra_global.split/gra_global.split_screen)*sin( tmprad2.r ));
+    recalculate_eyes();//still have to redo this even if we only have one eye.
+  }
+  if(gra_global.split_screen == 1) {
+    global.eye[0]=global.camera;//shortcut.
   }
   //return 0;//after this
-  for(cn=0;cn<gra_global.split_screen;cn++) {
+  for(en=0;en<gra_global.split_screen;en++) {
+    //now, to zsort for all shapes in each eye... is there a quick way to filter some out early?
+    for(i=0;global.shape[i];i++) zs[i].s=global.shape[i];
+    for(i=0;global.shape[i];i++) zs[i].d=shitdist(zs[i].s,global.eye[en].p);
+    qsort(&zs,i,sizeof(zs[0]),(int (*)(const void *,const void *))compar);//sort these zs structs based on d. farthest first.
+    if(i > 0 && zs[i-1].s) strcpy(global.selected_object,zs[i-1].s->id);
+    //
     set_color();//restart each draw with the default color.
     if(gra_global.red_and_blue) {
      //set color for left half to red and right half to blue
@@ -387,7 +407,7 @@ void draw_screen() {
      red_and_blue_magic();
      gra_global.xoff=0;//we're overlapping our drawing so no offset based on camera.
     } else {
-     gra_global.xoff=(gra_global.width/gra_global.split_screen)*cn;
+     gra_global.xoff=(gra_global.width/gra_global.split_screen)*en;
     }
     if(!gra_global.red_and_blue) {
      set_clipping_rectangle(gra_global.xoff,0,gra_global.width/gra_global.split_screen,gra_global.height);//
@@ -403,7 +423,7 @@ void draw_screen() {
 ///// shiiiit. I should be applying group rotations to all these shapes before sorting them.
 //when I do that. I need to make sure to take the group rotation out of draw_c3_shape()'s code.
     for(i=0;global.shape[i];i++) {
-     zs[i].d=shitdist(zs[i].s,global.camera.p);
+     zs[i].d=shitdist(zs[i].s,global.eye[en].p);
     }
     qsort(&zs,i,sizeof(zs[0]),(int (*)(const void *,const void *))compar);//sort these zs structs based on d.
    //draw all triangles
@@ -414,7 +434,7 @@ void draw_screen() {
    for(;global.shape[i];i++) {
     //now we pick the color of this triangle!
     if(gra_global.red_and_blue) {//this can be moved to the draw_c3_shape function and color can be set then.
-     if(cn%2==0) {
+     if(en%2==0) {
       set_color_red();
      } else {
       set_color_blue();
@@ -430,7 +450,7 @@ void draw_screen() {
     }
     //if(between_angles(points_to_angle((c2_t){zs[i].s->p[0].x,zs[i].s->p[0].z},(c2_t){camera.p.x,camera.p.z}),d2r(camera.yr+45),d2r(camera.yr+135))) {
 //     set_color_based_on_distance(zs[i].d);
-     draw_c3_shape(*(zs[i].s));
+     draw_c3_shape(global.eye[en],*(zs[i].s));//the eye viewing it, and the shape
     //}
    }
    //we check here to see if the mouse button is still down
@@ -452,20 +472,22 @@ void draw_screen() {
  }*/
 
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
-   radians tmprad=d2r((degrees){global.camera.r.y.d+90});
-   radians tmprad2=d2r((degrees){global.camera.r.y.d+90});
-   global.camera.p.z+=(gra_global.split_flip)*(gra_global.split*cos( tmprad.r ));
-   global.camera.p.x+=(gra_global.split_flip)*(gra_global.split*sin( tmprad2.r ));
+  set_color();
+  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.eye[en].r.x)));
+  set_color_red();
+  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){-40,0},(c2_t){0,0},d2r((degrees){360-global.eye[en].r.y.d})));
+  set_color_blue();
+  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.eye[en].r.z)));
   }
 //just draw a line from center to 40 away from the center at the angle of the camera's y-rotation
-//this should be minimap shit  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.camera.r.y)));
+//this should be minimap shit  
+
 //draw a line from the center to 80 away from the center in the angle of what should point at the mouse.
+  /*draw_c2_line((c2_t){0,0},gra_global.mouse);
+  set_color();
   //if(points_on_same_side_of_line(gra_global.mouse,(c2_t){80,80},(c2_t){0,0},(c2_t){0,80})) {
-  //  draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},gra_global.mouse))));
-  //}
-  //draw_c2_line((c2_t){0,0},gra_global.mouse);
-  global.camera.p.x = oldx;
-  global.camera.p.z = oldz; //-= cn*CAMERA_SEPARATION;
+    draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},gra_global.mouse)));
+  //}*/
   flipscreen();
 }
 
@@ -476,12 +498,40 @@ void redraw() {//something is requesting a redraw.
   }
 }
 
+void recalculate_eyes() {//should I put the eyes into the global group_rot array so we can move them?
+ int i;
+ radians rad=d2r((degrees){global.camera.r.y.d+90});
+ //radians tmprad2=d2r((degrees){global.camera.r.y.d+90});
+ for(i=0;i<gra_global.split_screen;i++) {//derp. eyes need to be recalculated each camera rotation.
+   global.eye[i]=global.camera;//re-init so it follows the camera's location.
+   //if split == 1, we need a 0 eye.
+   //if split == 2, we need a -.5, and a +.5 eye
+   //if split == 3, we need a -1, and a 0 and a +1
+   //etc... each eye is gra_global.split away from the next. by default. moving individual eyes might be fun later.
+   //even split-screen single-computer playing?
+   //left offset 
+   /*
+   i - (split_screen / 2) + (split / 2) : -.5, .5
+   i - (split_screen / 2) + (split / 2) : 
+	   1.5			.5	: -1, 0, 1
+	   numbers add up close enough for me.
+   */
+   global.eye[i].p.x+=(gra_global.split_flip) * ( i - (gra_global.split_screen/2 + gra_global.split/2) * sin( rad.r ));
+   //global.eye[i].p.y+=0;//no relative change from the camera.
+   global.eye[i].p.z+=(gra_global.split_flip) * ( i - (gra_global.split_screen/2 + gra_global.split/2) * cos( rad.r ));
+ }
+}
+
 int graphics_init() {//return the fd needed to read graphics events.
 //some of these values set
- global.zoom=25.0l;//I think if this is set to 1, then 1 3d unit is 1 2d unit?
+// global.zoom=1.0l;//I think if this is set to 1, then 1 3d unit is 1 2d unit?
+ global.zoom=25.0l;
  global.camera.r.x.d=0;
  global.camera.r.y.d=0;//we should be facing east. but we're facing north? increasing z goes farther away from camera. :/
  global.camera.r.z.d=0;
+
+ recalculate_eyes();
+
  global.mmz=1;//this is minimap zoom.
 
  global.shape[0]=0;//we'll allocate as we need more.
@@ -491,7 +541,7 @@ int graphics_init() {//return the fd needed to read graphics events.
  global.group_rot[1]=0;//why do we have the camera in here? we need to prevent this from getting deleted.
 
  global.camera.p.x=0;
- global.camera.p.y=10;//10 units above the ground should be as low as it goes.
+ global.camera.p.y=10;
  global.camera.p.z=-6;
 
  gra_global.oldcamera=global.camera.r;
