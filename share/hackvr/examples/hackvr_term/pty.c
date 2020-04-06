@@ -1,12 +1,17 @@
+#define _XOPEN_SOURCE 500 //ptsname
+#define _XOPEN_SOURCE_EXTENDED
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 int main(int argc,char *argv[]) {
   char *pts;
-  char in[256];//I dunno.
+  char in;//I dunno.
   int r;
   int pid;
+  int eof1,eof2;
   int master,slave;
   master=open("/dev/ptmx",O_RDWR);
   if(master == -1) return 1;
@@ -42,20 +47,22 @@ int main(int argc,char *argv[]) {
     default:
       break;
   }
-  for(;;) {
+  eof1=0;
+  eof2=0;
+  for(;!(eof1 || eof2);) {
     if(waitpid(-1,0,WNOHANG) > 0) {
       return 0;//fuck if I know.
       //we got a dead child. let's bail.
     }
     switch(r=read(0,&in,1)) {
-     case 0: return 6;//EOF
+     case 0: eof1=1;;//EOF
      case -1: break;//EAGAIN probably.
-     default: write(master,in,r);
+     default: write(master,&in,r);
     }
     switch(r=read(master,&in,1)) {
-     case 0: return 7;//EOF
+     case 0: eof2=1;;//EOF
      case -1: break;//EAGAIN probably
-     default: write(1,in,r);
+     default: write(1,&in,r);
     }
     usleep(100);//kek
   }
