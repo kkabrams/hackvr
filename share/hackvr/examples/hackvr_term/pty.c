@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 int main(int argc,char *argv[]) {
   char *pts;
@@ -56,12 +57,12 @@ int main(int argc,char *argv[]) {
     }
     switch(r=read(0,&in,1)) {
      case 0: eof1=1;;//EOF
-     case -1: break;//EAGAIN probably.
+     case -1: if(errno != EAGAIN) eof1=1; break;//EAGAIN probably.
      default: write(master,&in,r);
     }
     switch(r=read(master,&in,1)) {
      case 0: eof2=1;;//EOF
-     case -1: break;//EAGAIN probably
+     case -1: if(errno != EAGAIN) eof2=1; break;//EAGAIN probably
      default: write(1,&in,r);
     }
     usleep(100);//kek
