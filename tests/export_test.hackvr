@@ -1,0 +1,7 @@
+a addshape 4 2 0 0 0  1 1 1
+b addshape 4 2 1 1 1  2 1 1
+a move 3 4 5
+b move 5 6 7
+b move +6 +9 +8
+a move +4 +2 +9
+user export *
