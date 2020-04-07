@@ -60,7 +60,7 @@ void preload_glyphs() {
 void hackvr_draw_character(int c,int r,const TMTCHAR *ch) {
   char *line;
   int i,ret=0;
-  printf("term_%02d_%02d addshape %d 4  -1 -3 0  5 -3 0  5 7 0  -1 7 0\n",c,r,ch->a.bg+15);
+  //printf("term_%02d_%02d addshape %d 4  -1 -3 0  5 -3 0  5 7 0  -1 7 0\n",c,r,ch->a.bg+15);
   for(i=0,line=glyphs[ch->c][0];line[0];i++,line=glyphs[ch->c][i]) {
     ret=1;
     printf("term_%02d_%02d addshape %d %s",c,r,ch->a.fg == -1 ? 17 : ch->a.fg + 15,line+strlen("XX addshape X"));
