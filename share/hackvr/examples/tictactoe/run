@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 turn=$( expr $RANDOM % 2)
-echo "go. player: $turn"
+echo "# go. player: $turn" >&2
 hackvr_coproc ./game.sh
