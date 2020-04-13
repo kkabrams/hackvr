@@ -44,7 +44,6 @@ hackvr_headless.o: CFLAGS+='-DHVR_VERSION="headless"'
 
 install: all
 	mkdir -p $(PREFIX)/bin
-	install -t $(PREFIX)/bin hackvr
 	install -t $(PREFIX)/bin hackvr_headless
 	install -t $(PREFIX)/bin hackvr_x11
 	install -t $(PREFIX)/bin slowcat
