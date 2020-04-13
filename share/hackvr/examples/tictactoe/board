@@ -1,13 +1,13 @@
 _reset addshape 2 3 -4 6 4 -5 6 4 -4 5 4
 
-topleft addshape 2 4 -3 13 4 -1 13 4 -1 11 4 -3 11 4
-topcenter addshape 2 4 -1 13 4 1 13 4 1 11 4 -1 11 4
-topright addshape 2 4 1 13 4 3 13 4 3 11 4 1 11 4
+boardtopleft addshape 2 4 -3 13 4 -1 13 4 -1 11 4 -3 11 4
+boardtopcenter addshape 2 4 -1 13 4 1 13 4 1 11 4 -1 11 4
+boardtopright addshape 2 4 1 13 4 3 13 4 3 11 4 1 11 4
 
-middleleft addshape 2 4 -3 11 4 -1 11 4 -1 9 4 -3 9 4
-middlecenter addshape 2 4 -1 11 4 1 11 4 1 9 4 -1 9 4
-middleright addshape 2 4 1 11 4 3 11 4 3 9 4 1 9 4
+boardmiddleleft addshape 2 4 -3 11 4 -1 11 4 -1 9 4 -3 9 4
+boardmiddlecenter addshape 2 4 -1 11 4 1 11 4 1 9 4 -1 9 4
+boardmiddleright addshape 2 4 1 11 4 3 11 4 3 9 4 1 9 4
 
-bottomleft addshape 2 4 -3 9 4 -1 9 4 -1 7 4 -3 7 4
-bottomcenter addshape 2 4 -1 9 4 1 9 4 1 7 4 -1 7 4
-bottomright addshape 2 4 1 9 4 3 9 4 3 7 4 1 7 4
+boardbottomleft addshape 2 4 -3 9 4 -1 9 4 -1 7 4 -3 7 4
+boardbottomcenter addshape 2 4 -1 9 4 1 9 4 1 7 4 -1 7 4
+boardbottomright addshape 2 4 1 9 4 3 9 4 3 7 4 1 7 4
