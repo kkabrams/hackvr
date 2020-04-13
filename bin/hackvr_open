@@ -1,0 +1,4 @@
+#!/bin/sh
+### you may want to force this pipeline through a new x-terminal-emulator if you want to be able to write to stdin by hand.
+### for debugging purposes? I'll probably do that soon.
+nonblocktail "$1" /dev/stdin | hackvr

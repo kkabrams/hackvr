@@ -118,6 +118,7 @@ char **line_splitter(char *line,int *rlen) {
 //this function may be changed to allow globs in different spots later.
 int glob_match(char *a,char *b) {
   if(strchr(a,'*')) {
+    if(*a == '*') return strcmp("yep","yep");//lol
     return strncmp(a,b,strchr(a,'*')-a-1);//hack? sure.
   }
   return strcmp(a,b);
@@ -429,18 +430,18 @@ int hackvr_handler(char *line) {
   if(!strcmp(command,"export")) {//dump shapes and group rotation for argument (or all if arg is *)
    if(len > 2) {
     for(i=0;global.shape[i];i++) {
-//     if(!glob_match(a[2],global.shape[i]->id)) {
+     if(!glob_match(a[2],global.shape[i]->id)) {
       printf("%s_%s addshape %d %d",id,global.shape[i]->id,global.shape[i]->attrib.col,global.shape[i]->len);
       for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
        printf(" %f %f %f",global.shape[i]->p[j].x,global.shape[i]->p[j].y,global.shape[i]->p[j].z);
       }//possible TODO: should I combine the string and output it all at once instead of throughout a loop?
       printf("\n");
-//     }
+     }
     }
     for(i=0;global.group_rot[i];i++) {
      if(!glob_match(a[2],global.group_rot[i]->id)) {
-/*      printf("%s_%s rotate %d %d %d\n",id,a[2],global.group_rot[i]->r.x.d,global.group_rot[i]->r.y.d,global.group_rot[i]->r.z.d);
-      printf("%s_%s move %f %f %f\n",id,a[2],global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);*/
+      printf("%s_%s rotate %d %d %d\n",id,global.group_rot[i]->id,global.group_rot[i]->r.x.d,global.group_rot[i]->r.y.d,global.group_rot[i]->r.z.d);
+      printf("%s_%s move %f %f %f\n",id,global.group_rot[i]->id,global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);
      }
     }
    }
@@ -456,6 +457,7 @@ int hackvr_handler(char *line) {
   }
 //should scaleup even be inside hackvr? seems like something an external program could do... but it wouldn't act on hackvr's state. so nevermind.
   if(!strcmp(command,"scale")) {//this doesn't just scale *up*, it can scale down too. also, make the group relative stuff keep scale factors. we can flatten if we want later.
+   //scale seems like something a group relative would hold.
    for(i=0;global.shape[i];i++) {
     if(!glob_match(id,global.shape[i]->id)) { //we're allowing globbing in this command I guess.
      for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
@@ -577,10 +579,10 @@ int hackvr_handler(char *line) {
      tmprady=d2r((degrees){global.camera.r.y.d+180});
      //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else if(!strcmp(a[2],"up")) {
-     tmprady=d2r((degrees){global.camera.r.y.d});//doesn't matter.
+     tmprady=(radians){0};//d2r((degrees){global.camera.r.y.d});//this was being used to move in the x,z plane. oops.
      tmpy=WALK_SPEED*1;
     } else if(!strcmp(a[2],"down")) {
-     tmprady=d2r((degrees){global.camera.r.y.d});//doesn't matter. yet.
+     tmprady=(radians){0};//d2r((degrees){global.camera.r.y.d});//doesn't matter. yet.
      tmpy=-WALK_SPEED*1;
     } else if(!strcmp(a[2],"left")) {
      tmprady=d2r((degrees){global.camera.r.y.d+270});
@@ -592,8 +594,13 @@ int hackvr_handler(char *line) {
      fprintf(stderr,"# dunno what direction you're talking about. try up, down, left, right, forward, or backward\n");
      return ret;
     }
-    tmpx=WALK_SPEED*sin(tmprady.r);//the camera's y rotation.
-    tmpz=WALK_SPEED*cos(tmprady.r);//these are only based on
+    if(!tmpy) {//if we're moving up or down we don't need to calculate this shit.
+     tmpx=WALK_SPEED*sin(tmprady.r);//the camera's y rotation.
+     tmpz=WALK_SPEED*cos(tmprady.r);//these are only based on
+    } else {
+     tmpx=0;
+     tmpz=0;
+    }
     snprintf(tmp,sizeof(tmp)-1,"%s move +%f +%f +%f\n",global.user,tmpx,tmpy,tmpz);
     selfcommand(tmp);
    } else {

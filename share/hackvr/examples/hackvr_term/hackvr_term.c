@@ -151,7 +151,7 @@ void callback(tmt_msg_t m,TMT *vt, const void *a,void *vt_old) {
 
 int main(int argc,char *argv[]) {
  char in[16];
- if(argc < 3) return fprintf(stderr,"usage: ./hackvr_term rows cols\n"),1;
+ if(argc < 3) return fprintf(stderr,"usage: ./hackvr_term cols rows\n"),1;
  int r=atoi(argv[2]);
  int ret=0;
  int c=atoi(argv[1]);
