@@ -49,6 +49,8 @@ int lum_based_on_distance(c3_s_t *s) {
 
 //might be able to make this faster by just using fgets() and not using recursion and malloc.
 /* does not return the newline. */
+
+//this isn't being used anymore afaict.
 char *read_line_hack(FILE *fp,int len) {
  short in;
  char *t;
@@ -133,6 +135,7 @@ int hackvr_handler(char *line);
 void hackvr_handler_idc(struct shit *me,char *line) {
   switch(hackvr_handler(line)) {
     case -1://quit
+      fprintf(stderr,"# exiting due to EOF\n");
       exit(0);
     case 0://don't redraw
       break;
@@ -330,7 +333,11 @@ int hackvr_handler(char *line) {
    return ret;
   }
   if(!strcmp(command,"quit")) {
-   return -1;
+   if(!strcmp(id,global.user)) {//only exit hackvr if *we* are quitting
+    return -1;
+   } else {
+    fprintf(stderr,"# %s has quit hackvr\n",id);
+   }
   }
   if(!strcmp(command,"set")) { //set variable //TODO: add more things to this.
    if(len != 3 && len != 4) return ret;
@@ -610,6 +617,9 @@ int hackvr_handler(char *line) {
    return ret;
   }
   fprintf(stderr,"# I don't know what command you're talking about. %s\n",command);
+  for(i=0;a[i];i++) {
+    fprintf(stderr,"# a[%d] = %s\n",i,a[i]);
+  }
   //I used to have free(line) here, but this place is never gotten to if a command is found so it wasn't getting released.
   return ret;
 }
@@ -677,10 +687,16 @@ int main(int argc,char *argv[]) {
 
 #ifdef GRAPHICAL
   i=add_fd(graphics_init(),graphics_event_handler);
+  fprintf(stderr,"# x11 fd: %d\n",idc.fds[i].fd);
   idc.fds[i].read_lines_for_us=0;
 
-  fprintf(stderr,"# x11 fd: %d\n",input_init());
-  i=add_fd(input_init(),input_event_handler);
+
+  i=add_fd(mouse_init(),mouse_event_handler);//this should probably be split to keyboard_init, and mouse_init
+  fprintf(stderr,"# mouse fd: %d\n",idc.fds[i].fd);
+  idc.fds[i].read_lines_for_us=0;
+
+  i=add_fd(keyboard_init(),keyboard_event_handler);
+  fprintf(stderr,"# keyboard fd: %d\n",idc.fds[i].fd);
   idc.fds[i].read_lines_for_us=0;
 
   pipe(gra_global.redraw);
