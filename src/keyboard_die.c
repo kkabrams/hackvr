@@ -10,6 +10,17 @@
 
 int kbfd = -1;
 
+int keyboard_init() {
+  if((kbfd=open(KBDEV,O_RDWR)) == -1) {
+    fprintf(stderr,"# failed to open keyboard: %s\n",KBDEV);
+  }
+  return kbfd;
+}
+
+/*void keyboard_event_handler(struct *me,char *junk) {
+  //wtf goes here?
+}*/
+
 hvk_t die_keypress_handler(unsigned short code) {
   switch(code) {
     case KEY_W: return HVK_FORWARD;
@@ -28,10 +39,11 @@ hvk_t get_keyboard_event() {
   memset(&ie,0,sizeof(ie));
   if(kbfd == -1) {
     kbfd=open(KBDEV,O_RDWR);
-    fcntl(kbfd,F_SETFL,O_NONBLOCK);
+    //probably not needed anymore
+    //fcntl(kbfd,F_SETFL,O_NONBLOCK);
   }
   if(kbfd == -1) {
-    fprintf(stderr,"# keyboard shit fucked up.\n");
+    fprintf(stderr,"# keyboard shit fucked up. probably permissions error.\n");
     return 1;
   }
   if((l=read(kbfd,&ie,sizeof(ie))) > 0) {

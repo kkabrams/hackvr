@@ -18,13 +18,21 @@ struct wtf {
   char dy;
 };
 
+int mouse_init() {
+  if((mfd=open(MOUSEDEV,O_RDWR)) == -1) {
+    fprintf(stderr,"# failed to open mouse: %d\n",mfd);
+  }
+  return mfd;
+}
+
 int mouse_event_handler() {
   struct wtf ie;
   int l;
   memset(&ie,0,sizeof(ie));
   if(mfd == -1) {
     mfd=open(MOUSEDEV,O_RDWR);
-    fcntl(mfd,F_SETFL,O_NONBLOCK);
+    //probably don't need nonblock anymore.
+    //fcntl(mfd,F_SETFL,O_NONBLOCK);
   }
   if(mfd == -1) {
     fprintf(stderr,"# mouse shit fucked up.\n");
