@@ -2,6 +2,7 @@
 #define _HACKVR_GRAPHICS_H_
 
 #include <idc.h>
+#include "common.h"
 
 struct gra_global {
   unsigned int width;
