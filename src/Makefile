@@ -10,7 +10,7 @@ CFLAGS+=-DGRAPHICAL
 LDFLAGS+=-L$(PREFIX)/lib
 
 #all: hackvr_headless hackvr_x11 hackvr_opengl slowcat ### when hackvr_opengl gets useful at all I'll start including it in default build.
-all: hackvr_xdie hackvr_headless hackvr_x11 slowcat nonblocktail
+all: hackvr_fb hackvr_xdie hackvr_headless hackvr_x11 slowcat nonblocktail
 # hackvr_fb hackvr_freeglut slowcat
 
 hackvr_xdie: override LDLIBS+=-lm -lidc -lX11 -lhashtable
@@ -49,7 +49,7 @@ install: all
 	install -t $(PREFIX)/bin slowcat
 	install -t $(PREFIX)/bin nonblocktail
 	install -t $(PREFIX)/bin hackvr_xdie
-#	install -t $(PREFIX)/bin hackvr_fb
+	install -t $(PREFIX)/bin hackvr_fb
 #	install -t $(PREFIX)/bin hackvr_freeglut
 
 uninstall:
@@ -59,7 +59,7 @@ uninstall:
 	rm $(PREFIX)/bin/slowcat
 	rm $(PREFIX)/bin/nonblocktail
 	rm $(PREFIX)/bin/hackvr_xdie
-#	rm $(PREFIX)/bin/hackvr_fb
+	rm $(PREFIX)/bin/hackvr_fb
 #	rm $(PREFIX)/bin/hackvr_freeglut
 
 clean:
@@ -70,7 +70,7 @@ clean:
 	rm -f nonblocktail
 	rm -f hackvr_xdie
 #	rm -f hackvr_opengl
-#	rm -f hackvr_fb
+	rm -f hackvr_fb
 #	rm -f hackvr_freeglut
 	rm -f *.o
 
