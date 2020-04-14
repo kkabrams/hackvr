@@ -650,6 +650,7 @@ void alarm_handler(int sig) {
 
 int main(int argc,char *argv[]) {
   int i;
+  int fd;
   if(argc == 2) {
    if(!strcmp(argv[1],"-v") || !strcmp(argv[1],"--version")) {
     hvr_version();
@@ -672,7 +673,6 @@ int main(int argc,char *argv[]) {
 
   inittable(&global.ht_group,65536);
 
-  fcntl(1,F_SETFL,O_NONBLOCK);//won't work
   setbuf(stdin,0);
   setbuf(stdout,0);
   global.debug=DEBUG;
@@ -686,10 +686,13 @@ int main(int argc,char *argv[]) {
   idc.shitlen=0;
 
 #ifdef GRAPHICAL
-  i=add_fd(graphics_init(),graphics_event_handler);
-  fprintf(stderr,"# x11 fd: %d\n",idc.fds[i].fd);
-  idc.fds[i].read_lines_for_us=0;
-
+  if((fd=graphics_init()) == -1) {
+    fprintf(stderr,"# graphics system in use doesn't generate events.\n");
+  } else {
+    i=add_fd(graphics_init(),graphics_event_handler);
+    fprintf(stderr,"# graphics fd: %d\n",idc.fds[i].fd);
+    idc.fds[i].read_lines_for_us=0;
+  }
 
   i=add_fd(mouse_init(),mouse_event_handler);//this should probably be split to keyboard_init, and mouse_init
   fprintf(stderr,"# mouse fd: %d\n",idc.fds[i].fd);
