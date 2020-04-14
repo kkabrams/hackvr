@@ -30,7 +30,7 @@
 //Pixmap skypixmap;
 //char sky[SKYH][SKYW];
 
-extern struct global global;
+extern struct hvr_global global;
 extern struct gra_global gra_global;
 struct fb_global fb_global;
 
@@ -67,7 +67,7 @@ void draw_cs_point(int x,int y) {//this should write to a backbuffer then I can 
  if(y > fb_global.info.yres) return;
  if(i > fb_global.fblen) return;
  //hack to test it with. remove me later.
- fb_global.current_color=-1;
+ //fb_global.current_color=-1;
  int derp;
  derp=(fb_global.current_color == -1) ? (rand()) : fb_global.current_color;
  switch(fb_global.draw_mode) {
@@ -102,11 +102,13 @@ void draw_cs_line(cs_t p1,cs_t p2) {//error somewhere in here. derp...
     for(y=min(p1.y,p2.y);y<max(p1.y,p2.y);y++) {
       draw_cs_point(p1.x,y);
     }
+    return;
   }
   if(p1.y == p2.y) {
     for(x=min(p1.x,p2.x);x<max(p1.x,p2.x);x++) {
       draw_cs_point(x,p1.y);
     }
+    return;
   }
   xd=p1.x<p2.x?1:-1;
   yd=p1.y<p2.y?1:-1;
@@ -330,11 +332,13 @@ void set_demands_attention() {
 
 #endif
 
+//this should be returning an fd to something that'll be readable when events happen...
+//what kind of events would the fb ever have?
+//none?
 int graphics_sub_init() {//some of this is keyboard init... should it be moved out? probably.
   //int i;
   int x,y;
   fb_global.fb=open("/dev/fb0",O_RDWR);
-  fb_global.kb=open("/dev/input/event0",O_RDWR);
   memset(fb_global.keystate,0,sizeof(fb_global.keystate));
   fcntl(fb_global.kb,F_SETFL,O_NONBLOCK);
   assert(fb_global.fb > 0);
@@ -354,7 +358,8 @@ int graphics_sub_init() {//some of this is keyboard init... should it be moved o
   flipscreen();
   gra_global.width=fb_global.info.xres;
   gra_global.height=fb_global.info.yres;
-  return 0;
+  fprintf(stderr,"# width: %d height: %d\n",gra_global.width,gra_global.height);
+  return -1;//don't return a usable fd!
 }
 
 /* this need a framebuffer equivalent
@@ -370,221 +375,6 @@ int graphics_sub_init() {//some of this is keyboard init... should it be moved o
 
 #define KEY_IS_DOWN(a) (fb_global.keystate[a/8] & (1<< (a % 8)))
 
-int graphics_event_handler(int world_changed) { //should calling draw_screen be in here?
-#if 0
- int redraw=0;
-  char line[2048];
-  char line2[1025];
-  int len;
- struct input_event ie;
- memset(&ie,0,sizeof(ie));
- int l;
-  real tmpx;
-  real tmpz;
-  radians tmprad;
-  radians tmprad2;
-  int i;
- //update the keystates...
- ioctl(fb_global.kb,EVIOCGKEY(sizeof(fb_global.keystate)),fb_global.keystate);//update keystate
- read(fb_global.kb,&ie,sizeof(ie));//????
-//need to not be using KEY_IS_DOWN so that it gets these events instead of just checking when it gets to this loop.
- if(KEY_IS_DOWN(KEY_ESC)) exit(0);
- if(KEY_IS_DOWN(KEY_ENTER)) {
-      snprintf(line,sizeof(line)-1,"%s action %s\n",global.user,global.selected_object);
-      selfcommand(line);
- }
- if(KEY_IS_DOWN(KEY_UP)) {
-      tmprad=d2r((degrees){global.camera.r.y.d});//if the angle is 0...
-      tmprad2=d2r((degrees){global.camera.r.y.d});
-      tmpx=WALK_SPEED*sin(tmprad.r);//cos(0)==1
-      tmpz=WALK_SPEED*cos(tmprad2.r);//sin(0)==0
-      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
-      selfcommand(line);
- }
- if(KEY_IS_DOWN(KEY_DOWN)) {
-      tmprad=d2r((degrees){global.camera.r.y.d+180});
-      tmprad2=d2r((degrees){global.camera.r.y.d+180});
-      tmpx=WALK_SPEED*sin(tmprad.r);
-      tmpz=WALK_SPEED*cos(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
-      selfcommand(line);
- }
- if(KEY_IS_DOWN(KEY_LEFT)) {
-      tmprad=d2r((degrees){global.camera.r.y.d+90});
-      tmprad2=d2r((degrees){global.camera.r.y.d+90});
-      tmpx=WALK_SPEED*sin(tmprad.r);
-      tmpz=WALK_SPEED*cos(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
-      selfcommand(line);
- }
-     if(KEY_IS_DOWN(KEY_RIGHT)) {
-      tmprad=d2r((degrees){global.camera.r.y.d+270});
-      tmprad2=d2r((degrees){global.camera.r.y.d+270});
-      tmpx=WALK_SPEED*sin(tmprad.r);
-      tmpz=WALK_SPEED*cos(tmprad2.r);
-      snprintf(line,sizeof(line)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
-      selfcommand(line);
-      }
-     if(KEY_IS_DOWN(KEY_W)) {
-      snprintf(line,sizeof(line)-1,"%s move +0 +1 +0\n",global.user);
-      selfcommand(line);
-     }
-     if(KEY_IS_DOWN(KEY_S)) {
-      snprintf(line,sizeof(line)-1,"%s move +0 +-1 +0\n",global.user);
-      selfcommand(line);
-     }
-     if(KEY_IS_DOWN(KEY_R)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,ROTATE_STEP);
-      selfcommand(line);
-     }
-     if(KEY_IS_DOWN(KEY_Y)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +%d +0 +0\n",global.user,-ROTATE_STEP);
-      selfcommand(line);
-     }
-     if(KEY_IS_DOWN(KEY_Q)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,ROTATE_STEP);
-      selfcommand(line);
-     }
-     if(KEY_IS_DOWN(KEY_E)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +%d +0\n",global.user,-ROTATE_STEP);
-      selfcommand(line);
-     }
-     if(KEY_IS_DOWN(KEY_U)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,ROTATE_STEP);
-      selfcommand(line);
-     }
-     if(KEY_IS_DOWN(KEY_O)) {
-      snprintf(line,sizeof(line)-1,"%s rotate +0 +0 +%d\n",global.user,-ROTATE_STEP);
-      selfcommand(line);
-     }
-     if(KEY_IS_DOWN(KEY_P)) gra_global.split+=.1;
-     if(KEY_IS_DOWN(KEY_L)) gra_global.split-=.1;
-     if(KEY_IS_DOWN(KEY_Z)) global.zoom+=1;
-     if(KEY_IS_DOWN(KEY_X)) {
-      global.zoom-=1;
-      if(global.zoom < 1) global.zoom=1;
-     }
-     if(KEY_IS_DOWN(KEY_C)) global.mmz*=1.1;
-     if(KEY_IS_DOWN(KEY_V)) global.mmz/=1.1;
-     if(KEY_IS_DOWN(KEY_H)) global.split+=1;
-     if(KEY_IS_DOWN(KEY_J)) global.split-=1;
-     if(KEY_IS_DOWN(KEY_6)) gra_global.maxshapes+=10;
-     if(KEY_IS_DOWN(KEY_7)) gra_global.maxshapes-=10;
-     if(KEY_IS_DOWN(KEY_D)) global.debug ^= 1;
-     if(KEY_IS_DOWN(KEY_F)) global.derp ^= 1;
-     if(KEY_IS_DOWN(KEY_M)) {
-      gra_global.drawminimap += 1;
-      gra_global.drawminimap %= 4;
-     }
-     if(KEY_IS_DOWN(KEY_A)) gra_global.drawsky ^= 1;
-     if(KEY_IS_DOWN(KEY_3)) {
-      gra_global.draw3d += 1;
-      gra_global.draw3d %= 4;
-     }
-//LONG comment. then rest of function. don't end it too early, derp.
-/*
-    }
-    break;
-   default:
-    switch(sym) {
-     case XK_Return:
-      strcpy(line,"\n");
-      len=1;
-      break;
-     case XK_Left://hack. probably just replace this with printf()s
-      strcpy(line,"\x1b[D");
-      len=3;
-      break;
-     case XK_Right:
-      strcpy(line,"\x1b[C");
-      len=3;
-      break;
-     case XK_Down:
-      strcpy(line,"\x1b[B");
-      len=3;
-      break;
-     case XK_Up:
-      strcpy(line,"\x1b[A");
-      len=3;
-      break;
-     default:
-      len=XLookupString(xkey,line,1023,NULL,NULL);
-      break;
-    }
-    for(i=0;i/2 < len;i++) line2[i]="0123456789abcdef"[(line[i/2]>>(4*(1-(i%2)))) % 16];
-    line2[i]=0;
-    printf("%s data %s\n",global.user,line2);
-    break;
- }
-
- //then do stuff based on what keystates are set.
- //... loop over the whole array?
- //have an array of deltas?
- //what sets mask?
- char motionnotify=0;
- unsigned int mask;
- if(global.beep) {
-  global.beep=0;
-  XBell(x11_global.dpy,1000);
-  set_demands_attention();
- }
- while(XPending(x11_global.dpy)) {//these are taking too long?
-  XNextEvent(x11_global.dpy, &e);
-//     fprintf(stderr,"# handling event with type: %d\n",e.type);
-  switch(e.type) {
-//       case Expose:
-//         if(e.xexpose.count == 0) redraw=1;
-//         break;
-    case MotionNotify:
-      if(global.debug >= 2) fprintf(stderr,"# MotionNotify\n");
-      motionnotify=1;
-      break;
-    case ButtonPress:
-      if(global.debug >= 2) fprintf(stderr,"# ButtonPress\n");
-      redraw=1;
-      gra_global.buttonpressed=e.xbutton.button;//what's this for? mouse?
-      break;
-    case ButtonRelease:
-      if(global.debug >= 2) fprintf(stderr,"# ButtonRelease\n");
-      redraw=1;
-      gra_global.buttonpressed=0;//what's this for???
-      break;
-    case ConfigureNotify:
-      if(global.debug >= 2) fprintf(stderr,"# ConfigureNotify\n");
-      redraw=1;
-      XGetGeometry(x11_global.dpy,x11_global.w,&root,&global.x,&global.y,&gra_global.width,&gra_global.height,&gra_global.border_width,&gra_global.depth);
-      if(gra_global.height * AR_W / AR_H != gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1))) {
-       // height / AR_H * AR_W = width / (ss / (rab ? ss : 1))
-       if(global.debug >= 2) {
-        fprintf(stderr,"# %d != %d for some reason. probably your WM not respecting aspect ratio hints or calculating based on them differently. (would cause an off-by-one or so)\n",gra_global.height * AR_W / AR_H , gra_global.width / (gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)));
-       }
-       if(gra_global.width / (gra_global.red_and_blue ? 1 : gra_global.split_screen) * AR_H / AR_W < gra_global.height) {
-        gra_global.height=gra_global.width / (gra_global.red_and_blue ? 1 : gra_global.split_screen) * AR_H / AR_W;
-       } else {
-        gra_global.width=gra_global.height * AR_W / AR_H * (gra_global.red_and_blue ? 1 : gra_global.split_screen);
-       }
-      }
-      gra_global.mapxoff=gra_global.width/(gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1))/2;
-      gra_global.mapyoff=gra_global.height/2;
-      break;
-    case KeyPress:
-      if(global.debug >= 2) fprintf(stderr,"# KeyPress\n");
-      redraw=1;
-      x11_keypress_handler(&e.xkey,gra_global.mousex,gra_global.mousey);
-      break;
-    default:
-//      fprintf(stderr,"# received unknown event with type: %d\n",e.type);
-      break;
-  }
- }
- if(motionnotify) {
-  XQueryPointer(x11_global.dpy,x11_global.w,&root,&child,&gra_global.rmousex,&gra_global.rmousey,&gra_global.mousex,&gra_global.mousey,&mask);
-  redraw=1;
- }
-*/
-#endif
- if(world_changed) {
-  draw_screen();//includes its own flip.
- }
- return 1;//redraw;
+void graphics_event_handler(struct shit *me,char *line) {
+  return;//fuck if i know. nothing to do?
 }

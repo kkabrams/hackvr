@@ -6,9 +6,21 @@
 
 #include "keyboard.h"
 
-#define KBDEV "/dev/input/event0"
+//#define KBDEV "/dev/input/event0"
+#define KBDEV "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
 
 int kbfd = -1;
+
+int keyboard_init() {
+  if((kbfd=open(KBDEV,O_RDWR)) == -1) {
+    fprintf(stderr,"# failed to open keyboard: %s\n",KBDEV);
+  }
+  return kbfd;
+}
+
+/*void keyboard_event_handler(struct *me,char *junk) {
+  //wtf goes here?
+}*/
 
 hvk_t die_keypress_handler(unsigned short code) {
   switch(code) {
@@ -26,14 +38,6 @@ hvk_t get_keyboard_event() {
   struct input_event ie;
   int l;
   memset(&ie,0,sizeof(ie));
-  if(kbfd == -1) {
-    kbfd=open(KBDEV,O_RDWR);
-    fcntl(kbfd,F_SETFL,O_NONBLOCK);
-  }
-  if(kbfd == -1) {
-    fprintf(stderr,"# keyboard shit fucked up.\n");
-    return 1;
-  }
   if((l=read(kbfd,&ie,sizeof(ie))) > 0) {
     if(ie.type == 1) {
      fprintf(stderr,"# value: %d code: %d type: %d\n",ie.value,ie.code,ie.type);

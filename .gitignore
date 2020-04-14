@@ -4,5 +4,7 @@ src/hackvr_fb
 src/hackvr_freeglut
 src/hackvr_headless
 src/hackvr_x11
+src/hackvr_xdie
 src/hackvr_opengl
 src/slowcat
+src/nonblocktail

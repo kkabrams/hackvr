@@ -483,11 +483,16 @@ void draw_screen() {
 //this should be minimap shit  
 
 //draw a line from the center to 80 away from the center in the angle of what should point at the mouse.
-  /*draw_c2_line((c2_t){0,0},gra_global.mouse);
+  //draw_c2_line((c2_t){0,0},gra_global.mouse);
+  set_color();
+  draw_c2_line(c2_add(gra_global.mouse,(c2_t){0,1}) , c2_add(gra_global.mouse,(c2_t){0,5}) );
+  draw_c2_line(c2_add(gra_global.mouse,(c2_t){0,-1}) , c2_add(gra_global.mouse,(c2_t){0,-5}) );
+  draw_c2_line(c2_add(gra_global.mouse,(c2_t){1,0}) , c2_add(gra_global.mouse,(c2_t){5,0}) );
+  draw_c2_line(c2_add(gra_global.mouse,(c2_t){-1,0}) , c2_add(gra_global.mouse,(c2_t){-5,0}) );
   set_color();
   //if(points_on_same_side_of_line(gra_global.mouse,(c2_t){80,80},(c2_t){0,0},(c2_t){0,80})) {
-    draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},gra_global.mouse)));
-  //}*/
+  //draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},gra_global.mouse)));
+  //}
   flipscreen();
 }
 

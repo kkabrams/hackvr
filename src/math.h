@@ -21,6 +21,7 @@ radians points_to_angle(c2_t p1,c2_t p2);
 int between_angles(degrees d,real lower,real upper);
 c3_s_t apply_group_relative(c3_s_t s,c3_group_rot_t *group_rot);
 c3_t c3_add(c3_t p1,c3_t p2);
+c2_t c2_add(c2_t p1,c2_t p2);
 real distance3(c3_t p1,c3_t p2);
 void print_point(c3_t p);
 

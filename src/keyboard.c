@@ -10,7 +10,7 @@ extern struct gra_global gra_global;
 char keyboard_map[1024]={0};
 
 //return 0 is all is fine, -1 if we need to exit
-void keyboard_event_handler() {
+void keyboard_event_handler(struct shit *me,char *junk) {//these arguments aren't actually used.
   int k;
   char line[2560];
   c3_group_rot_t *gr;
