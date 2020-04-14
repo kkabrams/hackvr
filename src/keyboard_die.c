@@ -6,7 +6,8 @@
 
 #include "keyboard.h"
 
-#define KBDEV "/dev/input/event0"
+//#define KBDEV "/dev/input/event0"
+#define KBDEV "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
 
 int kbfd = -1;
 
@@ -37,15 +38,6 @@ hvk_t get_keyboard_event() {
   struct input_event ie;
   int l;
   memset(&ie,0,sizeof(ie));
-  if(kbfd == -1) {
-    kbfd=open(KBDEV,O_RDWR);
-    //probably not needed anymore
-    //fcntl(kbfd,F_SETFL,O_NONBLOCK);
-  }
-  if(kbfd == -1) {
-    fprintf(stderr,"# keyboard shit fucked up. probably permissions error.\n");
-    return 1;
-  }
   if((l=read(kbfd,&ie,sizeof(ie))) > 0) {
     if(ie.type == 1) {
      fprintf(stderr,"# value: %d code: %d type: %d\n",ie.value,ie.code,ie.type);
