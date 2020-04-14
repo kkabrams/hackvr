@@ -193,6 +193,11 @@ c3_t c3_add(c3_t p1,c3_t p2) {
  return (c3_t){p1.x+p2.x,p1.y+p2.y,p1.z+p2.z};
 }
 
+//this could probably be a macro, or inline or whatever. and also work for cs_t
+c2_t c2_add(c2_t p1,c2_t p2) {
+ return (c2_t){p1.x+p2.x,p1.y+p2.y};
+}
+
 real distance3(c3_t p1,c3_t p2) {
  return sqrt(( (p1.x-p2.x)*(p1.x-p2.x) )+( (p1.y-p2.y)*(p1.y-p2.y) )+( (p1.z-p2.z)*(p1.z-p2.z) ));
 }
