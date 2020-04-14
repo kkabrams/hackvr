@@ -1,0 +1,16 @@
+#!/bin/sh
+if [ $# -lt 4 ];then
+  echo usage: ident.sh our-host their-host 113 their-port our-port
+  exit 1
+fi
+REMOTE_PORT="$4"
+SERVER_PORT="$5"
+IDENT_PORT="$3"
+REMOTE_ADDR="$2"
+SERVER_ADDR="$1"
+username="$(printf "%s, %s\r\n" "$REMOTE_PORT" "$SERVER_PORT" | (ncat -s "$SERVER_ADDR" "$REMOTE_ADDR" "$IDENT_PORT" 2>/dev/null || echo 'ERROR:ERROR:ERROR:ERROR') | tr -d '\r' | cut -d: -f4)"
+if [ "$username" ];then
+  printf "%s\n" "$username"
+else
+  exit 1
+fi
