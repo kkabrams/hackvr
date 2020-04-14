@@ -1,9 +1,6 @@
 #ifndef _HACKVR_GRAPHICS_FB_H_
 #define _HACKVR_GRAPHICS_FB_H_
 
-//find this with trial and error or X11 log or... I don't care.
-#define FB_KEYB "/dev/input/event0"
-
 #include <linux/input.h>
 
 #define DRAW_MODE_CLEAR	0x0
@@ -16,7 +13,7 @@ struct fb_global {
   int kb;
   int draw_mode;
   unsigned int current_color;
-  unsigned int *backbuf;
+  unsigned int *backbuf;//this is assuming unsigned int is 4 bytes and color depth is 32.
   struct fb_var_screeninfo info;
   unsigned int *buf;
   unsigned int fblen;
