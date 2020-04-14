@@ -73,6 +73,9 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
       global.camera.r.x.d=gra_global.oldcamera.x.d + (gra_global.mouse.y - gra_global.dragstart[2].y);
       global.camera.r.y.d=gra_global.oldcamera.y.d + (gra_global.mouse.x - gra_global.dragstart[2].x);
     }
+    //do we need to redraw on mouse movement?
+    //probably.
+    redrawplzkthx=1;
   }
   if(redrawplzkthx) {
     redraw();
