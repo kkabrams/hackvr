@@ -1,0 +1,5 @@
+#!/bin/bash
+if [ "$1" ];then
+  derp="$USER action $1"
+fi
+cat <(echo $derp) /dev/stdin | ncat 127.0.0.1 1337

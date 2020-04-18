@@ -57,5 +57,5 @@ int main(int argc,char *argv[]) {
   }
   prune();
   dump();
-  fprintf(stderr,"seed: %d\n",seed);
+//  fprintf(stderr,"seed: %d\n",seed);
 }
