@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -o pipefail
+
 OUR_HOST=$(/usr/local/libexec/sockip | head -n1)
 THEIR_HOST=$(/usr/local/libexec/peerip | head -n1)
 OUR_PORT=$(/usr/local/libexec/sockip | tail -n1)
@@ -25,7 +27,7 @@ wat=true
 
 while true;do
 	while read -t 10 group action target args;do
-		printf "hackvr line: %s\n" "$group $action $target" >> $log
+		printf "hackvr line: %s\n" "$group $action $target $args" >> $log
 		if [ "$group" = "$USER" -a "$action" = "pong" ];then
 			printf '%s@%s ponged on hackvr\n' $USER $THEIR_HOST >> $log
 			last_pong="$(date +%s)"
@@ -47,6 +49,7 @@ while true;do
 			fi
 			if [ $target = "/radio" ];then
 				printf "$USER deleteallexcept $USER\n"
+				cd /var/hackvr/
 				./radio.sh
 				target=/
 			fi

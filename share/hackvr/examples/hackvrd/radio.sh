@@ -3,41 +3,43 @@ log=/var/log/log.hackvr
 
 button="-2 2 1  2 2 1  2 -2 1  -2 -2 1"
 
-printf "<http://thebackupbox.net:8901/> addshape 6 4  -2 6 0  2 6 0  2 2 0  -2 2 0\n"
-printf "<http* move up\n"
+printf "<http://thebackupbox.net:8901/> addshape 6 4  %s\n" "$button"
+printf "<http://thebackupbox.net:8901/> move -5 5 0\n"
 # |>
-name=radio_play
+name=play
 printf "%s addshape 4 4  %s\n" "$name" "$button"
-printf "radio_play addshape 4 3  -1 1 0  1 0 0 -1 -1 0\n"
-printf "radio_play move -10 0 0\n"
+printf "play addshape 4 3  -1 1 0  1 0 0 -1 -1 0\n"
+printf "play move 0 0 0\n"
 # ||
-name=radio_pause
+name=pause
 printf "%s addshape 4 4  %s\n" "$name" "$button"
-printf "radio_pause addshape 4 4  -1 1 0  -.5 1 0  -.5 -1 0  -1 -1 0\n"
-printf "radio_pause addshape 4 4  .5 1 0  1 1 0  1 -1 0  .5 -1 0\n"
-printf "radio_pause move -6 0 0\n"
+printf "pause addshape 4 4  -1 1 0  -.5 1 0  -.5 -1 0  -1 -1 0\n"
+printf "pause addshape 4 4  .5 1 0  1 1 0  1 -1 0  .5 -1 0\n"
+printf "pause move 0 4 0\n"
 
 # []
-name=radio_stop
+name=stop
 printf "%s addshape 4 4  %s\n" "$name" "$button"
-printf "radio_stop addshape 4 4  -1 1 0  1 1 0  1 -1 0  -1 -1 0\n"
-printf "radio_stop move -2 0 0\n"
+printf "stop addshape 4 4  -1 1 0  1 1 0  1 -1 0  -1 -1 0\n"
+printf "stop move 0 -4 0\n"
 
 # |>|
-name=radio_next
+name=next
 printf "%s addshape 4 4  %s\n" "$name" "$button"
-printf "radio_next addshape 4 3  -1 1 0   .75 0 0   -1 -1 0\n"
-printf "radio_next addshape 4 4  .75 1 0  1 1 0  1 -1 0  .75 -1 0\n"
-printf "radio_next move 2 0 0\n"
+printf "next addshape 4 3  -1 1 0   .75 0 0   -1 -1 0\n"
+printf "next addshape 4 4  .75 1 0  1 1 0  1 -1 0  .75 -1 0\n"
+printf "next move 4 0 0\n"
 
 # |<|
-name=radio_prev
+name=prev
 printf "%s addshape 4 4  %s\n" "$name" "$button"
-printf "radio_prev addshape 4 3  -.75 0 0  1 1 0  1 -1 0\n"
-printf "radio_prev addshape 4 4  -1 1 0  -.75 1 0  -.75 -1 0  -1 -1 0\n"
-printf "radio_prev move 6 0 0\n"
+printf "prev addshape 4 3  -.75 0 0  1 1 0  1 -1 0\n"
+printf "prev addshape 4 4  -1 1 0  -.75 1 0  -.75 -1 0  -1 -1 0\n"
+printf "prev move -4 0 0\n"
 
-printf "exit addshape 4 4  -2 -5 0  2 -5 0  2 -9 0  -2 -9 0\n"
+printf "exit addshape 4 4  %s\n" "$button"
+printf "exit move 5 5 0\n"
+
 
 # a "listen" link to the http stream
 # so anyone using hackvr_uri can open it from inside hackvr. :)
@@ -48,19 +50,19 @@ printf "exit addshape 4 4  -2 -5 0  2 -5 0  2 -9 0  -2 -9 0\n"
 			break
 		fi
 		if [ "$action" = "action" ];then
-			if [ $target = "radio_pause" ];then
+			if [ $target = "pause" ];then
 				mpc --host=21.41.41.4 --port=61666 pause 2>&1 >/dev/null 2>&1
 			fi
-			if [ $target = "radio_play" ];then
+			if [ $target = "play" ];then
 				mpc --host=21.41.41.4 --port=61666 play 2>&1 >/dev/null 2>&1
 			fi
-			if [ $target = "radio_prev" ];then
+			if [ $target = "prev" ];then
 				mpc --host=21.41.41.4 --port=61666 prev 2>&1 >/dev/null 2>&1
 			fi
-			if [ $target = "radio_next" ];then
+			if [ $target = "next" ];then
 				mpc --host=21.41.41.4 --port=61666 next 2>&1 >/dev/null 2>&1
 			fi
-			if [ $target = "radio_stop" ];then
+			if [ $target = "stop" ];then
 				mpc --host=21.41.41.4 --port=61666 stop 2>&1 >/dev/null 2>&1
 			fi
 			if [ $target = "exit" ];then
