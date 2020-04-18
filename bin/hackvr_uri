@@ -1,6 +1,8 @@
 #!/bin/bash
 #this is a version of hackvr that will attempt to launch URIs that your user actions on.
-hackvr \
+set -o pipefail
+tee --output-error=exit /dev/stderr | hackvr \
+  | grep --line-buffered -v '^#' \
   | tee \
      >(sed -un "s/$USER  *action  *<\([^ ]*\)>/\1/p" \
         | stdbuf -o0 tr '\n' '\0' \
