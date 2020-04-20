@@ -1,11 +1,8 @@
 .PHONY: all clean
 
-all: dungen dun2ascii
+all: dungen dun2ascii dun2hackvr
 
 clean:
 	rm -f dungen
 	rm -f dun2ascii
-
-dungen: dungen.c
-
-dun2ascii: dun2ascii.c
+	rm -f dun2hackvr
