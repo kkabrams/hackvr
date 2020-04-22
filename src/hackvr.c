@@ -524,6 +524,13 @@ int hackvr_handler(char *line) {
       for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
        if(!glob_match(id,m->target)) {
         gr=m->target;
+        gr->r.x=(degrees){(a[2][0]=='+'?gr->r.x.d:0)+atoi(a[2]+(a[2][0]=='+'))};
+        gr->r.y=(degrees){(a[3][0]=='+'?gr->r.y.d:0)+atoi(a[3]+(a[3][0]=='+'))};
+        gr->r.z=(degrees){(a[4][0]=='+'?gr->r.z.d:0)+atoi(a[4]+(a[4][0]=='+'))};
+        //now to sanitize them into 0 <= degrees < 360
+        gr->r.x.d -= (-(gr->r.x.d < 0)+(gr->r.x.d / 360)) * 360;
+        gr->r.y.d -= (-(gr->r.y.d < 0)+(gr->r.y.d / 360)) * 360;
+        gr->r.z.d -= (-(gr->r.z.d < 0)+(gr->r.z.d / 360)) * 360;
        }
       }
      }
