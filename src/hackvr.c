@@ -522,11 +522,11 @@ int hackvr_handler(char *line) {
         for(j=0;global.shape[j];j++) {
          if(!strcmp(global.shape[j]->id,gr->id)) {
           (*global.shape[j])=apply_group_relative((*global.shape[j]),0);
-          gr->r=(c3_rot_t){(degrees){0},(degrees){0},(degrees){0}};
-          gr->p=(c3_t){0,0,0};
-          gr->s=(c3_t){0,0,0};
          }
-	}
+        }
+        gr->r=(c3_rot_t){(degrees){0},(degrees){0},(degrees){0}};
+        gr->p=(c3_t){0,0,0};
+        gr->s=(c3_t){1,1,1};
        }
       }
      }
@@ -536,11 +536,11 @@ int hackvr_handler(char *line) {
      for(j=0;global.shape[j];j++) {
       if(!strcmp(global.shape[j]->id,gr->id)) {
        (*global.shape[j])=apply_group_relative((*global.shape[j]),0);
-       gr->r=(c3_rot_t){(degrees){0},(degrees){0},(degrees){0}};
-       gr->p=(c3_t){0,0,0};
-       gr->s=(c3_t){0,0,0};
       }
      }
+     gr->r=(c3_rot_t){(degrees){0},(degrees){0},(degrees){0}};
+     gr->p=(c3_t){0,0,0};
+     gr->s=(c3_t){1,1,1};
     }
    }
    return ret;
