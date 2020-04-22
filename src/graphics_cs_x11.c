@@ -414,6 +414,10 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
 */
 #endif
 
+void set_title(char *t) {
+ XStoreName(x11_global.dpy,x11_global.w,t);
+}
+
 int graphics_sub_init() {
  char *ansi_color[]={"black","red","green","yellow","blue","magenta","cyan","white",0};
  int i;
@@ -447,13 +451,15 @@ int graphics_sub_init() {
  if(x11_global.root_window) {
   x11_global.w = DefaultRootWindow(x11_global.dpy); //this is still buggy.
  } else {
+  fprintf(stderr,"# creating window...\n");
   x11_global.w = XCreateWindow(x11_global.dpy,DefaultRootWindow(x11_global.dpy),0,0,WIDTH*(gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen : 1)),HEIGHT,1,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)),InputOutput,DefaultVisual(x11_global.dpy,DefaultScreen(x11_global.dpy))\
                    ,CWBackPixel, &attributes);
+  fprintf(stderr,"# done. window id: %ld\n",x11_global.w);
   set_aspect_ratio();
   XSelectInput(x11_global.dpy, x11_global.w, HV_MOUSE_X11_EVENT_MASK|HV_X11_KB_EVENT_MASK|HV_GRAPHICS_X11_EVENT_MASK);
  }
  XMapWindow(x11_global.dpy,x11_global.w);
- XStoreName(x11_global.dpy,x11_global.w,"hackvr");
+ set_title("hackvr");//uses the globals to know what dpy and w
  x11_global.gc=XCreateGC(x11_global.dpy,x11_global.w, 0, 0);
  x11_global.backbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,MAXWIDTH,MAXHEIGHT,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
  x11_global.cleanbackbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,MAXWIDTH,MAXHEIGHT,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
