@@ -1,4 +1,6 @@
+#define _POSIX_C_SOURCE 200809L //for strdup
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "common.h"
@@ -6,27 +8,23 @@
 
 extern struct hvr_global global;
 
-//might change this to use hashtables for faster lookups.
+//ONE OF THESE DAYS I NEED TO RENAME ALL THE GROUP_ROT SHIT TO GROUP_REL since it doesn't just have rotations anymore.
+
+//this function needs to create a group_relative if one doesn't already exist.
 c3_group_rot_t *get_group_relative(char *id) {//crashes in here somehwere...
-  int i;
   c3_group_rot_t *gr;
   struct entry *tmp;
   if((tmp=ht_getnode(&global.ht_group,id))) {
     gr=tmp->target;//target is a void *
     if(gr) return gr;
-  }//if this didn't work, do fallback...
-  //fprintf(stderr,"# !!! hash table failed for %s\n",id);
-  for(i=0;global.group_rot[i];i++) {
-    if(!strcmp(global.group_rot[i]->id,id)) {//should I use glob here and return an array?
-      //if(gr != global.group_rot[i]) {
-        //fprintf(stderr,"# %s ? %s ? %s\n",tmp->original,gr->id,global.group_rot[i]->id);
-        //fprintf(stderr,"# %16x != %16x. wtf?\n",gr,global.group_rot[i]);
-      //  fprintf(stderr,"ht method != loop method\n");
-      //}
-      return global.group_rot[i];
-    }
   }
-  return 0;//need to be sure to check return value for this function!
+  //if we got here, we need to make a new one.
+  gr=malloc(sizeof(c3_group_rot_t));
+  memset(gr,0,sizeof(c3_group_rot_t));
+  gr->s=(c3_t){1,1,1};//scale needs to be all 1s, since it is multiplied against the coordinates.
+  gr->id=strdup(id);//don't forget to free this when it gets deleted.
+  ht_setkey(&global.ht_group,gr->id,gr);
+  return gr;//check only for the case of malloc errors.
 }
 
 c3_t rotate_c3_xr(c3_t p1,c3_t p2,radians xr) {//rotate y and z around camera based on xr (looking up and down)
@@ -172,6 +170,9 @@ c3_s_t apply_group_relative(c3_s_t s,c3_group_rot_t *group_rot) {
      s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],(c3_t){0,0,0},d2r((degrees){0-(gr->r.y.d)})));
     } else {
      if(gr) {
+      s.p[i].x *= gr->s.x;
+      s.p[i].y *= gr->s.y;
+      s.p[i].z *= gr->s.z;//scaling applied? sure....
       //s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y)));
       s2.p[i]=c3_add(gr->p,rotate_c3_xr(
                            rotate_c3_yr(
