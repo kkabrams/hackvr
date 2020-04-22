@@ -17,8 +17,9 @@ foward/backward, left/right, up/down, x, y, z
 rotation-relative-x,rry,rrz
 */
 int apply_physics() {
-  int i;
+  //int i;
   //we can just assume things will float if they don't have a group_rot
+  /*
   for(i=0;global.group_rot[i]  && i < MAXSHAPES;i++) {//this should be applied to group_rots
     if(!strcmp(global.group_rot[i]->id,global.user)) {//only apply gravity to the camera.
       global.group_rot[i]->v.y += (GRAVITY / (float)(global.lps?global.lps:1)); //heh. "fps" needs a headless equivalent now.
@@ -28,6 +29,7 @@ int apply_physics() {
         global.group_rot[i]->p.y=MINIMUM_Y;
       }
     }
-  }
+  }*/
+  //lol. not right now.
   return 1;
 }
