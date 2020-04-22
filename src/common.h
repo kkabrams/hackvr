@@ -52,7 +52,7 @@ typedef struct {
   char *id;//for the camera this is $USER, right?
   c3_rot_t r;//rotation
   c3_t p;//position
-  c3_t s;//??? shape??? I dunno. really. wtf was this for?
+  c3_t s;//??? shape??? I dunno. really. wtf was this for? PROBABLY SCALE. DUH. that's what it is going to bed used for now anyway.
   c3_t v;//velocity
 } c3_group_rot_t;
 
@@ -111,7 +111,6 @@ struct hvr_global {
   int lps;//loops per second. same as frame per second but also works for headless.
   struct c3_shape *shape[SHAPES];
   int shapes;
-  c3_group_rot_t *group_rot[SHAPES];//there can be less of these.
   struct hashtable ht_group;
   c3_group_rot_t eye[MAX_SIDES];//lol. 1000 eyes! array of group_rots for each eye. how to arrange eyes?
   c3_group_rot_t camera;//should there be an array for this? camera has .s which is a shape struct. each point is the eye?
@@ -123,5 +122,6 @@ struct hvr_global {
 };
 
 int selfcommand(char *);
+void set_title(char *);//fuck if I know where the right spot to put this is.
 
 #endif
