@@ -304,8 +304,10 @@ int hackvr_handler(char *line) {
     }
     gr=get_group_relative(a[2]);//this shouldn't be used here. why?
     if(gr) {
+     ht_delete(&global.ht_group,gr->id);
      free(gr->id);
-     gr->id=strdup(a[3]);
+     gr->id=strdup(a[3]);//we also need to remove and reinsert into the hash table.
+     ht_setkey(&global.ht_group,gr->id,gr);
     }
    }
    ret=1;
