@@ -541,13 +541,11 @@ int graphics_init() {//return the fd needed to read graphics events.
 
  global.shape[0]=0;//we'll allocate as we need more.
  global.camera.id=strdup(global.user);//make a copy so if we change global.user later we can reattach to this camera.
- global.group_rot[0]=&global.camera;
  ht_setkey(&global.ht_group,global.user,&global.camera);//merp. this will probably break when you try to change global.user to anything else.
- global.group_rot[1]=0;//why do we have the camera in here? we need to prevent this from getting deleted.
 
  global.camera.p.x=0;
- global.camera.p.y=10;
- global.camera.p.z=-6;
+ global.camera.p.y=0;
+ global.camera.p.z=-6;//back away from the 0 z plane so it is easier to draw 2D GUIs
 
  gra_global.oldcamera=global.camera.r;
  gra_global.input_mode=DEFAULT_INPUT_MODE;
