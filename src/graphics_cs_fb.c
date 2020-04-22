@@ -332,6 +332,11 @@ void set_demands_attention() {
 
 #endif
 
+void set_title(char *t) {
+  //no idea what this would even mean for frame-buffer
+  return;
+}
+
 //this should be returning an fd to something that'll be readable when events happen...
 //what kind of events would the fb ever have?
 //none?
