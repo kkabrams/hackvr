@@ -158,6 +158,7 @@ int hackvr_handler(char *line) {
   real tmpx,tmpy,tmpz;
   char **a;
   char tmp[256];
+  struct entry *m;
 // radians tmpradx,tmprady,tmpradz;
   radians tmprady;
 
@@ -207,7 +208,7 @@ int hackvr_handler(char *line) {
     fprintf(stderr,"#   addshape color N x1 y1 z1 ... xN yN zN\n");
     fprintf(stderr,"#   export grou*\n");
     fprintf(stderr,"#   ping any-string-without-spaces\n");
-    fprintf(stderr,"# * scaleup x y z\n");
+    fprintf(stderr,"# * scale x y z\n");
     fprintf(stderr,"# * move [+]x [+]y [+]z\n");
     fprintf(stderr,"# * move forward|backward|up|down|left|right\n");
     fprintf(stderr,"# * rotate [+]x [+]y [+]z\n");
@@ -236,19 +237,15 @@ int hackvr_handler(char *line) {
     }
     ret=1;
     //now do the same stuff but for the group_rot structs.
-    for(j=1;global.group_rot[j] && j < MAXSHAPES;j++) {//start at 1 so we skip the camera. fuck it. let's delete camera.
-     if(glob_match(a[2],global.group_rot[j]->id)) {
-      ht_delete(&global.ht_group,global.group_rot[j]->id);
-      free(global.group_rot[j]->id);
-      free(global.group_rot[j]);
-      global.group_rot[j]=0;
+    for(i=0;i < global.ht_group.kl;i++) {//for each bucket and item in each bucket...
+     for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
+      if(!glob_match(a[2],m->target)) {
+       gr=m->target;
+       ht_delete(&global.ht_group,gr->id);
+       free(gr->id);
+       free(gr);//pretty sure this does NOT get free()d by ht_delete, because the HT can't /know/ its value is a pointer to something malloc()d
+      }
      }
-    }
-    for(k=0;k<j;k++) {
-     if(global.group_rot[k]) continue;
-     for(l=k;global.group_rot[l] == 0 && l<j;l++);
-     global.group_rot[k]=global.group_rot[l];
-     global.group_rot[l]=0;
     }
     return ret;
    }
@@ -270,26 +267,22 @@ int hackvr_handler(char *line) {
      global.shape[k]=global.shape[l];
      global.shape[l]=0;
     }
-    //now for the group_rot struct that goes with it. there should only be one, but might be a few due to bugs elsewhere. heh. let's just get all of them I guess.
-    for(j=1;global.group_rot[j] && j < MAXSHAPES;j++) {//start at 1 to skip passed the camera. it isn't malloc()d and will crash if we try to free it.
-     if(!glob_match(a[2],global.group_rot[j]->id)) {
-      ht_delete(&global.ht_group,global.group_rot[j]->id);
-      free(global.group_rot[j]->id);
-      free(global.group_rot[j]);
-      global.group_rot[j]=0;
+    //we need to glob match all keys...
+    for(i=0;i < global.ht_group.kl;i++) {//for each bucket and item in each bucket...
+     for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
+      if(!glob_match(a[2],m->target)) {
+       gr=m->target;//this almost CERTAINLY exists... I think.
+       ht_delete(&global.ht_group,gr->id);
+       free(gr->id);
+       free(gr);
+      }
      }
-    }
-    for(k=0;k<j;k++) {
-     if(global.group_rot[k]) continue;
-     for(l=k;global.group_rot[l] == 0 && l<j;l++);
-     global.group_rot[k]=global.group_rot[l];
-     global.group_rot[l]=0;
     }
     ret=1;
     return ret;
    }
   }
-  if(!strcmp(command,"assimilate")) {//um... what do we do with the group_rotation?
+  if(!strcmp(command,"assimilate")) {//um... what do we do with the group_rotation? flatten it?
    if(len == 3) {
     for(j=0;global.shape[j];j++) {
      if(!glob_match(a[2],global.shape[j]->id)) {
@@ -302,11 +295,11 @@ int hackvr_handler(char *line) {
    return ret;
   }
   if(!strcmp(command,"renamegroup")) {//this command doesn't need globbing
-   if(len == 4) {
+   if(len == 4) {//syntax: epoch renamegroup originally eventually?
     for(j=0;global.shape[j];j++) {
      if(!strcmp(a[2],global.shape[j]->id)) {
       free(global.shape[j]->id);
-      global.shape[j]->id=strdup(a[3]);
+      global.shape[j]->id=strdup(a[3]);//wait. what? wtf is the syntax for this?
      }
     }
     gr=get_group_relative(a[2]);//this shouldn't be used here. why?
@@ -344,6 +337,7 @@ int hackvr_handler(char *line) {
    if(len == 4) {
     if(0);
 #ifdef GRAPHICAL
+    else if(!strcmp(a[2],"title")) set_title(a[3]);//who cares for spaces anyway?
     else if(!strcmp(a[2],"camera.p.x")) global.camera.p.x=strtold(a[3],0);
     else if(!strcmp(a[2],"camera.p.y")) global.camera.p.y=strtold(a[3],0);
     else if(!strcmp(a[2],"camera.p.z")) global.camera.p.z=strtold(a[3],0);
@@ -382,6 +376,9 @@ int hackvr_handler(char *line) {
    ret=1;
    return ret;
   }
+  if(!strcmp(command,"physics")) {
+   apply_physics();//lol
+  }
   if(!strcmp(command,"control")) {
    if(len > 2) {
     free(global.user);//need to ensure this is on the heap
@@ -390,7 +387,7 @@ int hackvr_handler(char *line) {
    ret=0;//doesn't change anything yet...
    return ret;
   }
-  if(!strcmp(command,"addshape")) {//need to add a grouprot with this.
+  if(!strcmp(command,"addshape")) {
    if(len > 3) {
     if(len != ((strtold(a[3],0)+(strtold(a[3],0)==1))*3)+4) {
      fprintf(stderr,"# ERROR: wrong amount of parts for addshape. got: %d expected %d\n",len,((int)strtold(a[3],0)+(strtold(a[3],0)==1))*3+4);
@@ -412,24 +409,8 @@ int hackvr_handler(char *line) {
     global.shapes=i;
     global.shape[i]=0;
 
-    for(i=0;global.group_rot[i];i++) {
-     if(i >= MAXSHAPES) abort();
-     if(!strcmp(global.group_rot[i]->id,id)) {
-      break;
-     }
-    }
-    if(global.group_rot[i] == 0) {//we have ourselves a new grouprot!
-     global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
-     ht_setkey(&global.ht_group,id,global.group_rot[i]);//point directly at it...
-     global.group_rot[i]->id=strdup(id);
-     global.group_rot[i+1]=0;
-     global.group_rot[i]->p.x=0;
-     global.group_rot[i]->p.y=0;
-     global.group_rot[i]->p.z=0;
-     global.group_rot[i]->r.x=(degrees){0};
-     global.group_rot[i]->r.y=(degrees){0};
-     global.group_rot[i]->r.z=(degrees){0};
-    }
+    //wtf are we actually needing here? just initialization?
+    if(!get_group_relative(id)) abort();//malloc error. fuck this shit.
    }
    ret=1;
    return ret;
@@ -445,16 +426,25 @@ int hackvr_handler(char *line) {
       printf("\n");
      }
     }
-    for(i=0;global.group_rot[i];i++) {
-     if(!glob_match(a[2],global.group_rot[i]->id)) {
-      printf("%s_%s rotate %d %d %d\n",id,global.group_rot[i]->id,global.group_rot[i]->r.x.d,global.group_rot[i]->r.y.d,global.group_rot[i]->r.z.d);
-      printf("%s_%s move %f %f %f\n",id,global.group_rot[i]->id,global.group_rot[i]->p.x,global.group_rot[i]->p.y,global.group_rot[i]->p.z);
+    //so... this might be a bit dense.
+    //the hash table has an array of the filled buckets
+    //and we're looping over all of them.
+    //THEN inside each bucket is a linked list we also have to descend
+    //this all to just find the keys that match a glob.
+    for(i=0;i < global.ht_group.kl;i++) {//for each bucket and item in each bucket...
+     for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
+      if(!glob_match(a[2],m->target)) {
+       gr=m->target;//this almost CERTAINLY exists... I think.
+       printf("%s_%s rotate %d %d %d\n",id,gr->id,gr->r.x.d,gr->r.y.d,gr->r.z.d);
+       printf("%s_%s move   %f %f %f\n",id,gr->id,gr->p.x,gr->p.y,gr->p.z);
+       printf("%s_%s scale  %f %f %f\n",id,gr->id,gr->s.x,gr->s.y,gr->s.z);
+      }
      }
     }
    }
    return ret;
   }
-  if(!strcmp(command,"ping")) {
+  if(!strcmp(command,"ping")) {//lol wat?
     if(len > 2) {
       printf("%s pong %s\n",global.user,a[2]);
     } else {
@@ -462,48 +452,47 @@ int hackvr_handler(char *line) {
     }
     return ret;
   }
-//should scaleup even be inside hackvr? seems like something an external program could do... but it wouldn't act on hackvr's state. so nevermind.
-  if(!strcmp(command,"scale")) {//this doesn't just scale *up*, it can scale down too. also, make the group relative stuff keep scale factors. we can flatten if we want later.
-   //scale seems like something a group relative would hold.
-   for(i=0;global.shape[i];i++) {
-    if(!glob_match(id,global.shape[i]->id)) { //we're allowing globbing in this command I guess.
-     for(j=0;j < global.shape[i]->len+(global.shape[i]->len==1);j++) {
-      global.shape[i]->p[j].x*=strtold(a[2],0);
-      global.shape[i]->p[j].y*=strtold(len>4?a[3]:a[2],0);
-      global.shape[i]->p[j].z*=strtold(len>4?a[4]:a[2],0);
+  if(!strcmp(command,"scale")) {
+   if(len == 5) {
+    if(strchr(id,'*')) {//we're globbing
+     for(i=0;i < global.ht_group.kl;i++) {
+      for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
+       if(!glob_match(id,m->target)) {
+        gr=m->target;
+        gr->s=(c3_t){strtold(a[2],0),strtold(a[3],0),strtold(a[4],0)};
+       }
+      }
      }
+    } else {
+     gr=get_group_relative(id);
+     gr->s=(c3_t){strtold(a[2],0),strtold(a[3],0),strtold(a[4],0)};
     }
    }
    return 1;
   }
   if(!strcmp(command,"rotate")) {
-   if(len > 4) {
-    for(i=0;global.group_rot[i];i++) {
-     if(!glob_match(id,global.group_rot[i]->id)) {
-      if(global.group_rot[i] == 0) {//we have ourselves a new grouprot!
-       global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
-       ht_setkey(&global.ht_group,id,global.group_rot[i]);
-       global.group_rot[i]->id=strdup(id);
-       global.group_rot[i+1]=0;
-       global.group_rot[i]->p.x=0;//only set these if new.
-       global.group_rot[i]->p.y=0;
-       global.group_rot[i]->p.z=0;
+   if(len == 5) {
+    if(strchr(id,'*')) {//we're globbing
+     for(i=0;i < global.ht_group.kl;i++) {
+      for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
+       if(!glob_match(id,m->target)) {
+        gr=m->target;
+       }
       }
-      global.group_rot[i]->r.x=(degrees){(a[2][0]=='+'?global.group_rot[i]->r.x.d:0)+atoi(a[2]+(a[2][0]=='+'))};
-      global.group_rot[i]->r.y=(degrees){(a[3][0]=='+'?global.group_rot[i]->r.y.d:0)+atoi(a[3]+(a[3][0]=='+'))};
-      global.group_rot[i]->r.z=(degrees){(a[4][0]=='+'?global.group_rot[i]->r.z.d:0)+atoi(a[4]+(a[4][0]=='+'))};
-      //now to sanitize them into 0 <= degrees < 360
-      global.group_rot[i]->r.x.d -= (-(global.group_rot[i]->r.x.d < 0)+(global.group_rot[i]->r.x.d / 360)) * 360;
-      global.group_rot[i]->r.y.d -= (-(global.group_rot[i]->r.y.d < 0)+(global.group_rot[i]->r.y.d / 360)) * 360;
-      global.group_rot[i]->r.z.d -= (-(global.group_rot[i]->r.z.d < 0)+(global.group_rot[i]->r.z.d / 360)) * 360;
      }
+    } else {
+     gr=get_group_relative(id);
+     gr->r.x=(degrees){(a[2][0]=='+'?gr->r.x.d:0)+atoi(a[2]+(a[2][0]=='+'))};
+     gr->r.y=(degrees){(a[3][0]=='+'?gr->r.y.d:0)+atoi(a[3]+(a[3][0]=='+'))};
+     gr->r.z=(degrees){(a[4][0]=='+'?gr->r.z.d:0)+atoi(a[4]+(a[4][0]=='+'))};
+     //now to sanitize them into 0 <= degrees < 360
+     gr->r.x.d -= (-(gr->r.x.d < 0)+(gr->r.x.d / 360)) * 360;
+     gr->r.y.d -= (-(gr->r.y.d < 0)+(gr->r.y.d / 360)) * 360;
+     gr->r.z.d -= (-(gr->r.z.d < 0)+(gr->r.z.d / 360)) * 360;
     }
    }
    ret=1;
    return ret;
-  }
-  if(!strcmp(command,"physics")) {
-   apply_physics();//lol
   }
   if(!strcmp(command,"periodic")) {
 #ifdef GRAPHICAL
@@ -514,40 +503,43 @@ int hackvr_handler(char *line) {
      global.periodic_output = PERIODIC_OUTPUT;
      //output any difference between current camera's state
      //and the camera state the last time we output it.
-     if(memcmp(&global.old_p,&global.camera.p,sizeof(c3_t))) {
-      global.old_p.x=global.camera.p.x;
-      global.old_p.z=global.camera.p.z;
-      global.old_p.y=global.camera.p.y;
+     if(memcmp(&global.old_p,&global.camera.p,sizeof(c3_t))) {//could I use plain ==? I bet I could.
+      global.old_p=global.camera.p;
       printf("%s move %f %f %f\n",global.user,global.old_p.x,global.old_p.y,global.old_p.z);
      }
      if(memcmp(&global.old_r,&global.camera.r,sizeof(c3_rot_t))) {
-      global.old_r.x=global.camera.r.x;
-      global.old_r.y=global.camera.r.y;
-      global.old_r.z=global.camera.r.z;
+      global.old_r=global.camera.r;//duh
       printf("%s rotate %d %d %d\n",global.user,global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
      }
   }
-  if(!strcmp(command,"flatten")) {
-   if(len > 1) {//we need to loop over each group_rot
-    for(i=0;global.group_rot[i];i++) {
-     //this need to be replaced with a "loop over all group_relatives that match a glob"
-     //might also store the hash table as a tree.
-     //descend down tree like this:
-     //tree[id[0]]->c[id[1]]->c[id[2]]
-     //then for each child after we get to the *, we use every one of those.
-     if(!glob_match(id,global.group_rot[i]->id)) {
-      gr=get_group_relative(global.group_rot[i]->id);
-      for(j=0;global.shape[j];j++) {
-       if(!strcmp(global.shape[j]->id,global.group_rot[i]->id)) {
-        (*global.shape[j])=apply_group_relative((*global.shape[j]),0);
+  if(!strcmp(command,"flatten")) {//usage: gro* flatten\n
+   if(len > 1) {
+    if(strchr(id,'*')) {//we're globbing
+     for(i=0;i < global.ht_group.kl;i++) {
+      for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
+       if(!glob_match(id,m->target)) {
+        gr=m->target;
+        for(j=0;global.shape[j];j++) {
+         if(!strcmp(global.shape[j]->id,gr->id)) {
+          (*global.shape[j])=apply_group_relative((*global.shape[j]),0);
+          gr->r=(c3_rot_t){(degrees){0},(degrees){0},(degrees){0}};
+          gr->p=(c3_t){0,0,0};
+          gr->s=(c3_t){0,0,0};
+         }
+	}
        }
       }
-      gr->r.x.d=0;
-      gr->r.y.d=0;
-      gr->r.z.d=0;
-      gr->p.x=0;
-      gr->p.y=0;
-      gr->p.z=0;
+     }
+    } else {
+     //this... would like to find a way to combine them.
+     gr=get_group_relative(id);
+     for(j=0;global.shape[j];j++) {
+      if(!strcmp(global.shape[j]->id,gr->id)) {
+       (*global.shape[j])=apply_group_relative((*global.shape[j]),0);
+       gr->r=(c3_rot_t){(degrees){0},(degrees){0},(degrees){0}};
+       gr->p=(c3_t){0,0,0};
+       gr->s=(c3_t){0,0,0};
+      }
      }
     }
    }
@@ -555,23 +547,25 @@ int hackvr_handler(char *line) {
   }
   if(!strcmp(command,"move")) {//this is only moving the first group_rot it finds instead of all group_rots that match the pattern
    if(len > 2) {
-    gr=get_group_relative(id);//this returns a pointer...
-    if(gr == 0) {//we have ourselves a new grouprot!
-     //figure out where the end is anyway. -_-
-     for(i=0;global.group_rot[i];i++);
-     global.group_rot[i]=malloc(sizeof(c3_group_rot_t));
-     ht_setkey(&global.ht_group,id,global.group_rot[i]);
-     gr=global.group_rot[i];
-     global.group_rot[i]->id=strdup(id);
-     global.group_rot[i+1]=0;
-     global.group_rot[i]->r.x=(degrees){0};//only set these if new.
-     global.group_rot[i]->r.y=(degrees){0};
-     global.group_rot[i]->r.z=(degrees){0};
-     global.group_rot[i]->p.x=0;//why were these not set before?
-     global.group_rot[i]->p.y=0;
-     global.group_rot[i]->p.z=0;
-    }
+    gr=get_group_relative(id);
    }
+   //this is to allow globbing of moves finally.
+   /*if(len == 5) {
+    if(strchr(id,'*')) {//we're globbing
+     for(i=0;i < global.ht_group.kl;i++) {
+      for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
+       if(!glob_match(id,m->target)) {
+        gr=m->target;
+        gr->s=(c3_t){strtold(a[2],0),strtold(a[3],0),strtold(a[4],0)};
+       }
+      }
+     }
+    } else {
+     gr=get_group_relative(id);
+     gr->s=(c3_t){strtold(a[2],0),strtold(a[3],0),strtold(a[4],0)};
+    }
+   }*/
+   //pasted from shit.
    if(len > 4) { //if we have > 4 we're doing relative movement
     gr->p.x=(a[2][0]=='+'?gr->p.x:0)+strtold(a[2]+(a[2][0]=='+'),0);
     gr->p.y=(a[3][0]=='+'?gr->p.y:0)+strtold(a[3]+(a[3][0]=='+'),0);
@@ -581,22 +575,18 @@ int hackvr_handler(char *line) {
     tmpy=0;
     if(!strcmp(a[2],"forward")) {
      tmprady=d2r((degrees){global.camera.r.y.d});
-     //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else if(!strcmp(a[2],"backward")) {
      tmprady=d2r((degrees){global.camera.r.y.d+180});
-     //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else if(!strcmp(a[2],"up")) {
-     tmprady=(radians){0};//d2r((degrees){global.camera.r.y.d});//this was being used to move in the x,z plane. oops.
+     tmprady=(radians){0};
      tmpy=WALK_SPEED*1;
     } else if(!strcmp(a[2],"down")) {
-     tmprady=(radians){0};//d2r((degrees){global.camera.r.y.d});//doesn't matter. yet.
+     tmprady=(radians){0};
      tmpy=-WALK_SPEED*1;
     } else if(!strcmp(a[2],"left")) {
      tmprady=d2r((degrees){global.camera.r.y.d+270});
-     //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else if(!strcmp(a[2],"right")) {
      tmprady=d2r((degrees){global.camera.r.y.d+90});
-     //snprintf(tmp,sizeof(tmp)-1,"%s move +%f +0 +%f\n",global.user,tmpx,tmpz);
     } else {
      fprintf(stderr,"# dunno what direction you're talking about. try up, down, left, right, forward, or backward\n");
      return ret;
@@ -609,7 +599,7 @@ int hackvr_handler(char *line) {
      tmpz=0;
     }
     snprintf(tmp,sizeof(tmp)-1,"%s move +%f +%f +%f\n",global.user,tmpx,tmpy,tmpz);
-    selfcommand(tmp);
+    selfcommand(tmp);//selfcommand inside move is ugly. :/ just set it the right way.
    } else {
     fprintf(stderr,"# ERROR: wrong amount of parts for move. got: %d expected: 4 or 2\n",len);
    }
@@ -650,7 +640,7 @@ void alarm_handler(int sig) {
 
 int main(int argc,char *argv[]) {
   int i;
-  int fd;
+  int fd=0;//stdin
   if(argc == 2) {
    if(!strcmp(argv[1],"-v") || !strcmp(argv[1],"--version")) {
     hvr_version();
@@ -684,12 +674,14 @@ int main(int argc,char *argv[]) {
     idc.fds[i].fd=-1;
   }
   idc.shitlen=0;
+  add_fd(fd,hackvr_handler_idc);//looks like default mode is to exit on EOF of stdin
 
 #ifdef GRAPHICAL
+  //even if the fds for graphics, mouse, and keyboard are all the same, we need to run the handler on it that many times... right?
   if((fd=graphics_init()) == -1) {
     fprintf(stderr,"# graphics system in use doesn't generate events.\n");
   } else {
-    i=add_fd(graphics_init(),graphics_event_handler);
+    i=add_fd(fd,graphics_event_handler);
     fprintf(stderr,"# graphics fd: %d\n",idc.fds[i].fd);
     idc.fds[i].read_lines_for_us=0;
   }
@@ -705,7 +697,6 @@ int main(int argc,char *argv[]) {
   pipe(gra_global.redraw);
   add_fd(gra_global.redraw[0],redraw_handler);//write a line to get a redraw?
 #endif
-  add_fd(0,hackvr_handler_idc);//looks like default mode is to exit on EOF of stdin
   pipe(global.selfpipe);
   add_fd(global.selfpipe[0],hackvr_handler_idc);//looks like default mode is to exit on EOF of stdin
   //signal(SIGALRM,alarm_handler);
