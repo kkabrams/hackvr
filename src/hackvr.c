@@ -159,6 +159,7 @@ int hackvr_handler(char *line) {
   char **a;
   char tmp[256];
   struct entry *m;
+  char helping=0;//a flag that we can check for to see if we need to output our help
 // radians tmpradx,tmprady,tmpradz;
   radians tmprady;
 
@@ -177,6 +178,8 @@ int hackvr_handler(char *line) {
   id=a[0];
   if(len > 1) {
    command=a[1];
+  } else {
+   command=a[0];//meh
   }
   if(len < 2) {
    if(!strcmp(id,"version")) {
@@ -184,6 +187,7 @@ int hackvr_handler(char *line) {
     return 0;
    }
    if(!strcmp(id,"help")) {
+    helping=1;
 #ifdef GRAPHICAL
     fprintf(stderr,"# NOT built headless.\n");
 #else
@@ -197,29 +201,13 @@ int hackvr_handler(char *line) {
     fprintf(stderr,"#   user move +-2 +-2 0\n");
     fprintf(stderr,"# groupnam* command arguments\n");
     fprintf(stderr,"# commands:\n");
-    fprintf(stderr,"#   deleteallexcept grou*\n");
-    fprintf(stderr,"#   deletegroup grou*\n");
-    fprintf(stderr,"#   assimilate grou*\n");
-    fprintf(stderr,"#   renamegroup group\n");
-    fprintf(stderr,"#   control grou* [globbing this group could have fun effects]\n");
-    fprintf(stderr,"#   dump\n");
-    fprintf(stderr,"#   quit\n");
-    fprintf(stderr,"#   set\n");
-    fprintf(stderr,"#   addshape color N x1 y1 z1 ... xN yN zN\n");
-    fprintf(stderr,"#   export grou*\n");
-    fprintf(stderr,"#   ping any-string-without-spaces\n");
-    fprintf(stderr,"# * scale x y z\n");
-    fprintf(stderr,"# * move [+]x [+]y [+]z\n");
-    fprintf(stderr,"# * move forward|backward|up|down|left|right\n");
-    fprintf(stderr,"# * rotate [+]x [+]y [+]z\n");
-    fprintf(stderr,"# that is all.\n");
-    return ret;
-   } else {
-    //fprintf(stderr,"# ur not doing it right. '%s'\n",id);
-    return ret;
    }
   }
   ret=1;
+  
+  
+/* ---------- */
+  if(helping) fprintf(stderr,"#   deleteallexcept grou*\n");
   if(!strcmp(command,"deleteallexcept")) {
    if(len == 3) {
     for(j=0;global.shape[j] && j < MAXSHAPES;j++) {//mark first. compress later.
@@ -250,6 +238,10 @@ int hackvr_handler(char *line) {
     return ret;
    }
   }
+  
+
+/* ---------- */
+  if(helping) fprintf(stderr,"# _ deletegroup grou*\n");
   if(!strcmp(command,"deletegroup")) {//should the grouprot get deleted too? sure...
    if(len == 3) {
     for(j=0;global.shape[j] && j < MAXSHAPES;j++) {
@@ -282,6 +274,10 @@ int hackvr_handler(char *line) {
     return ret;
    }
   }
+  
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   assimilate grou*\n");
   if(!strcmp(command,"assimilate")) {//um... what do we do with the group_rotation? flatten it?
    if(len == 3) {
     for(j=0;global.shape[j];j++) {
@@ -294,6 +290,10 @@ int hackvr_handler(char *line) {
    ret=1;
    return ret;
   }
+  
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   renamegroup group\n");
   if(!strcmp(command,"renamegroup")) {//this command doesn't need globbing
    if(len == 4) {//syntax: epoch renamegroup originally eventually?
     for(j=0;global.shape[j];j++) {
@@ -311,10 +311,18 @@ int hackvr_handler(char *line) {
    ret=1;
    return ret;
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   status  # old. just outputs a variable that is supposed to be loops per second.\n");
   if(!strcmp(command,"status")) {
    fprintf(stderr,"# loops per second: %d\n",global.lps);
    return ret;
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   dump  # tries to let you output the various things that can be set.\n");
   if(!strcmp(command,"dump")) {//same as debug output... and the periodic data.
    printf("%s set global.camera.p.x %f\n",global.user,global.camera.p.x);
    printf("%s set global.camera.p.y %f\n",global.user,global.camera.p.y);
@@ -323,8 +331,13 @@ int hackvr_handler(char *line) {
    printf("%s set global.camera.r.y %d\n",global.user,global.camera.r.y.d);
    printf("%s set global.camera.r.z %d\n",global.user,global.camera.r.z.d);
    printf("%s set global.zoom %f\n",global.user,global.zoom);
+   //printf("%s set title %s\n",global.user
    return ret;
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   quit  #closes hackvr only if the id that is doing it is the same as yours.\n");
   if(!strcmp(command,"quit")) {
    if(!strcmp(id,global.user)) {//only exit hackvr if *we* are quitting
     return -1;
@@ -332,6 +345,10 @@ int hackvr_handler(char *line) {
     fprintf(stderr,"# %s has quit hackvr\n",id);
    }
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   set\n");
   if(!strcmp(command,"set")) { //set variable //TODO: add more things to this.
    if(len != 3 && len != 4) return ret;
    if(len == 4) {
@@ -376,9 +393,17 @@ int hackvr_handler(char *line) {
    ret=1;
    return ret;
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   physics\n");
   if(!strcmp(command,"physics")) {
    apply_physics();//lol
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   control grou* [globbing this group could have fun effects]\n");
   if(!strcmp(command,"control")) {
    if(len > 2) {
     free(global.user);//need to ensure this is on the heap
@@ -387,6 +412,10 @@ int hackvr_handler(char *line) {
    ret=0;//doesn't change anything yet...
    return ret;
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   addshape color N x1 y1 z1 ... xN yN zN\n");
   if(!strcmp(command,"addshape")) {
    if(len > 3) {
     if(len != ((strtold(a[3],0)+(strtold(a[3],0)==1))*3)+4) {
@@ -415,6 +444,10 @@ int hackvr_handler(char *line) {
    ret=1;
    return ret;
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   export grou*\n");
   if(!strcmp(command,"export")) {//dump shapes and group rotation for argument (or all if arg is *)
    if(len > 2) {
     for(i=0;global.shape[i];i++) {
@@ -444,6 +477,10 @@ int hackvr_handler(char *line) {
    }
    return ret;
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   ping any-string-without-spaces\n");
   if(!strcmp(command,"ping")) {//lol wat?
     if(len > 2) {
       printf("%s pong %s\n",global.user,a[2]);
@@ -452,6 +489,10 @@ int hackvr_handler(char *line) {
     }
     return ret;
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"# * scale x y z\n");
   if(!strcmp(command,"scale")) {
    if(len == 5) {
     if(strchr(id,'*')) {//we're globbing
@@ -470,6 +511,10 @@ int hackvr_handler(char *line) {
    }
    return 1;
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"# * rotate [+]x [+]y [+]z\n");
   if(!strcmp(command,"rotate")) {
    if(len == 5) {
     if(strchr(id,'*')) {//we're globbing
@@ -494,6 +539,10 @@ int hackvr_handler(char *line) {
    ret=1;
    return ret;
   }
+
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   periodic  # flushes out locally-cached movement and rotation\n");
   if(!strcmp(command,"periodic")) {
 #ifdef GRAPHICAL
 //     fprintf(stderr,"# loops per second: %d mouse.x: %f mouse.y: %f\n",global.lps,gra_global.mouse.x,gra_global.mouse.y);
@@ -512,6 +561,9 @@ int hackvr_handler(char *line) {
       printf("%s rotate %d %d %d\n",global.user,global.camera.r.x.d,global.camera.r.y.d,global.camera.r.z.d);
      }
   }
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   flatten  # combines group attributes to the shapes.\n");
   if(!strcmp(command,"flatten")) {//usage: gro* flatten\n
    if(len > 1) {
     if(strchr(id,'*')) {//we're globbing
@@ -544,6 +596,12 @@ int hackvr_handler(char *line) {
     }
    }
    return ret;
+  }
+
+
+  if(helping) {
+   fprintf(stderr,"# * move [+]x [+]y [+]z\n");
+   fprintf(stderr,"# * move forward|backward|up|down|left|right\n");
   }
   if(!strcmp(command,"move")) {//this is only moving the first group_rot it finds instead of all group_rots that match the pattern
    if(len > 2) {
@@ -606,9 +664,11 @@ int hackvr_handler(char *line) {
    ret=1;
    return ret;
   }
-  fprintf(stderr,"# I don't know what command you're talking about. %s\n",command);
-  for(i=0;a[i];i++) {
-    fprintf(stderr,"# a[%d] = %s\n",i,a[i]);
+  if(!helping) {
+   fprintf(stderr,"# I don't know what command you're talking about. %s\n",command);
+   for(i=0;a[i];i++) {
+     fprintf(stderr,"# a[%02d] = %s\n",i,a[i]);
+   }
   }
   //I used to have free(line) here, but this place is never gotten to if a command is found so it wasn't getting released.
   return ret;
@@ -647,7 +707,8 @@ int main(int argc,char *argv[]) {
     return 0;
    }
    if(!strcmp(argv[1],"-h") || !strcmp(argv[1],"--help")) {
-    printf("usage: hackvr file1 file2 file3 ... fileN < from_others > to_others\n");
+    //wtf should go here?
+    printf("try this: echo help | hackvr\n");
     return 0;
    }
   }
@@ -675,6 +736,8 @@ int main(int argc,char *argv[]) {
   }
   idc.shitlen=0;
   add_fd(fd,hackvr_handler_idc);//looks like default mode is to exit on EOF of stdin
+  pipe(global.selfpipe);
+  add_fd(global.selfpipe[0],hackvr_handler_idc);//looks like default mode is to exit on EOF of stdin
 
 #ifdef GRAPHICAL
   //even if the fds for graphics, mouse, and keyboard are all the same, we need to run the handler on it that many times... right?
@@ -697,8 +760,6 @@ int main(int argc,char *argv[]) {
   pipe(gra_global.redraw);
   add_fd(gra_global.redraw[0],redraw_handler);//write a line to get a redraw?
 #endif
-  pipe(global.selfpipe);
-  add_fd(global.selfpipe[0],hackvr_handler_idc);//looks like default mode is to exit on EOF of stdin
   //signal(SIGALRM,alarm_handler);
   //alarm(10);
   fprintf(stderr,"# entering main loop\n");
