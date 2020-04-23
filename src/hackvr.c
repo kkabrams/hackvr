@@ -227,7 +227,7 @@ int hackvr_handler(char *line) {
     //now do the same stuff but for the group_rot structs.
     for(i=0;i < global.ht_group.kl;i++) {//for each bucket and item in each bucket...
      for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
-      if(!glob_match(a[2],m->target)) {
+      if(!glob_match(a[2],m->original)) {
        gr=m->target;
        ht_delete(&global.ht_group,gr->id);
        free(gr->id);
@@ -262,7 +262,7 @@ int hackvr_handler(char *line) {
     //we need to glob match all keys...
     for(i=0;i < global.ht_group.kl;i++) {//for each bucket and item in each bucket...
      for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
-      if(!glob_match(a[2],m->target)) {
+      if(!glob_match(a[2],m->original)) {
        gr=m->target;//this almost CERTAINLY exists... I think.
        ht_delete(&global.ht_group,gr->id);
        free(gr->id);
@@ -468,11 +468,11 @@ int hackvr_handler(char *line) {
     //this all to just find the keys that match a glob.
     for(i=0;i < global.ht_group.kl;i++) {//for each bucket and item in each bucket...
      for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
-      if(!glob_match(a[2],m->target)) {
+      if(!glob_match(a[2],m->original)) {
        gr=m->target;//this almost CERTAINLY exists... I think.
        printf("%s_%s rotate %d %d %d\n",id,gr->id,gr->r.x.d,gr->r.y.d,gr->r.z.d);
-       printf("%s_%s move   %f %f %f\n",id,gr->id,gr->p.x,gr->p.y,gr->p.z);
-       printf("%s_%s scale  %f %f %f\n",id,gr->id,gr->s.x,gr->s.y,gr->s.z);
+       printf("%s_%s move %f %f %f\n",id,gr->id,gr->p.x,gr->p.y,gr->p.z);
+       printf("%s_%s scale %f %f %f\n",id,gr->id,gr->s.x,gr->s.y,gr->s.z);
       }
      }
     }
@@ -500,7 +500,7 @@ int hackvr_handler(char *line) {
     if(strchr(id,'*')) {//we're globbing
      for(i=0;i < global.ht_group.kl;i++) {
       for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
-       if(!glob_match(id,m->target)) {
+       if(!glob_match(id,m->original)) {
         gr=m->target;
         gr->s=(c3_t){strtold(a[2],0),strtold(a[3],0),strtold(a[4],0)};
        }
@@ -522,7 +522,7 @@ int hackvr_handler(char *line) {
     if(strchr(id,'*')) {//we're globbing
      for(i=0;i < global.ht_group.kl;i++) {
       for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
-       if(!glob_match(id,m->target)) {
+       if(!glob_match(id,m->original)) {
         gr=m->target;
         gr->r.x=(degrees){(a[2][0]=='+'?gr->r.x.d:0)+atoi(a[2]+(a[2][0]=='+'))};
         gr->r.y=(degrees){(a[3][0]=='+'?gr->r.y.d:0)+atoi(a[3]+(a[3][0]=='+'))};
@@ -578,7 +578,7 @@ int hackvr_handler(char *line) {
     if(strchr(id,'*')) {//we're globbing
      for(i=0;i < global.ht_group.kl;i++) {
       for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
-       if(!glob_match(id,m->target)) {
+       if(!glob_match(id,m->original)) {
         gr=m->target;
         for(j=0;global.shape[j];j++) {
          if(!strcmp(global.shape[j]->id,gr->id)) {
@@ -621,7 +621,7 @@ int hackvr_handler(char *line) {
     if(strchr(id,'*')) {//we're globbing
      for(i=0;i < global.ht_group.kl;i++) {
       for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
-       if(!glob_match(id,m->target)) {
+       if(!glob_match(id,m->original)) {
         gr=m->target;
         gr->s=(c3_t){strtold(a[2],0),strtold(a[3],0),strtold(a[4],0)};
        }
