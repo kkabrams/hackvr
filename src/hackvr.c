@@ -228,10 +228,12 @@ int hackvr_handler(char *line) {
     for(i=0;i < global.ht_group.kl;i++) {//for each bucket and item in each bucket...
      for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
       if(!glob_match(a[2],m->original)) {
-       gr=m->target;
-       ht_delete(&global.ht_group,gr->id);
-       free(gr->id);
-       free(gr);//pretty sure this does NOT get free()d by ht_delete, because the HT can't /know/ its value is a pointer to something malloc()d
+       if(m->target != &global.camera) {
+        gr=m->target;
+        ht_delete(&global.ht_group,gr->id);
+        free(gr->id);
+        free(gr);//pretty sure this does NOT get free()d by ht_delete, because the HT can't /know/ its value is a pointer to something malloc()d
+       }
       }
      }
     }
@@ -263,10 +265,12 @@ int hackvr_handler(char *line) {
     for(i=0;i < global.ht_group.kl;i++) {//for each bucket and item in each bucket...
      for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
       if(!glob_match(a[2],m->original)) {
-       gr=m->target;//this almost CERTAINLY exists... I think.
-       ht_delete(&global.ht_group,gr->id);
-       free(gr->id);
-       free(gr);
+       if(m->target != &global.camera) {//ah! don't delete the camera!
+        gr=m->target;//this almost CERTAINLY exists... I think.
+        ht_delete(&global.ht_group,gr->id);
+        free(gr->id);
+        free(gr);
+       }
       }
      }
     }
