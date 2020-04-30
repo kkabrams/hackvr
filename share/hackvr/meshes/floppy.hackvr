@@ -1,0 +1,30 @@
+#whole thing
+floppy addshape 1  5  -1 1 0  .8 1 0  1 .8 0  1 -1 0  -1 -1 0
+
+### this is for when I eventually make it actually 3d
+#floppy addshape 1  5  -1 1 .1  .8 1 .1  1 .8 .1  1 -1 .1  -1 -1 .1
+
+#the label
+floppy addshape 1  4  -.8 .15 0  .8 .15 0  .8 -1 0  -.8 -1 0
+
+#the lines on the label
+floppy addshape 1  2  -.8 -.05 0   .8 -.05 0
+floppy addshape 1  2  -.8 -.25 0   .8 -.25 0
+floppy addshape 1  2  -.8 -.45 0   .8 -.45 0
+floppy addshape 1  2  -.8 -.65 0   .8 -.65 0
+floppy addshape 1  2  -.8 -.85 0   .8 -.85 0
+
+#the metal clip slide area
+floppy addshape 1  4  -.8 1 0  -.8 .3 0  .5 .3 0  .5 1 0
+
+#the metal clip
+floppy addshape 1  4  -.5 1 0  -.5 .3 0  .55 .3 0  .55 1 0
+
+#the hole in the metal clip because... lazy.
+floppy addshape 1  4  .125 .9 0  .4 .9 0  .4 .35 0  .125 .35 0
+
+#the write protection hole
+floppy addshape 1  4  .95 -.875 0  .85 -.875 0  .85 -.8 0  .95 -.8 0
+
+floppy scale 7 7 7
+#floppy rotate 0 0 180
