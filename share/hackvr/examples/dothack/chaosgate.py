@@ -6,11 +6,11 @@ def fp(p):
     return " {} {} {}".format(p[0],p[1],p[2])
 
 def print_rect(r):
-    print("gate addshape 4 4 {} {} {} {}".format(fp(r[0]),fp(r[1]),fp(r[2]),fp(r[3])))
+    print("gate addshape 3 4 {} {} {} {}".format(fp(r[0]),fp(r[1]),fp(r[2]),fp(r[3])))
 
 d=1
 
-sides = 12.0
+sides = 16.0
 step = 360.0/sides
 rot=0.0
 zoff = 0.0
