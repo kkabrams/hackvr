@@ -419,7 +419,7 @@ void set_title(char *t) {
 }
 
 int graphics_sub_init() {
- char *ansi_color[]={"black","red","green","yellow","blue","magenta","cyan","white",0};
+ char *ansi_color[]={"black","blue","green","cyan","red","magenta","yellow","white",0};
  int i;
  char tmp[64];
  Cursor cursor;
