@@ -34,11 +34,24 @@ libhashtable (LIBrary for HASH TABLEs.)
 
 You can usually get these libs from the same place you got hackvr.
 
+where to find hackvr:
+git://thebackupbox.net/hackvr
+git://main.lv/hackvr
+https://github.com/kkabrams/hackvr
+
+where to find libidc:
+git://thebackupbox.net/libidc
+git://main.lv/libidc
+https://github.com/kkabrams/libidc
+
+where to find libhashtable:
+git://thebackupbox.net/libhashtable
+git://main.lv/libhashtable
+https://github.com/kkabrams/libhashtable
+
 I have a script that just runs make with PREFIX=$PREFIX prefix=$PREFIX so I end up with
 everything installed under ~/.local/
 
-like:
-git://thebackupbox.net/libhashtable
 
 After you have that installed you should be able to do these to get hackvr built:
 
@@ -47,6 +60,17 @@ After you have that installed you should be able to do these to get hackvr built
   make install
 
 The make install will create hackvr_headless, hackvr_x11, hackvr_fb.
+
+If you didn't want to make install the libraries, there are variables you can set to
+let the makefile know where they are:
+
+LIBIDC_INCLUDE_PATH
+LIBIDC_LIB_PATH
+LIBHASHTABLE_INCLUDE_PATH
+LIBHASHTABLE_LIB_PATH
+
+They should be set to where the .h and .so are, and not a subdir like how $(PREFIX) is set
+since the include and lib dirs don't exist inside the libs.
 
 A few helper scripts are written in perl and python.
 So you might want to install perl and python if you want to play with them.
