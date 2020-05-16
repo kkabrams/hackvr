@@ -15,7 +15,7 @@
 #define SHAPES 65535
 
 #define PERIODIC_OUTPUT 100
-#define MAX_SIDES 8
+#define MAX_SIDES 20
 #define MAXWIDTH 4000
 #define WIDTH 320
 #define MAXHEIGHT 3000
