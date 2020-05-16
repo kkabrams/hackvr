@@ -2,12 +2,19 @@
 
 PREFIX:=/usr/local/
 
-BASE_CFLAGS=-g -Wall -pedantic -std=c99 -ffast-math -I$(PREFIX)/include
+### if you didn't install them after building, you can still point at them directly.
+### right now, the header, and shared library are in their base dir, not lib or include subdirs.
+LIBIDC_LIB_PATH:=$(PREFIX)/lib
+LIBIDC_INCLUDE_PATH:=$(PREFIX)/include
+LIBHASHTABLE_LIB_PATH:=$(PREFIX)/lib
+LIBHASHTABLE_INCLUDE_PATH:=$(PREFIX)/include
+
+BASE_CFLAGS=-g -Wall -pedantic -std=c99 -ffast-math -I$(PREFIX)/include -I$(LIBIDC_INCLUDE_PATH) -I$(LIBHASHTABLE_INCLUDE_PATH)
 
 CFLAGS+=$(BASE_CFLAGS)
 CFLAGS+=-DGRAPHICAL
 
-LDFLAGS+=-L$(PREFIX)/lib
+LDFLAGS+=-L$(PREFIX)/lib -L$(LIBIDC_LIB_PATH) -L$(LIBHASHTABLE_LIB_PATH)
 
 #all: hackvr_headless hackvr_x11 hackvr_opengl slowcat ### when hackvr_opengl gets useful at all I'll start including it in default build.
 all: hackvr_fb hackvr_xdie hackvr_headless hackvr_x11 slowcat nonblocktail
