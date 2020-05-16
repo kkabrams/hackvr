@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "common.h"
 #include "math.h"
@@ -11,20 +12,20 @@ extern struct hvr_global global;
 //ONE OF THESE DAYS I NEED TO RENAME ALL THE GROUP_ROT SHIT TO GROUP_REL since it doesn't just have rotations anymore.
 
 //this function needs to create a group_relative if one doesn't already exist.
-c3_group_rot_t *get_group_relative(char *id) {//crashes in here somehwere...
+c3_group_rot_t *get_group_relative(char *id) {
   c3_group_rot_t *gr;
-  struct entry *tmp;
-  if((tmp=ht_getnode(&global.ht_group,id))) {
-    gr=tmp->target;//target is a void *
+  if((gr=ht_getvalue(&global.ht_group,id))) {
     if(gr) return gr;
   }
   //if we got here, we need to make a new one.
-  gr=malloc(sizeof(c3_group_rot_t));
+  assert(gr=malloc(sizeof(c3_group_rot_t)));//just exit on malloc error? sure...
   memset(gr,0,sizeof(c3_group_rot_t));
   gr->s=(c3_t){1,1,1};//scale needs to be all 1s, since it is multiplied against the coordinates.
   gr->id=strdup(id);//don't forget to free this when it gets deleted.
-  ht_setkey(&global.ht_group,gr->id,gr);
-  return gr;//check only for the case of malloc errors.
+  if(ht_setkey(&global.ht_group,id,gr)) {
+    abort();
+  }
+  return gr;
 }
 
 c3_t rotate_c3_xr(c3_t p1,c3_t p2,radians xr) {//rotate y and z around camera based on xr (looking up and down)
