@@ -192,6 +192,10 @@ void draw_minimap_line(c3_t p1,c3_t p2) {
 }
 */
 
+void draw_c3_line(c3_group_rot_t eye,c3_t p1, c3_t p2) {
+  draw_c2_line(c3_to_c2(eye,p1),c3_to_c2(eye,p2));
+}
+
 void draw_c3_shape(c3_group_rot_t eye,c3_s_t s) {//outlined. needs to be filled? //draw minimap shit in here too? probably...
   int i;
   char drawthefucker=0;//I don't wanna!
@@ -478,18 +482,32 @@ void draw_screen() {
   draw_c2_line((c2_t){0,0},rotate_c2((c2_t){-40,0},(c2_t){0,0},d2r((degrees){360-global.eye[en].r.y.d})));
   set_color_blue();
   draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.eye[en].r.z)));
+
+  c3_t mouse_v3 = (c3_t){gra_global.mouse.x,gra_global.mouse.y,0};//dunno about the 'z' for mouse.
+  set_color_red();
+  draw_c3_line(global.eye[en],c3_add(mouse_v3,(c3_t){ 1,0,0}),c3_add(mouse_v3,(c3_t){ 5,0,0}));
+  draw_c3_line(global.eye[en],c3_add(mouse_v3,(c3_t){-1,0,0}),c3_add(mouse_v3,(c3_t){-5,0,0}));
+  set_color();
+  draw_c3_line(global.eye[en],c3_add(mouse_v3,(c3_t){0, 1,0}),c3_add(mouse_v3,(c3_t){0, 5,0}));
+  draw_c3_line(global.eye[en],c3_add(mouse_v3,(c3_t){0,-1,0}),c3_add(mouse_v3,(c3_t){0,-5,0}));
+  set_color_blue();
+  draw_c3_line(global.eye[en],c3_add(mouse_v3,(c3_t){0,0, 1}),c3_add(mouse_v3,(c3_t){0,0, 5}));
+  draw_c3_line(global.eye[en],c3_add(mouse_v3,(c3_t){0,0,-1}),c3_add(mouse_v3,(c3_t){0,0,-5}));
   }
 //just draw a line from center to 40 away from the center at the angle of the camera's y-rotation
 //this should be minimap shit  
 
 //draw a line from the center to 80 away from the center in the angle of what should point at the mouse.
   //draw_c2_line((c2_t){0,0},gra_global.mouse);
+
+  //software mouse cursor
   set_color();
   draw_c2_line(c2_add(gra_global.mouse,(c2_t){0,1}) , c2_add(gra_global.mouse,(c2_t){0,5}) );
   draw_c2_line(c2_add(gra_global.mouse,(c2_t){0,-1}) , c2_add(gra_global.mouse,(c2_t){0,-5}) );
   draw_c2_line(c2_add(gra_global.mouse,(c2_t){1,0}) , c2_add(gra_global.mouse,(c2_t){5,0}) );
   draw_c2_line(c2_add(gra_global.mouse,(c2_t){-1,0}) , c2_add(gra_global.mouse,(c2_t){-5,0}) );
-  set_color();
+
+
   //if(points_on_same_side_of_line(gra_global.mouse,(c2_t){80,80},(c2_t){0,0},(c2_t){0,80})) {
   //draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},gra_global.mouse)));
   //}
