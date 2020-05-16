@@ -38,7 +38,7 @@ struct hvr_global global;
 
 int lum_based_on_distance(c3_s_t *s) {
   int i;
-  real sum;
+  real sum=0;
   for(i=0;i < s->len;i++) {
     sum+=distance2((c2_t){s->p[i].x,s->p[i].z},(c2_t){0,0});
   }
@@ -154,11 +154,14 @@ int hackvr_handler(char *line) {
   int ret=0;
   int len;
   int j,i,k,l;
+  int key_count;
   c3_group_rot_t *gr;
   real tmpx,tmpy,tmpz;
   char **a;
+  char **keys;
   char tmp[256];
   struct entry *m;
+  struct entry *next;
   char helping=0;//a flag that we can check for to see if we need to output our help
 // radians tmpradx,tmprady,tmpradz;
   radians tmprady;
@@ -167,6 +170,8 @@ int hackvr_handler(char *line) {
   //might use these so make command code easier to read.
   char *command;
   //char **args;
+
+
   if(!line) return -1;//EOF
   if(*line == '#') return 0;
 //  fprintf(stderr,"# read command: %s\n",line);
@@ -177,31 +182,31 @@ int hackvr_handler(char *line) {
 //  printf("\n");
   id=a[0];
   if(len > 1) {
-   command=a[1];
+    command=a[1];
   } else {
-   command=a[0];//meh
+    command=a[0];//meh
   }
   if(len < 2) {
-   if(!strcmp(id,"version")) {
-    hvr_version();
-    return 0;
-   }
-   if(!strcmp(id,"help")) {
-    helping=1;
+    if(!strcmp(id,"version")) {
+      hvr_version();
+      return 0;
+    }
+    if(!strcmp(id,"help")) {
+      helping=1;
 #ifdef GRAPHICAL
-    fprintf(stderr,"# NOT built headless.\n");
+      fprintf(stderr,"# NOT built headless.\n");
 #else
-    fprintf(stderr,"# built headless.\n");
+      fprintf(stderr,"# built headless.\n");
 #endif
-    fprintf(stderr,"# commands that don't get prepended with groupname: help, version\n");
-    fprintf(stderr,"# command format:\n");
-    fprintf(stderr,"# group names can be globbed in some cases to operate on multiple groups\n");
-    fprintf(stderr,"# some commands that take numbers as arguments can be made to behave relative\n");
-    fprintf(stderr,"# by putting + before the number. makes negative relative a bit odd like:\n");
-    fprintf(stderr,"#   user move +-2 +-2 0\n");
-    fprintf(stderr,"# groupnam* command arguments\n");
-    fprintf(stderr,"# commands:\n");
-   }
+      fprintf(stderr,"# commands that don't get prepended with groupname: help, version\n");
+      fprintf(stderr,"# command format:\n");
+      fprintf(stderr,"# group names can be globbed in some cases to operate on multiple groups\n");
+      fprintf(stderr,"# some commands that take numbers as arguments can be made to behave relative\n");
+      fprintf(stderr,"# by putting + before the number. makes negative relative a bit odd like:\n");
+      fprintf(stderr,"#   user move +-2 +-2 0\n");
+      fprintf(stderr,"# groupnam* command arguments\n");
+      fprintf(stderr,"# commands:\n");
+    }
   }
   ret=1;
   
@@ -209,36 +214,44 @@ int hackvr_handler(char *line) {
 /* ---------- */
   if(helping) fprintf(stderr,"#   deleteallexcept grou*\n");
   if(!strcmp(command,"deleteallexcept")) {
-   if(len == 3) {
-    for(j=0;global.shape[j] && j < MAXSHAPES;j++) {//mark first. compress later.
-     if(glob_match(a[2],global.shape[j]->id)) {
-      free(global.shape[j]->id);
-      free(global.shape[j]);
-      global.shape[j]=0;
-     }
-    }
-    for(k=0;k<j;k++) {
-     if(global.shape[k]) continue;
-     for(l=k;global.shape[l] == 0 && l<j;l++);
-     global.shape[k]=global.shape[l];
-     global.shape[l]=0;
-    }
-    ret=1;
-    //now do the same stuff but for the group_rot structs.
-    for(i=0;i < global.ht_group.kl;i++) {//for each bucket and item in each bucket...
-     for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
-      if(!glob_match(a[2],m->original)) {
-       if(m->target != &global.camera) {
-        gr=m->target;
-        ht_delete(&global.ht_group,gr->id);
-        free(gr->id);
-        free(gr);//pretty sure this does NOT get free()d by ht_delete, because the HT can't /know/ its value is a pointer to something malloc()d
-       }
+    if(len == 3) {
+      for(j=0;global.shape[j] && j < MAXSHAPES;j++) {//mark first. compress later.
+        if(glob_match(a[2],global.shape[j]->id)) {
+          free(global.shape[j]->id);
+          free(global.shape[j]);
+          global.shape[j]=0;
+        }
       }
-     }
+      for(k=0;k<j;k++) {//compress the shape array around the gaps
+        if(global.shape[k]) continue;
+        for(l=k;global.shape[l] == 0 && l<j;l++);
+        global.shape[k]=global.shape[l];
+        global.shape[l]=0;
+      }
+      //now do the same stuff but for the group_rot structs.
+      if(!strchr(a[2],'*')) {//no globs, this is easy...
+        ht_delete(&global.ht_group,m->original);
+      } else {
+        keys=ht_getkeys(&global.ht_group,&key_count);
+        for(i=0;i<key_count;i++) {
+          if((m=ht_getentry(&global.ht_group,keys[i]))) {
+            if(!glob_match(a[2],m->original)) {
+              if(m->target != &global.camera) {
+                free(m->target->id);
+                free(m->target);//ht_delete doesn't know that the target is a malloc()d structure, so we have to do this.
+                ht_delete(&global.ht_group,m->original);
+              }
+            }
+          } else {
+            fprintf(stderr,"# somehow an item is in the list of keys but ht_getentry failed. '%s'\n",a[2]);
+            abort();
+          }
+        }
+        free(keys);
+      }
+      ret=1;
+      return ret;
     }
-    return ret;
-   }
   }
   
 
@@ -261,18 +274,23 @@ int hackvr_handler(char *line) {
      global.shape[k]=global.shape[l];
      global.shape[l]=0;
     }
-    //we need to glob match all keys...
-    for(i=0;i < global.ht_group.kl;i++) {//for each bucket and item in each bucket...
-     for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
-      if(!glob_match(a[2],m->original)) {
-       if(m->target != &global.camera) {//ah! don't delete the camera!
-        gr=m->target;//this almost CERTAINLY exists... I think.
-        ht_delete(&global.ht_group,gr->id);
-        free(gr->id);
-        free(gr);
-       }
+    if(!strchr(a[2],'*') {//don't bother looping over everything if it isn't a glob..
+      ht_delete(&global.ht_group,a[2]);
+    } else {
+      keys=ht_getkeys(&global.ht_group,&key_count);
+      for(i=0;i<key_count;i++) {
+        if((m=ht_getentry(&global.ht_group,keys[i]))) {
+          if(m->target != &global.camera) {
+            free(m->target->id);
+            free(m->target);
+            ht_delete(&global.ht_group,m->original);
+          }
+        } else {
+          fprintf(stderr,"# somehow an item is in the list of keys but ht_getentry failed. '%s'\n",a[2]);
+          abort();
+        }
       }
-     }
+      free(keys);
     }
     ret=1;
     return ret;
@@ -669,8 +687,9 @@ int hackvr_handler(char *line) {
      tmpx=0;
      tmpz=0;
     }
-    snprintf(tmp,sizeof(tmp)-1,"%s move +%f +%f +%f\n",global.user,tmpx,tmpy,tmpz);
-    selfcommand(tmp);//selfcommand inside move is ugly. :/ just set it the right way.
+    gr->p.x+=tmpx;
+    gr->p.y+=tmpy;
+    gr->p.z+=tmpz;
    } else {
     fprintf(stderr,"# ERROR: wrong amount of parts for move. got: %d expected: 4 or 2\n",len);
    }
@@ -733,6 +752,9 @@ int main(int argc,char *argv[]) {
    //I could just read
   }
   global.user=strdup(getenv("USER"));//this gets free()d later so we need to strdup it.
+  if(!strcmp(global.user,"help") || !strcmp(global.user,"version")) {
+    fprintf(stderr,"# /!\\ WARNING /!\\/ a USER of help or version maybe cause problems when piped into another hackvr. right now it is '%s'\n",global.user);
+  }
   global.localecho=1;
 
   inittable(&global.ht_group,65536);
