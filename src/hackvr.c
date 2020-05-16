@@ -154,14 +154,12 @@ int hackvr_handler(char *line) {
   int ret=0;
   int len;
   int j,i,k,l;
-  int key_count;
+  unsigned int key_count;
   c3_group_rot_t *gr;
   real tmpx,tmpy,tmpz;
   char **a;
   char **keys;
-  char tmp[256];
   struct entry *m;
-  struct entry *next;
   char helping=0;//a flag that we can check for to see if we need to output our help
 // radians tmpradx,tmprady,tmpradz;
   radians tmprady;
@@ -229,18 +227,68 @@ int hackvr_handler(char *line) {
         global.shape[l]=0;
       }
       //now do the same stuff but for the group_rot structs.
-      if(!strchr(a[2],'*')) {//no globs, this is easy...
-        ht_delete(&global.ht_group,m->original);
+      keys=ht_getkeys(&global.ht_group,&key_count);
+      for(i=0;i<key_count;i++) {
+        if((m=ht_getentry(&global.ht_group,keys[i]))) {
+          if(glob_match(a[2],m->original)) {//we're inverting the glob match
+            if(m->target != &global.camera) {
+              gr=m->target;
+              free(gr->id);
+              free(gr);//ht_delete doesn't know that the target is a malloc()d structure, so we have to do this.
+              ht_delete(&global.ht_group,m->original);
+            }
+          }
+        } else {
+          fprintf(stderr,"# somehow an item is in the list of keys but ht_getentry failed. '%s'\n",a[2]);
+          abort();
+        }
+      }
+      free(keys);
+      ret=1;
+      return ret;
+    }
+  }
+  
+
+/* ---------- */
+  if(helping) fprintf(stderr,"# _ deletegroup grou*\n");
+  if(!strcmp(command,"deletegroup")) {//should the grouprot get deleted too? sure...
+    if(len == 3) {
+      for(j=0;global.shape[j] && j < MAXSHAPES;j++) {
+        if(!glob_match(a[2],global.shape[j]->id)) {
+          free(global.shape[j]->id);
+          free(global.shape[j]);
+          global.shape[j]=0;
+        }
+      }
+      //we now have an array that needs to be compressed.
+      //max length of j.
+      for(k=0;k<j;k++) {//now... we go from the beginning
+       if(global.shape[k]) continue;
+       for(l=k;global.shape[l] == 0 && l<j;l++);
+       global.shape[k]=global.shape[l];
+       global.shape[l]=0;
+      }
+      if(!strchr(a[2],'*')) {//don't bother looping over everything if it isn't a glob..
+        if((m=ht_getentry(&global.ht_group,a[2]))) {
+          //should we allow the deletion of the camera if the explicitly ask?
+          if(m->target != &global.camera) {
+            //maybe later...
+            gr=m->target;
+            free(gr->id);
+            free(gr);
+            ht_delete(&global.ht_group,m->original);
+          }
+        }
       } else {
         keys=ht_getkeys(&global.ht_group,&key_count);
         for(i=0;i<key_count;i++) {
           if((m=ht_getentry(&global.ht_group,keys[i]))) {
-            if(!glob_match(a[2],m->original)) {
-              if(m->target != &global.camera) {
-                free(m->target->id);
-                free(m->target);//ht_delete doesn't know that the target is a malloc()d structure, so we have to do this.
-                ht_delete(&global.ht_group,m->original);
-              }
+            if(m->target != &global.camera) {
+              gr=m->target;
+              free(gr->id);
+              free(gr);
+              ht_delete(&global.ht_group,m->original);
             }
           } else {
             fprintf(stderr,"# somehow an item is in the list of keys but ht_getentry failed. '%s'\n",a[2]);
@@ -252,49 +300,6 @@ int hackvr_handler(char *line) {
       ret=1;
       return ret;
     }
-  }
-  
-
-/* ---------- */
-  if(helping) fprintf(stderr,"# _ deletegroup grou*\n");
-  if(!strcmp(command,"deletegroup")) {//should the grouprot get deleted too? sure...
-   if(len == 3) {
-    for(j=0;global.shape[j] && j < MAXSHAPES;j++) {
-     if(!glob_match(a[2],global.shape[j]->id)) {
-      free(global.shape[j]->id);
-      free(global.shape[j]);
-      global.shape[j]=0;
-     }
-    }
-    //we now have an array that needs to be compressed.
-    //max length of j.
-    for(k=0;k<j;k++) {//now... we go from the beginning
-     if(global.shape[k]) continue;
-     for(l=k;global.shape[l] == 0 && l<j;l++);
-     global.shape[k]=global.shape[l];
-     global.shape[l]=0;
-    }
-    if(!strchr(a[2],'*') {//don't bother looping over everything if it isn't a glob..
-      ht_delete(&global.ht_group,a[2]);
-    } else {
-      keys=ht_getkeys(&global.ht_group,&key_count);
-      for(i=0;i<key_count;i++) {
-        if((m=ht_getentry(&global.ht_group,keys[i]))) {
-          if(m->target != &global.camera) {
-            free(m->target->id);
-            free(m->target);
-            ht_delete(&global.ht_group,m->original);
-          }
-        } else {
-          fprintf(stderr,"# somehow an item is in the list of keys but ht_getentry failed. '%s'\n",a[2]);
-          abort();
-        }
-      }
-      free(keys);
-    }
-    ret=1;
-    return ret;
-   }
   }
   
 
