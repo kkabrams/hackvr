@@ -13,7 +13,7 @@ char keyboard_map[1024]={0};
 void keyboard_event_handler(struct shit *me,char *junk) {//these arguments aren't actually used.
   int k;
   char line[2560];
-  c3_group_rot_t *gr;
+  c3_group_rel_t *gr;
   int e;//it is HVK_ values. positive or negative for press and release. 0 for nothing.
   while((e=get_keyboard_event())) {
     k=(e<0?-e:e);//absolute value
