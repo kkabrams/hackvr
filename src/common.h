@@ -50,11 +50,12 @@ typedef struct {
 
 typedef struct {
   char *id;//for the camera this is $USER, right?
+  char *parent;//the position is relative to the parent's data.
   c3_rot_t r;//rotation
   c3_t p;//position
   c3_t s;//??? shape??? I dunno. really. wtf was this for? PROBABLY SCALE. DUH. that's what it is going to bed used for now anyway.
   c3_t v;//velocity
-} c3_group_rot_t;
+} c3_group_rel_t;
 
 //typedef struct c3_line {//is this even used? I think I just use c3_s_t with 2 points.
 // char *id;
@@ -112,8 +113,8 @@ struct hvr_global {
   struct c3_shape *shape[SHAPES];
   int shapes;
   struct hashtable ht_group;
-  c3_group_rot_t eye[MAX_SIDES];//lol. 1000 eyes! array of group_rots for each eye. how to arrange eyes?
-  c3_group_rot_t camera;//should there be an array for this? camera has .s which is a shape struct. each point is the eye?
+  c3_group_rel_t eye[MAX_SIDES];//lol. 1000 eyes! array of group_rels for each eye. how to arrange eyes?
+  c3_group_rel_t camera;//should there be an array for this? camera has .s which is a shape struct. each point is the eye?
   real zoom;
   int derp;
   real split;

@@ -44,7 +44,7 @@ void draw_screen();
 void set_aspect_ratio();
 void recalculate_eyes();
 int selfcommand(char *s);
-cs_t c3_to_cs(c3_group_rot_t eye,c3_t p);
+cs_t c3_to_cs(c3_group_rel_t eye,c3_t p);
 radians d2r(degrees d);
 real shitdist(struct c3_shape *s,c3_t p);
 c3_t rotate_c3_xr(c3_t p1,c3_t p2,radians xr);

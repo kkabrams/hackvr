@@ -155,7 +155,7 @@ int hackvr_handler(char *line) {
   int len;
   int j,i,k,l;
   unsigned int key_count;
-  c3_group_rot_t *gr;
+  c3_group_rel_t *gr;
   real tmpx,tmpy,tmpz;
   char **a;
   char **keys;
@@ -226,7 +226,7 @@ int hackvr_handler(char *line) {
         global.shape[k]=global.shape[l];
         global.shape[l]=0;
       }
-      //now do the same stuff but for the group_rot structs.
+      //now do the same stuff but for the group_rel structs.
       keys=ht_getkeys(&global.ht_group,&key_count);
       for(i=0;i<key_count;i++) {
         if((m=ht_getentry(&global.ht_group,keys[i]))) {
@@ -305,7 +305,7 @@ int hackvr_handler(char *line) {
 
 /* ---------- */
   if(helping) fprintf(stderr,"#   assimilate grou*\n");
-  if(!strcmp(command,"assimilate")) {//um... what do we do with the group_rotation? flatten it?
+  if(!strcmp(command,"assimilate")) {//um... what do we do with the group_relative? flatten it?
    if(len == 3) {
     for(j=0;global.shape[j];j++) {
      if(!glob_match(a[2],global.shape[j]->id)) {
@@ -442,6 +442,15 @@ int hackvr_handler(char *line) {
    return ret;
   }
 
+
+/* ---------- */
+  if(helping) fprintf(stderr,"#   subsume child-group\n");
+  if(!strcmp(command,"subsume")) {
+   gr=get_group_relative(a[2]);//we need the child's group relative...
+   gr->parent = gr->id;
+   ret=0;
+   return ret;
+  }
 
 /* ---------- */
   if(helping) fprintf(stderr,"#   addshape color N x1 y1 z1 ... xN yN zN\n");
@@ -639,7 +648,7 @@ int hackvr_handler(char *line) {
    fprintf(stderr,"# * move [+]x [+]y [+]z\n");
    fprintf(stderr,"# * move forward|backward|up|down|left|right\n");
   }
-  if(!strcmp(command,"move")) {//this is only moving the first group_rot it finds instead of all group_rots that match the pattern
+  if(!strcmp(command,"move")) {//this is only moving the first group_rel it finds instead of all group_rels that match the pattern
    if(len > 2) {
     gr=get_group_relative(id);
    }
@@ -673,10 +682,8 @@ int hackvr_handler(char *line) {
      tmprady=d2r((degrees){global.camera.r.y.d+180});
     } else if(!strcmp(a[2],"up")) {
      tmprady=(radians){0};
-     tmpy=WALK_SPEED*1;
     } else if(!strcmp(a[2],"down")) {
      tmprady=(radians){0};
-     tmpy=-WALK_SPEED*1;
     } else if(!strcmp(a[2],"left")) {
      tmprady=d2r((degrees){global.camera.r.y.d+270});
     } else if(!strcmp(a[2],"right")) {
