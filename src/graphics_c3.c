@@ -137,7 +137,7 @@ real magic(real x) {
   return MAGIC(x);
 }
 
-c2_t c3_to_c2(c3_group_rot_t eye,c3_t p3) { //DO NOT DRAW STUFF IN HERE
+c2_t c3_to_c2(c3_group_rel_t eye,c3_t p3) { //DO NOT DRAW STUFF IN HERE
   c2_t p2;
   c3_t tmp1;
 //  c3_t tmp2;
@@ -192,11 +192,11 @@ void draw_minimap_line(c3_t p1,c3_t p2) {
 }
 */
 
-void draw_c3_line(c3_group_rot_t eye,c3_t p1, c3_t p2) {
+void draw_c3_line(c3_group_rel_t eye,c3_t p1, c3_t p2) {
   draw_c2_line(c3_to_c2(eye,p1),c3_to_c2(eye,p2));
 }
 
-void draw_c3_shape(c3_group_rot_t eye,c3_s_t s) {//outlined. needs to be filled? //draw minimap shit in here too? probably...
+void draw_c3_shape(c3_group_rel_t eye,c3_s_t s) {//outlined. needs to be filled? //draw minimap shit in here too? probably...
   int i;
   char drawthefucker=0;//I don't wanna!
   c3_s_t s2;//post rotation
@@ -207,7 +207,7 @@ void draw_c3_shape(c3_group_rot_t eye,c3_s_t s) {//outlined. needs to be filled?
   s3.id=s.id;
   s3.len=s.len;
 
-  //c3_group_rot_t gr=get_group_relative(s.id);//it doesn't matter if I get it here or not, I'm not looping the next call.
+  //c3_group_rel_t gr=get_group_relative(s.id);//it doesn't matter if I get it here or not, I'm not looping the next call.
   //this function will get the group relative by itself if the argument is NULL
   s2=apply_group_relative(s,NULL);//math.c
 
@@ -283,7 +283,7 @@ void draw_graph(real (*fun)(real x)) {
  }
 }
 
-cs_t c3_to_cs(c3_group_rot_t eye,c3_t p) {
+cs_t c3_to_cs(c3_group_rel_t eye,c3_t p) {
  return c2_to_cs(c3_to_c2(eye,p));
 }
 
@@ -297,7 +297,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  int i;
  real curdist=0;
  real maxdist=0;
- c3_group_rot_t *gr=get_group_relative(s->id);
+ c3_group_rel_t *gr=get_group_relative(s->id);
  for(i=0;i< s->len+(s->len==1);i++) {
   if(gr) {
    curdist=shitdist2(p,rotate_c3_yr(c3_add(gr->p,s->p[i]),gr->p,d2r(gr->r.y)));
@@ -312,7 +312,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  /*
  real total=0;
  for(i=0;i< s->len+(s->len==1);i++) {
-  c3_group_rot_t *gr=get_group_relative(s->id);
+  c3_group_rel_t *gr=get_group_relative(s->id);
   total=total+shitdist2(
                 rotate_c3_yr(//we're rotating the point around the camera...
                   gr?
@@ -352,7 +352,7 @@ void HatchLines(c2_t p1,c2_t p2,c2_t p3,int density) {
 //black out the rest of the triangle first?
 //sounds alright to me...
 
-void draw_c3_text(c3_group_rot_t eye,c3_t p,char *text) {
+void draw_c3_text(c3_group_rel_t eye,c3_t p,char *text) {
  c2_t p2=c3_to_c2(eye,p);
  draw_c2_text(p2,text);
 }
@@ -521,7 +521,7 @@ void redraw() {//something is requesting a redraw.
   }
 }
 
-void recalculate_eyes() {//should I put the eyes into the global group_rot array so we can move them?
+void recalculate_eyes() {//should I put the eyes into the global group_rel array so we can move them?
  int i;
  radians rad=d2r((degrees){global.camera.r.y.d+90});
  //radians tmprad2=d2r((degrees){global.camera.r.y.d+90});
