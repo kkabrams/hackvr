@@ -12,14 +12,15 @@ extern struct hvr_global global;
 //ONE OF THESE DAYS I NEED TO RENAME ALL THE GROUP_ROT SHIT TO GROUP_REL since it doesn't just have rotations anymore.
 
 //this function needs to create a group_relative if one doesn't already exist.
-c3_group_rot_t *get_group_relative(char *id) {
-  c3_group_rot_t *gr;
+c3_group_rel_t *get_group_relative(char *id) {
+  if(!id) return 0;//null argument gets null return
+  c3_group_rel_t *gr;
   if((gr=ht_getvalue(&global.ht_group,id))) {
     if(gr) return gr;
   }
   //if we got here, we need to make a new one.
-  assert(gr=malloc(sizeof(c3_group_rot_t)));//just exit on malloc error? sure...
-  memset(gr,0,sizeof(c3_group_rot_t));
+  assert(gr=malloc(sizeof(c3_group_rel_t)));//just exit on malloc error? sure...
+  memset(gr,0,sizeof(c3_group_rel_t));
   gr->s=(c3_t){1,1,1};//scale needs to be all 1s, since it is multiplied against the coordinates.
   gr->id=strdup(id);//don't forget to free this when it gets deleted.
   if(ht_setkey(&global.ht_group,id,gr)) {
@@ -140,15 +141,44 @@ void print_point(c3_t p) {
   printf("%lF %lF %lF\n",p.x,p.y,p.z);
 }
 
-c3_s_t apply_group_relative(c3_s_t s,c3_group_rot_t *group_rot) {
+c3_t c3_multiply(c3_t p,c3_t s) {
+  c3_t r;
+  r.x = p.x * s.x;
+  r.y = p.y * s.y;
+  r.z = p.z * s.z;
+  return r;
+}
+
+// hand pieces will first rotate around 0,0,0.
+// arm pieces will first rotate around 0,0,0.
+// torso pieces will first rotate around 0,0,0.
+// arm pieces will be added to torso rotations
+// hand pieces will be addd to arm rotations.
+// arm pieces will rotate around origin...
+// I dunno....
+c3_t point_apply_group_relative(c3_t p,c3_group_rel_t *gr) {
+  if(!gr) return p;//fuck it. nothing to do..
+
+  return c3_add(point_apply_group_relative(gr->p,get_group_relative(gr->parent)),
+                rotate_c3_xr(
+                  rotate_c3_yr(
+                    rotate_c3_zr(
+                      c3_multiply(p,gr->s),(c3_t){0,0,0},d2r(gr->r.z)
+                    ),(c3_t){0,0,0},d2r(gr->r.y)
+                  ),(c3_t){0,0,0},d2r(gr->r.x)
+                )
+               );
+}
+
+c3_s_t apply_group_relative(c3_s_t s,c3_group_rel_t *group_rel) {
   c3_s_t s2;
-  c3_group_rot_t *gr;
+  c3_group_rel_t *gr;
   int i;
   s2.len=s.len;
   s2.id=s.id;
   s2.attrib=s.attrib;
-  if(group_rot) {
-   gr=group_rot;
+  if(group_rel) {
+   gr=group_rel;
   } else {
    gr=get_group_relative(s.id);
   }
@@ -171,6 +201,9 @@ c3_s_t apply_group_relative(c3_s_t s,c3_group_rot_t *group_rot) {
      s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],(c3_t){0,0,0},d2r((degrees){0-(gr->r.y.d)})));
     } else {
      if(gr) {
+      s2.p[i]=point_apply_group_relative(s.p[i],gr);
+
+/*
       s.p[i].x *= gr->s.x;
       s.p[i].y *= gr->s.y;
       s.p[i].z *= gr->s.z;//scaling applied? sure....
@@ -182,6 +215,7 @@ c3_s_t apply_group_relative(c3_s_t s,c3_group_rot_t *group_rot) {
                                              ),(c3_t){0,0,0},d2r(gr->r.x)
                                        )
                     );
+*/
      } else {
       s2.p[i]=s.p[i];
      }
