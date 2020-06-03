@@ -18,15 +18,16 @@ rotation-relative-x,rry,rrz
 */
 int apply_physics() {
   //int i;
-  //we can just assume things will float if they don't have a group_rot
+  //we can just assume things will float if they don't have a group_rel
   /*
-  for(i=0;global.group_rot[i]  && i < MAXSHAPES;i++) {//this should be applied to group_rots
-    if(!strcmp(global.group_rot[i]->id,global.user)) {//only apply gravity to the camera.
-      global.group_rot[i]->v.y += (GRAVITY / (float)(global.lps?global.lps:1)); //heh. "fps" needs a headless equivalent now.
-      global.group_rot[i]->p.y -= global.group_rot[i]->v.y;
-      if(global.group_rot[i]->p.y < MINIMUM_Y) {//we've moved so we need to output a move command?
-        global.group_rot[i]->v.y=0;
-        global.group_rot[i]->p.y=MINIMUM_Y;
+  //this needs a big rewrite anyway
+  for(i=0;global.group_rel[i]  && i < MAXSHAPES;i++) {//this should be applied to group_rels
+    if(!strcmp(global.group_rel[i]->id,global.user)) {//only apply gravity to the camera.
+      global.group_rel[i]->v.y += (GRAVITY / (float)(global.lps?global.lps:1)); //heh. "fps" needs a headless equivalent now.
+      global.group_rel[i]->p.y -= global.group_rel[i]->v.y;
+      if(global.group_rel[i]->p.y < MINIMUM_Y) {//we've moved so we need to output a move command?
+        global.group_rel[i]->v.y=0;
+        global.group_rel[i]->p.y=MINIMUM_Y;
       }
     }
   }*/

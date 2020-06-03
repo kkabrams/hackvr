@@ -255,7 +255,7 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
   radians tmprad2;
   real tmpx;
   int i;
-  c3_group_rot_t *gr;
+  c3_group_rel_t *gr;
   int sym=XLookupKeysym(xkey,0);
   real tmpz;
   switch(gra_global.input_mode) {

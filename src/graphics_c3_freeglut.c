@@ -196,7 +196,7 @@ void draw_c3_shape(c3_s_t s) {//outlined. needs to be filled? //draw minimap shi
   s2.len=s.len;
   s3.id=s.id;
   s3.len=s.len;
-  c3_group_rot_t *gr=get_group_relative(s.id);
+  c3_group_rel_t *gr=get_group_relative(s.id);
   if(s.len > 1) {
    for(i=0;i<s.len+(s.len==1);i++) {//apply the group's rotation and store in s2.
      if(gr) {
@@ -293,7 +293,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  int i;
  real curdist=0;
  real maxdist=0;
- c3_group_rot_t *gr=get_group_relative(s->id);
+ c3_group_rel_t *gr=get_group_relative(s->id);
  for(i=0;i< s->len+(s->len==1);i++) {
   if(gr) {
    curdist=shitdist2(global.camera.p,rotate_c3_yr(c3_add(gr->p,s->p[i]),gr->p,d2r(gr->r.y)));
@@ -308,7 +308,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  /*
  real total=0;
  for(i=0;i< s->len+(s->len==1);i++) {
-  c3_group_rot_t *gr=get_group_relative(s->id);
+  c3_group_rel_t *gr=get_group_relative(s->id);
   total=total+shitdist2(
                 rotate_c3_yr(//we're rotating the point around the camera...
                   gr?
@@ -430,7 +430,7 @@ int graphics_sub_init() {
 
 void draw_screen() {//welp... do something here.
   int i,j;
-  c3_group_rot_t *gr;
+  c3_group_rel_t *gr;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
   //for each object:
@@ -483,8 +483,8 @@ int graphics_init() {
 
  global.shape[0]=0;//we'll allocate as we need more.
  global.camera.id=strdup(global.user);//make a copy so if we change global.user later we can reattach to this camera.
- global.group_rot[0]=&global.camera;//why do we have the camera in here? we need to prevent this from getting deleted.
- global.group_rot[1]=0;
+ global.group_rel[0]=&global.camera;//why do we have the camera in here? we need to prevent this from getting deleted.
+ global.group_rel[1]=0;
 
  global.camera.p.x=0;
  global.camera.p.y=10;//10 units above the ground should be as low as it goes.
