@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L //for fileno and strdup
+#include <ctype.h> //isspace
 #include <stdio.h>
 #include <fcntl.h>
 #include <assert.h>
@@ -92,21 +93,21 @@ char **line_splitter(char *line,int *rlen) {
  char **a;
  int len,i=0;
  len=1;//we're just counting how much we'll need the first loop through.
- for(i=0;line[i] && line[i] == ' ';i++);//skip leading space
+ for(i=0;line[i] && isspace(line[i]);i++);//skip leading space
  for(;line[i];len++) {
-  for(;line[i] && line[i] != ' ';i++);//skip rest of data
-  for(;line[i] && line[i] == ' ';i++);//skip rest of space
+  for(;line[i] && !isspace(line[i]);i++);//skip rest of data
+  for(;line[i] && isspace(line[i]);i++);//skip rest of space
  }
  a=malloc(sizeof(char *) * len+1);
  a[len]=0;
  len=0;//reuse!
- for(i=0;line[i] && line[i] == ' ';i++);//skip leading space
+ for(i=0;line[i] && isspace(line[i]);i++);//skip leading space
  a[len]=line+i;
  for(;;) {
-  for(;line[i] && line[i] != ' ';i++);//skip rest of data
+  for(;line[i] && !isspace(line[i]);i++);//skip rest of data
   if(!line[i]) break;
   line[i++]=0;
-  for(;line[i] && line[i] == ' ';i++);//skip rest of space
+  for(;line[i] && isspace(line[i]);i++);//skip rest of space
   if(!line[i]) break;
   a[++len]=line+i;
  }
