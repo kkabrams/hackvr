@@ -421,9 +421,13 @@ void draw_screen() {
      //draw_sky();//???p?
      //XCopyArea(global.dpy,skypixmap,global.backbuffer,global.backgc,((camera.yr*5)+SKYW)%SKYW,0,WIDTH,global.height/2,0,0);
     }
-    if(gra_global.draw3d) {//wtf? why do I not compensate for camaera rotation along the x and z?
-      //draw_c2_line((c2_t){LEFT,0},(c2_t){RIGHT,0}); //horizon
-    }
+    //if(gra_global.draw3d) {//wtf? why do I not compensate for camaera rotation along the x and z?
+      //horizon line
+      draw_c2_line((c2_t){LEFT,
+                          (int)((real)(global.camera.r.x.d) * (real)(BOTTOM+BOTTOM) / (real)90.0)},
+                   (c2_t){RIGHT,
+                          (int)((real)(global.camera.r.x.d) * (real)(BOTTOM+BOTTOM) / (real)90.0)});
+    //}
 ///// shiiiit. I should be applying group rotations to all these shapes before sorting them.
 //when I do that. I need to make sure to take the group rotation out of draw_c3_shape()'s code.
     for(i=0;global.shape[i];i++) {
