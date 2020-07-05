@@ -1,0 +1,7 @@
+base addshape 1 2  0 0 0  0 8 0
+mid addshape   2 2  0 0 0  0 4 0
+mid move 0 8 0
+base subsume mid
+end addshape  4 2  0 0 0 0 2 0
+end move 0 4 0
+mid subsume end
