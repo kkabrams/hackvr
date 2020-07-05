@@ -156,7 +156,7 @@ int hackvr_handler(char *line) {
   int len;
   int j,i,k,l;
   unsigned int key_count;
-  c3_group_rel_t *gr;
+  c3_group_rel_t *gr,*pgr;
   real tmpx,tmpy,tmpz;
   char **a;
   char **keys;
@@ -447,8 +447,21 @@ int hackvr_handler(char *line) {
 /* ---------- */
   if(helping) fprintf(stderr,"#   subsume child-group\n");
   if(!strcmp(command,"subsume")) {
-   gr=get_group_relative(a[2]);//we need the child's group relative...
-   gr->parent = gr->id;
+   if(strchr(a[2],'*')) {
+    for(i=0;i < global.ht_group.kl;i++) {
+     for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
+      if(!glob_match(id,m->original)) {
+       gr=m->target;
+       pgr=get_group_relative(id);
+       gr->parent = pgr->id;
+      }
+     }
+    }
+   } else {
+    gr=get_group_relative(a[2]);//we need the child's group relative...
+    pgr=get_group_relative(id);
+    gr->parent = pgr->id;
+   }
    ret=0;
    return ret;
   }
