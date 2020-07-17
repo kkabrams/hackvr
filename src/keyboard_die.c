@@ -6,8 +6,7 @@
 
 #include "keyboard.h"
 
-//#define KBDEV "/dev/input/event0"
-#define KBDEV "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
+#define KBDEV "/dev/input/by-path/pci-0000:00:02.0-usb-0:2.1:1.0-event-kbd"
 
 int kbfd = -1;
 
