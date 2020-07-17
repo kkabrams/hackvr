@@ -17,7 +17,7 @@ CFLAGS+=-DGRAPHICAL
 LDFLAGS+=-L$(PREFIX)/lib -L$(LIBIDC_LIB_PATH) -L$(LIBHASHTABLE_LIB_PATH)
 
 #all: hackvr_headless hackvr_x11 hackvr_opengl slowcat ### when hackvr_opengl gets useful at all I'll start including it in default build.
-all: hackvr_fb hackvr_xdie hackvr_headless hackvr_x11 slowcat nonblocktail
+all: hackvr_svg hackvr_fb hackvr_xdie hackvr_headless hackvr_x11 slowcat nonblocktail
 # hackvr_fb hackvr_freeglut slowcat
 
 hackvr_xdie: override LDLIBS+=-lm -lidc -lX11 -lhashtable
@@ -31,6 +31,9 @@ hackvr_headless: hackvr_headless.o math.o physics.o
 
 hackvr_x11: override LDLIBS+=-lm -lidc -lX11 -lhashtable
 hackvr_x11: hackvr_x11.o graphics_c3.o graphics_c2.o graphics_cs_x11.o math.o physics.o keyboard.o mouse_x11.o keyboard_x11.o
+
+hackvr_svg: override LDLIBS+=-lm -lidc -lhashtable
+hackvr_svg: hackvr_svg.o graphics_c3.o graphics_c2.o graphics_cs_svg.o math.o physics.o keyboard.o keyboard_die.o mouse_die.o
 
 #notice how all the targets have generic graphics objects up until a specific one.
 
@@ -46,6 +49,7 @@ hackvr_freeglut: hackvr_freeglut.o graphics_c3_freeglut.o math.o physics.o keybo
 hackvr_fb.o: CFLAGS+='-DHVR_VERSION="framebuffer"'
 hackvr_x11.o: CFLAGS+='-DHVR_VERSION="x11"'
 hackvr_xdie.o: CFLAGS+='-DHVR_VERSION="x11+die"'
+hackvr_svg.o: CFLAGS+='-DHVR_VERSION="svg"'
 hackvr_headless.o: CFLAGS=$(BASE_CFLAGS)
 hackvr_headless.o: CFLAGS+='-DHVR_VERSION="headless"'
 
@@ -57,6 +61,7 @@ install: all
 	install -t $(PREFIX)/bin nonblocktail
 	install -t $(PREFIX)/bin hackvr_xdie
 	install -t $(PREFIX)/bin hackvr_fb
+	install -t $(PREFIX)/bin hackvr_svg
 #	install -t $(PREFIX)/bin hackvr_freeglut
 
 uninstall:
