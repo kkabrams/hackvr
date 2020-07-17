@@ -516,7 +516,7 @@ void draw_screen() {
 void redraw() {//something is requesting a redraw.
   if(gra_global.redrawplzkthx == 0) {
     gra_global.redrawplzkthx=1;//this is to prevent drawing way too often.
-    fprintf(stderr,"# in the redraw() function\n");
+    //fprintf(stderr,"# in the redraw() function\n");
     write(gra_global.redraw[1],"redrawplzkthx!\n",15);
   }
 }
