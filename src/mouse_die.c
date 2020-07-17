@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "graphics_c3.h"
+#include "mouse.h"
 
 extern struct hvr_global global;
 extern struct gra_global gra_global;
@@ -29,11 +30,29 @@ int mouse_init() {
   return mfd;
 }
 
+//buttons are:
+//0 for left click, 1 for right click, 2 is middle-click
+
+//in the hackvr mouse map, right is 2, left is 0 and center is 1?
+#define DIE_MOUSE_LEFT 0
+#define DIE_MOUSE_RIGHT 1
+#define DIE_MOUSE_CENTER 2
+//it doesn't care if you have X11 buttons swapped around ofc.
+char die2map(char d) {//edit this function if you want to change your primary and secondary mouse button.
+  switch(d) {
+    case DIE_MOUSE_RIGHT: return MOUSE_PRIMARY;
+    case DIE_MOUSE_LEFT: return MOUSE_SECONDARY;
+    case DIE_MOUSE_CENTER: return MOUSE_TERTIARY;
+    default: return -1;
+  }
+}
+
 int mouse_event_handler() {
   struct wtf ie;
   int butt;
   int l;
-  int i;
+  int i;//this is a DIE_MOUSE value
+  unsigned char m;//this is a hackvr mouse map value.
   int redrawplzkthx=0;
   memset(&ie,0,sizeof(ie));
   if(mfd == -1) {
@@ -46,22 +65,24 @@ int mouse_event_handler() {
     return 1;
   }
   if((l=read(mfd,&ie,sizeof(ie))) > 0) {
-    //type == 8 and a or of some bits to say which direction.
-    //these types are movement: 8 40 56 24
-    for(i=0;i<4;i++) {//we need to loop over all buttons each event. :/
-      butt=ie.type & 0x07 & (1<<i);
+    for(i=0;i<3;i++) {//we need to loop over all buttons each event. :/
+      butt=ie.type & 0x07 & (1<<i);//lowest 3 bits are possible mouse button states
+      m=die2map(i);
+      if(m == -1) {
+        continue;//not gonna even try.
+      }
       if(butt) {//this button is down
         fprintf(stderr,"# mouse button %d is down.\n",butt-1);
-	if(gra_global.mousemap[butt-1] != 1) {//freshly down. save coords and set it to down.
-          gra_global.dragstart[butt-1]=gra_global.mouse;
-          gra_global.mousemap[butt-1]=1;
-	  redrawplzkthx=1;
-	}
+	if(gra_global.mousemap[m] != 1) {//freshly down. save coords and set it to down.
+          gra_global.dragstart[m]=gra_global.mouse;
+          gra_global.mousemap[m]=1;
+          redrawplzkthx=1;
+        }
       } else {
-        if(gra_global.mousemap[(1<<i)-1]) {//only if it was pressed we mark it as "released"
+        if(gra_global.mousemap[m]) {//only if it was pressed we mark it as "released"
 	  fprintf(stderr,"# mouse button %d is being marked as released.\n",(1<<i)-1);
-          gra_global.mousemap[(1<<i)-1]=-1;
-	  if((1<<i)-1 == 1) {//do this for right-click only.
+          gra_global.mousemap[m]=-1;
+	  if(m == MOUSE_SECONDARY) {//do this for secondary button release
 	    gra_global.oldcamera = global.camera.r;//we're done dragging, so set this as where the camera points at for next drag around
 	  }
 	  redrawplzkthx=1;
@@ -72,11 +93,15 @@ int mouse_event_handler() {
     if(ie.dx || ie.dy) {
       fprintf(stderr,"# mouse debug: type:\t%d\tdx:%d\tdy:%d\n",ie.type,ie.dx,ie.dy);
       gra_global.mouse.x+=ie.dx;
+      if(gra_global.mouse.x < LEFT) gra_global.mouse.x = LEFT;
+      if(gra_global.mouse.x > RIGHT) gra_global.mouse.x = RIGHT;
       gra_global.mouse.y+=ie.dy;
+      if(gra_global.mouse.y < BOTTOM) gra_global.mouse.y = BOTTOM;
+      if(gra_global.mouse.y > TOP) gra_global.mouse.y = TOP;
       fprintf(stderr,"# mouse: x:%F y:%F\n",gra_global.mouse.x,gra_global.mouse.y);
-      if(gra_global.mousemap[1] == 1) {//if "right" click is held down
-        global.camera.r.x.d=gra_global.oldcamera.x.d + (gra_global.mouse.y - gra_global.dragstart[1].y);
-        global.camera.r.y.d=gra_global.oldcamera.y.d + (gra_global.mouse.x - gra_global.dragstart[1].x);
+      if(gra_global.mousemap[MOUSE_SECONDARY] == 1) {//if "right" click is held down... this is somehow primary click
+        global.camera.r.x.d=gra_global.oldcamera.x.d + (gra_global.mouse.y - gra_global.dragstart[MOUSE_SECONDARY].y);
+        global.camera.r.y.d=gra_global.oldcamera.y.d + (gra_global.mouse.x - gra_global.dragstart[MOUSE_SECONDARY].x);
       }
       redrawplzkthx=1;
     }
