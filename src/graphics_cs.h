@@ -4,9 +4,6 @@
 #include "math.h"
 #include <idc.h>
 
-//these are just the functions that all backends need to implement to work with hackvr.
-//the list of functions are subject to change.
-
 void draw_cs_line(cs_t p1,cs_t p2);
 void draw_cs_text(cs_t p,char *text);
 void draw_cs_shape(cs_s_t s);
