@@ -745,11 +745,12 @@ int export_file(FILE *fp) {//not used yet. maybe export in obj optionally? no. t
 
 #ifdef GRAPHICAL
 void redraw_handler(struct shit *me,char *line) {//how do we strip out extra redraws?
-  fprintf(stderr,"# attempting to redraw\n");
+  //fprintf(stderr,"# attempting to redraw\n");
   if(gra_global.redrawplzkthx) {//this is how multiple calls to redraw() don't cause a flood of draw_screen();
     draw_screen();
     gra_global.redrawplzkthx=0;
     if(gra_global.force_redraw == 1) {
+      fprintf(stderr,"# warning. force redrawing.\n");
       redraw();//wew.
     }
   }
