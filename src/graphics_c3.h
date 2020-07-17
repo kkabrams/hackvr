@@ -13,7 +13,8 @@ struct gra_global {
   int split_screen;
   real split;
   int split_flip;
-  char force_redraw;
+  char force_redraw;//this should be to make it draw as often as possible
+  char redrawplzkthx;//this is just a flag that redraw() sets, so if multiple draws are asked for, it can clear all of them at once instead of queueing them
   char red_and_blue;
   unsigned int depth;//???
   unsigned int border_width;
