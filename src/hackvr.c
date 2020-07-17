@@ -134,6 +134,7 @@ void hvr_version() {
 int hackvr_handler(char *line);
 
 void hackvr_handler_idc(struct shit *me,char *line) {
+  //fprintf(stderr,"# got a hackvr line.\n");
   switch(hackvr_handler(line)) {
     case -1://quit
       fprintf(stderr,"# exiting due to EOF\n");
@@ -419,7 +420,7 @@ int hackvr_handler(char *line) {
 #endif
     return ret;
    }
-   fprintf(stderr,"# %s toggled!\n",a[2]);
+   fprintf(stderr,"# %s toggled.\n",a[2]);
    ret=1;
    return ret;
   }
@@ -744,9 +745,13 @@ int export_file(FILE *fp) {//not used yet. maybe export in obj optionally? no. t
 
 #ifdef GRAPHICAL
 void redraw_handler(struct shit *me,char *line) {//how do we strip out extra redraws?
-  if(gra_global.force_redraw) {
+  fprintf(stderr,"# attempting to redraw\n");
+  if(gra_global.redrawplzkthx) {//this is how multiple calls to redraw() don't cause a flood of draw_screen();
     draw_screen();
-    gra_global.force_redraw=0;
+    gra_global.redrawplzkthx=0;
+    if(gra_global.force_redraw == 1) {
+      redraw();//wew.
+    }
   }
 }
 #endif
