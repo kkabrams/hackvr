@@ -3,6 +3,11 @@
 
 #include "math.h"
 
+#define TOP     240.0
+#define BOTTOM  -240.0
+#define RIGHT   320.0
+#define LEFT    -320.0
+
 int c2sX(real x);
 int s2cX(real x);
 int c2sY(real y);
