@@ -15,8 +15,8 @@ int mouse_init() {
 }
 
 #define X11_MOUSE_PRIMARY 1
-#define X11_MOUSE_SECONDARY 2
-#define X11_MOUSE_TERTIARY 3
+#define X11_MOUSE_SECONDARY 3
+#define X11_MOUSE_TERTIARY 2
 #define X11_MOUSE_SCROLLUP 4
 #define X11_MOUSE_SCROLLDOWN 5
 
@@ -47,7 +47,7 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
     switch(e.type) {
       case ButtonPress: //e.xbutton.button == 1 for first button. we don't need to start at 1. let's start at 0 with the -1 //scroll wheel up is 3, down is 4
         if((butt=x112map(e.xbutton.button)) == -1) {
-          continue;//we don't know how to handle this button. :/ 
+          continue;//we don't know how to handle this button. :/
         }
         fprintf(stderr,"# x11 button: %d is %d in hackvr\n",e.xbutton.button,butt);
         if(butt == MOUSE_SCROLLUP) {//scroll wheel up
@@ -66,6 +66,9 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
         redrawplzkthx=1;
         break;
       case ButtonRelease:
+        if((butt=x112map(e.xbutton.button)) == -1) {
+          continue;//we don't know how to handle this button. :/ 
+        }
         printf("# button release %d\n",butt);
         gra_global.mousemap[butt]=-1;//we can trigger on -1 or on 1 then set back to 0 to prevent double-trigger
         gr=get_group_relative(global.user);
