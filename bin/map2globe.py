@@ -1,4 +1,4 @@
-#!/usr/bin/python3.6
+#!/usr/bin/python3
 
 import sys
 import math
@@ -49,9 +49,6 @@ while(1):
   break
  if(lat and lon and x and y and z and plat and plon and px and py and pz): #if the previouses exist
   print("{} addshape 2 2 {} {} {} {} {} {}".format(name,x,y,z,px,py,pz))
-  print("{} rotate 0 {} 0".format(name,str(rotation)))
-  rotation+=1
-  rotation%=360
 
 #set previouses to currents
  (plat,plon,px,py,pz)=(lat,lon,x,y,z)
