@@ -157,8 +157,7 @@ c3_t c3_multiply(c3_t p,c3_t s) {
 // arm pieces will rotate around origin...
 // I dunno....
 c3_t point_apply_group_relative(c3_t p,c3_group_rel_t *gr) {
-  if(!gr) return p;//fuck it. nothing to do..
-
+  if(!gr) { return p; }
   return c3_add(point_apply_group_relative(gr->p,get_group_relative(gr->parent)),
                 rotate_c3_xr(
                   rotate_c3_yr(
@@ -202,20 +201,6 @@ c3_s_t apply_group_relative(c3_s_t s,c3_group_rel_t *group_rel) {
     } else {
      if(gr) {
       s2.p[i]=point_apply_group_relative(s.p[i],gr);
-
-/*
-      s.p[i].x *= gr->s.x;
-      s.p[i].y *= gr->s.y;
-      s.p[i].z *= gr->s.z;//scaling applied? sure....
-      //s2.p[i]=c3_add(gr->p,rotate_c3_yr(s.p[i],gr->p,d2r(gr->r.y)));
-      s2.p[i]=c3_add(gr->p,rotate_c3_xr(
-                           rotate_c3_yr(
-                           rotate_c3_zr(s.p[i],(c3_t){0,0,0},d2r(gr->r.z)
-                                             ),(c3_t){0,0,0},d2r(gr->r.y)
-                                             ),(c3_t){0,0,0},d2r(gr->r.x)
-                                       )
-                    );
-*/
      } else {
       s2.p[i]=s.p[i];
      }
