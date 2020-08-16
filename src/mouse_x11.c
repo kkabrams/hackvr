@@ -99,11 +99,18 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
     //this /was/ using a 2 for the mousemap index... so 2 is "right" in hackvr.
     if(gra_global.mousemap[MOUSE_SECONDARY] == 1) {//if "right" click is held down
       gr=get_group_relative(global.user);
-      gr->r.x.d=gra_global.oldcamera.x.d + (gra_global.mouse.y - gra_global.dragstart[2].y);
-      gr->r.y.d=gra_global.oldcamera.y.d + (gra_global.mouse.x - gra_global.dragstart[2].x);
+      gr->r.x.d=gra_global.oldcamera.x.d + (gra_global.mouse.y - gra_global.dragstart[MOUSE_SECONDARY].y);
+      gr->r.y.d=gra_global.oldcamera.y.d + (gra_global.mouse.x - gra_global.dragstart[MOUSE_SECONDARY].x);
       //global.camera.r.x.d=gra_global.oldcamera.x.d + (gra_global.mouse.y - gra_global.dragstart[2].y);
       //global.camera.r.y.d=gra_global.oldcamera.y.d + (gra_global.mouse.x - gra_global.dragstart[2].x);
     }
+    /* dunno if I really want to do this.
+    if(gra_global.mousemap[MOUSE_TERTIARY] == 1) {//if we're holding down middle-click
+      //need to move forward or sideways based on 
+      gr->r.x = gra_global.oldcmaera.gra_global.dragstart[MOUSE_TERTIARY].x//
+      gr->r.y = //
+      gr->r.z = //
+    }*/
     //do we need to redraw on mouse movement?
     //probably.
     redrawplzkthx=1;
