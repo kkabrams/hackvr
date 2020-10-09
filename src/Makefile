@@ -11,14 +11,17 @@ LIBHASHTABLE_INCLUDE_PATH:=$(PREFIX)/include
 
 BASE_CFLAGS=-g -Wall -pedantic -std=c99 -ffast-math -I$(PREFIX)/include -I$(LIBIDC_INCLUDE_PATH) -I$(LIBHASHTABLE_INCLUDE_PATH)
 
-CFLAGS+=$(BASE_CFLAGS)
-CFLAGS+=-DGRAPHICAL
+override CFLAGS+=$(BASE_CFLAGS)
+override CFLAGS+=-DGRAPHICAL
 
-LDFLAGS+=-L$(PREFIX)/lib -L$(LIBIDC_LIB_PATH) -L$(LIBHASHTABLE_LIB_PATH)
+override LDFLAGS+=-L$(PREFIX)/lib -L$(LIBIDC_LIB_PATH) -L$(LIBHASHTABLE_LIB_PATH)
 
 #all: hackvr_headless hackvr_x11 hackvr_opengl slowcat ### when hackvr_opengl gets useful at all I'll start including it in default build.
-all: hackvr_svg hackvr_fb hackvr_xdie hackvr_headless hackvr_x11 slowcat nonblocktail
+all: hackvr_svg hackvr_fb hackvr_xdie hackvr_headless hackvr_x11 slowcat nonblocktail hackvr_xdiewii
 # hackvr_fb hackvr_freeglut slowcat
+
+hackvr_xdiewii: override LDLIBS+=-lm -lidc -lX11 -lhashtable
+hackvr_xdiewii: hackvr_xdiewii.o graphics_c3.o graphics_c2.o graphics_cs_x11.o math.o physics.o keyboard.o mouse_wii.o keyboard_x11.o
 
 hackvr_xdie: override LDLIBS+=-lm -lidc -lX11 -lhashtable
 hackvr_xdie: hackvr_xdie.o graphics_c3.o graphics_c2.o graphics_cs_x11.o math.o physics.o keyboard.o mouse_die.o keyboard_die.o
@@ -46,12 +49,13 @@ hackvr_opengl: hackvr_opengl.o graphics_c3.o graphics_c2_opengl.o graphics_cs_op
 hackvr_freeglut: override LDLIBS+=-lm -lidc -lGL -lGLU -lglut -lhashtable
 hackvr_freeglut: hackvr_freeglut.o graphics_c3_freeglut.o math.o physics.o keyboard.o mouse_die.o keyboard_die.o
 
-hackvr_fb.o: CFLAGS+='-DHVR_VERSION="framebuffer"'
-hackvr_x11.o: CFLAGS+='-DHVR_VERSION="x11"'
-hackvr_xdie.o: CFLAGS+='-DHVR_VERSION="x11+die"'
-hackvr_svg.o: CFLAGS+='-DHVR_VERSION="svg"'
-hackvr_headless.o: CFLAGS=$(BASE_CFLAGS)
-hackvr_headless.o: CFLAGS+='-DHVR_VERSION="headless"'
+hackvr_fb.o: override CFLAGS+='-DHVR_VERSION="framebuffer"'
+hackvr_x11.o: override CFLAGS+='-DHVR_VERSION="x11"'
+hackvr_xdie.o: override CFLAGS+='-DHVR_VERSION="x11+die"'
+hackvr_xdiewii.o: override CFLAGS+='-DHVR_VERSION="x11+kdie+wii"'
+hackvr_svg.o: override CFLAGS+='-DHVR_VERSION="svg"'
+hackvr_headless.o: override CFLAGS=$(BASE_CFLAGS)
+hackvr_headless.o: override CFLAGS+='-DHVR_VERSION="headless"'
 
 install: all
 	mkdir -p $(PREFIX)/bin
@@ -62,6 +66,7 @@ install: all
 	install -t $(PREFIX)/bin hackvr_xdie
 	install -t $(PREFIX)/bin hackvr_fb
 	install -t $(PREFIX)/bin hackvr_svg
+	install -t $(PREFIX)/bin hackvr_xdiewii
 #	install -t $(PREFIX)/bin hackvr_freeglut
 
 uninstall:
