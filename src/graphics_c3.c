@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "common.h"
+#include "mouse.h"
 
 //#include "graphics_cs.h" //this header includes all the functions you'll need to implement if you want to port hackvr to something else
 #include "graphics_c3.h"//we're defining these functions in this file.
@@ -27,14 +28,6 @@ extern struct hvr_global global;
 struct gra_global gra_global;
 
 #ifdef GRAPHICAL
-
-//used to figure out what c2 values are associated with each edge of the window.
-//#define TOP     160.0
-//#define BOTTOM  -160.0
-#define TOP     240.0
-#define BOTTOM  -240.0
-#define RIGHT   320.0
-#define LEFT    -320.0
 
 /*
 real distance2(c2_t p1,c2_t p2) {
@@ -127,6 +120,7 @@ c3_t c3_subtract(c3_t p1,c3_t p2) {
 
 //how is this supposed to work? x is distance?
 #define MAGIC(x) (1.0l-(1.0l/pow(1.01l,(x)))) //??? might want to have some changables in here
+//#define MAGIC(x) (1.0l-(1.0l/pow(1.0001l,(x))))
 //#define MAGIC(x) (-250.0l / x )
 
 #define TOO_CLOSE (.25l)
@@ -153,12 +147,13 @@ c2_t c3_to_c2(c3_group_rel_t eye,c3_t p3) { //DO NOT DRAW STUFF IN HERE
   real delta_x=(eye.p.x - final.x);//I guess X needs this flippage too.
   real delta_y=(eye.p.y - final.y);//I dunno. Y is weird.
   real delta_z=(final.z - eye.p.z);
-  //real d=distance3(global.camera.p,final);
+  //real d=distance3(eye.p,final);
+
   p2.x=global.zoom * (delta_x * MAGIC(delta_z) - delta_x);
   p2.y=global.zoom * (delta_y * MAGIC(delta_z) - delta_y);//this doesn't look right either.
 
-  //  p2.x=global.zoom * (delta_x * MAGIC(d) - delta_x); // this doesn't look quite right
-//  p2.y=global.zoom * (delta_y * MAGIC(d) - delta_y);//dunno if this is better or not.
+  //p2.x=2 * (d * MAGIC(d) - delta_x); // this doesn't look quite right
+  //p2.y=2 * (d * MAGIC(d) - delta_y); // dunno if this is better or not.
   return p2;
 }
 
@@ -421,9 +416,13 @@ void draw_screen() {
      //draw_sky();//???p?
      //XCopyArea(global.dpy,skypixmap,global.backbuffer,global.backgc,((camera.yr*5)+SKYW)%SKYW,0,WIDTH,global.height/2,0,0);
     }
-    if(gra_global.draw3d) {//wtf? why do I not compensate for camaera rotation along the x and z?
-      //draw_c2_line((c2_t){LEFT,0},(c2_t){RIGHT,0}); //horizon
-    }
+    //if(gra_global.draw3d) {//wtf? why do I not compensate for camaera rotation along the x and z?
+      //horizon line
+      draw_c2_line((c2_t){LEFT,
+                          (int)((real)(global.camera.r.x.d) * (real)(BOTTOM+BOTTOM) / (real)90.0)},
+                   (c2_t){RIGHT,
+                          (int)((real)(global.camera.r.x.d) * (real)(BOTTOM+BOTTOM) / (real)90.0)});
+    //}
 ///// shiiiit. I should be applying group rotations to all these shapes before sorting them.
 //when I do that. I need to make sure to take the group rotation out of draw_c3_shape()'s code.
     for(i=0;global.shape[i];i++) {
@@ -458,9 +457,9 @@ void draw_screen() {
     //}
    }
    //we check here to see if the mouse button is still down
-   if(gra_global.mousemap[0]==-1) {
+   if(gra_global.mousemap[MOUSE_PRIMARY]==-1) {//0 in x11
      printf("%s action %f %f\n",global.user,gra_global.mouse.x,gra_global.mouse.y);
-     gra_global.mousemap[0]=0;
+     gra_global.mousemap[MOUSE_PRIMARY]=0;
    }
 /*
  if(gra_global.drawminimap == 1) {
@@ -515,9 +514,10 @@ void draw_screen() {
 }
 
 void redraw() {//something is requesting a redraw.
-  if(gra_global.force_redraw == 0) {
-    gra_global.force_redraw=1;//this is to prevent drawing way too often.
-    write(gra_global.redraw[1],"redraw plzkthx!\n",16);
+  if(gra_global.redrawplzkthx == 0) {
+    gra_global.redrawplzkthx=1;//this is to prevent drawing way too often.
+    //fprintf(stderr,"# in the redraw() function\n");
+    write(gra_global.redraw[1],"redrawplzkthx!\n",15);
   }
 }
 

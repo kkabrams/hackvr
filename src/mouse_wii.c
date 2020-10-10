@@ -3,6 +3,7 @@
 #include <linux/input.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h> //getenv()
 
 #include "graphics_c3.h"
 #include "mouse.h"
@@ -11,16 +12,17 @@ extern struct hvr_global global;
 extern struct gra_global gra_global;
 
 //#define MOUSEDEV "/dev/input/mouse0" //just one of the many possibly connected mice. (just in case you want to use one mouse for one thing and another mouse for something else)
-#define MOUSEDEV "/dev/input/mice" //all the mice connected act as one.
-
+//#define MOUSEDEV "/dev/input/event19"
+#define MOUSEDEV getenv("HVR_MOUSEDEV")
 int mfd = -1;
 
 //#define "mouse.h" //I guess
 
-struct wtf {
-  unsigned char type;
-  char dx;
-  char dy;
+struct wtf {//totals to 24
+  struct timeval time;
+  unsigned short type;
+  unsigned short code;
+  unsigned int state;
 };
 
 int mouse_init() {
@@ -40,8 +42,8 @@ int mouse_init() {
 //it doesn't care if you have X11 buttons swapped around ofc.
 char die2map(char d) {//edit this function if you want to change your primary and secondary mouse button.
   switch(d) {
-    case DIE_MOUSE_RIGHT: return MOUSE_PRIMARY;
-    case DIE_MOUSE_LEFT: return MOUSE_SECONDARY;
+    case DIE_MOUSE_LEFT: return MOUSE_PRIMARY;
+    case DIE_MOUSE_RIGHT: return MOUSE_SECONDARY;
     case DIE_MOUSE_CENTER: return MOUSE_TERTIARY;
     default: return -1;
   }
@@ -49,10 +51,10 @@ char die2map(char d) {//edit this function if you want to change your primary an
 
 int mouse_event_handler() {
   struct wtf ie;
-  int butt;
+  //int butt;
   int l;
-  int i;//this is a DIE_MOUSE value
-  unsigned char m;//this is a hackvr mouse map value.
+  //int i;//this is a DIE_MOUSE value
+  //unsigned char m;//this is a hackvr mouse map value.
   int redrawplzkthx=0;
   memset(&ie,0,sizeof(ie));
   if(mfd == -1) {
@@ -65,6 +67,11 @@ int mouse_event_handler() {
     return 1;
   }
   if((l=read(mfd,&ie,sizeof(ie))) > 0) {
+    if(ie.code == 3) global.camera.r.x.d=ie.state;
+    if(ie.code == 4) global.camera.r.y.d=ie.state;
+    if(ie.code == 5) global.camera.r.z.d=ie.state;
+    if(ie.code >= 3 && ie.code <= 5) redrawplzkthx=1;
+/*
     for(i=0;i<3;i++) {//we need to loop over all buttons each event. :/
       butt=ie.type & 0x07 & (1<<i);//lowest 3 bits are possible mouse button states
       m=die2map(i);
@@ -105,6 +112,7 @@ int mouse_event_handler() {
       }
       redrawplzkthx=1;
     }
+*/
   }
   if(redrawplzkthx) {
     redraw();
@@ -112,3 +120,26 @@ int mouse_event_handler() {
   }
   return 0;
 }
+/*
+#include <stdio.h>
+#include <sys/time.h>
+
+
+int main(int argc,char *argv[]) {
+  int i;
+  struct input_event ie;
+  int x,y,z;
+  while(!feof(stdin)) {
+    read(0,&ie,sizeof(struct input_event));
+    printf("type: %d :: ",ie.type);
+    if(ie.code == 3) x=ie.state;
+    if(ie.code == 4) y=ie.state;
+    if(ie.code == 5) z=ie.state;
+    printf("%15d %15d %15d",x,y,z);
+    //for(i=0;i<16;i++) {
+    //  printf(" %02x",(unsigned char)ae.derp[i]);
+    //}
+    printf("\n");
+  }
+}
+*/

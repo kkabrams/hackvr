@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L //for fileno and strdup
+#include <ctype.h> //isspace
 #include <stdio.h>
 #include <fcntl.h>
 #include <assert.h>
@@ -92,21 +93,21 @@ char **line_splitter(char *line,int *rlen) {
  char **a;
  int len,i=0;
  len=1;//we're just counting how much we'll need the first loop through.
- for(i=0;line[i] && line[i] == ' ';i++);//skip leading space
+ for(i=0;line[i] && isspace(line[i]);i++);//skip leading space
  for(;line[i];len++) {
-  for(;line[i] && line[i] != ' ';i++);//skip rest of data
-  for(;line[i] && line[i] == ' ';i++);//skip rest of space
+  for(;line[i] && !isspace(line[i]);i++);//skip rest of data
+  for(;line[i] && isspace(line[i]);i++);//skip rest of space
  }
  a=malloc(sizeof(char *) * len+1);
  a[len]=0;
  len=0;//reuse!
- for(i=0;line[i] && line[i] == ' ';i++);//skip leading space
+ for(i=0;line[i] && isspace(line[i]);i++);//skip leading space
  a[len]=line+i;
  for(;;) {
-  for(;line[i] && line[i] != ' ';i++);//skip rest of data
+  for(;line[i] && !isspace(line[i]);i++);//skip rest of data
   if(!line[i]) break;
   line[i++]=0;
-  for(;line[i] && line[i] == ' ';i++);//skip rest of space
+  for(;line[i] && isspace(line[i]);i++);//skip rest of space
   if(!line[i]) break;
   a[++len]=line+i;
  }
@@ -133,6 +134,7 @@ void hvr_version() {
 int hackvr_handler(char *line);
 
 void hackvr_handler_idc(struct shit *me,char *line) {
+  //fprintf(stderr,"# got a hackvr line.\n");
   switch(hackvr_handler(line)) {
     case -1://quit
       fprintf(stderr,"# exiting due to EOF\n");
@@ -155,7 +157,7 @@ int hackvr_handler(char *line) {
   int len;
   int j,i,k,l;
   unsigned int key_count;
-  c3_group_rel_t *gr;
+  c3_group_rel_t *gr,*pgr;
   real tmpx,tmpy,tmpz;
   char **a;
   char **keys;
@@ -418,7 +420,7 @@ int hackvr_handler(char *line) {
 #endif
     return ret;
    }
-   fprintf(stderr,"# %s toggled!\n",a[2]);
+   fprintf(stderr,"# %s toggled.\n",a[2]);
    ret=1;
    return ret;
   }
@@ -446,8 +448,21 @@ int hackvr_handler(char *line) {
 /* ---------- */
   if(helping) fprintf(stderr,"#   subsume child-group\n");
   if(!strcmp(command,"subsume")) {
-   gr=get_group_relative(a[2]);//we need the child's group relative...
-   gr->parent = gr->id;
+   if(strchr(a[2],'*')) {
+    for(i=0;i < global.ht_group.kl;i++) {
+     for(m=global.ht_group.bucket[global.ht_group.keys[i]]->ll;m;m=m->next) {
+      if(!glob_match(id,m->original)) {
+       gr=m->target;
+       pgr=get_group_relative(id);
+       gr->parent = pgr->id;
+      }
+     }
+    }
+   } else {
+    gr=get_group_relative(a[2]);//we need the child's group relative...
+    pgr=get_group_relative(id);
+    gr->parent = pgr->id;
+   }
    ret=0;
    return ret;
   }
@@ -730,9 +745,14 @@ int export_file(FILE *fp) {//not used yet. maybe export in obj optionally? no. t
 
 #ifdef GRAPHICAL
 void redraw_handler(struct shit *me,char *line) {//how do we strip out extra redraws?
-  if(gra_global.force_redraw) {
+  //fprintf(stderr,"# attempting to redraw\n");
+  if(gra_global.redrawplzkthx) {//this is how multiple calls to redraw() don't cause a flood of draw_screen();
     draw_screen();
-    gra_global.force_redraw=0;
+    gra_global.redrawplzkthx=0;
+    if(gra_global.force_redraw == 1) {
+      fprintf(stderr,"# warning. force redrawing.\n");
+      redraw();//wew.
+    }
   }
 }
 #endif

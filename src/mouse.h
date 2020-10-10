@@ -1,0 +1,11 @@
+#ifndef _HACKVR_MOUSE_H_
+#define _HACKVR_MOUSE_H_
+
+#define MOUSE_PRIMARY 0
+#define MOUSE_TERTIARY 1
+#define MOUSE_SECONDARY 2
+
+#define MOUSE_SCROLLUP 3
+#define MOUSE_SCROLLDOWN 4
+
+#endif

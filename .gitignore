@@ -6,5 +6,7 @@ src/hackvr_headless
 src/hackvr_x11
 src/hackvr_xdie
 src/hackvr_opengl
+src/hackvr_svg
+src/hackvr_xdiewii
 src/slowcat
 src/nonblocktail

@@ -8,11 +8,14 @@ hackvr... um. outputs commands to stdout based on keys pressed inside hackvr,
 and inputs the same type of commands.
 so do some plumbing and get a multiplayer game going?
 
-I'm working on making hackvr work with different output and input types. Right now the only one
-that works with everything is hackvr_x11. There's also a hackvr_fb that uses the linux framebuffer,
-but it doesn't have mouse support and keyboard support is wonky due to me not thinging it through.
+How about a nice GL version written in zig made by someone else?
+https://git.random-projects.net/xq/hackvr-turbo
 
-quick start:
+I'm telling you. It looks a lot nicer than my stuff.
+
+::::::::::::::::::::
+::: DEPENDENCIES :::
+::::::::::::::::::::
 
 You'll need to have the library and headers of libx11 installed for hackvr to build successfully.
 Which usually means you will need the dev version of the libx11 (xlib) package for your distro.
@@ -23,8 +26,6 @@ To get that on debian:
 If you want to build the GLut crap you'll need
   
   freeglut3-dev
-
-Although I haven't touched the non-x11 versions in a long time. Good luck.
 
 Since I first wrote this README, I pushed a couple other libraries I've written into hackvr.
 You'll need those too.
@@ -49,17 +50,50 @@ git://thebackupbox.net/libhashtable
 git://main.lv/libhashtable
 https://github.com/kkabrams/libhashtable
 
+
+::::::::::::::::
+::: BUILDING :::
+::::::::::::::::
+
 I have a script that just runs make with PREFIX=$PREFIX prefix=$PREFIX so I end up with
 everything installed under ~/.local/
 
-
-After you have that installed you should be able to do these to get hackvr built:
+You should be able to do these to get hackvr built:
 
   make #BSD make doesn't do target specific variables. use GNUMake.
+
+The make install will create the following programs:
+
+:: hackvr_headless ::
+This doesn't output to any display, but you can still read commands in, do manipulations
+then export them back out. This can make writing a few scripts for hackvr easier
+and it can also compress any long list of hackvr commands.
+
+:: hackvr_x11 ::
+This is the binary I use most on my desktop. It outputs to a single X11 window,
+and gets its input events from that same X11 window.
+
+:: hackvr_fb ::
+This outputs to the /dev/fb0 device so you can run hackvr without an X11 server if you want.
+It uses /dev/input/events for user input.
+
+:: hackvr_xdie ::
+This is a mix of the last two programs. It outputs to an X11 window, but uses
+/dev/input/events for user input.
+
+:: hackvr_svg ::
+This uses /dev/input/events for user input, and each screen-draw it overwrites an HTML file
+in /tmp that contains an inline SVG with an autorefresh. I think this program was meant
+as a joke to myself. Still kind of funny.
+
+:::::::::::::::
+::: INSTALL :::
+:::::::::::::::
+
+The way I install updated hackvr binaries is this way:
+
   export PREFIX=$(HOME)/.local #the Makefiles are short, worth a read.
   make install
-
-The make install will create hackvr_headless, hackvr_x11, hackvr_fb.
 
 If you didn't want to make install the libraries, there are variables you can set to
 let the makefile know where they are:
@@ -76,17 +110,11 @@ A few helper scripts are written in perl and python.
 So you might want to install perl and python if you want to play with them.
 They're pretty nifty.
 
-what hackvr can do...
+:::::::::::::::::::
+::: Stereoscopy :::
+:::::::::::::::::::
 
-I dunno.
-
-try cd tictactoe ; ./run
-or... fiddle with the scripts laying around?
-_     _
- \O_o/
-
-
-Red and Blue mode
+Right now there's side-by-side mode and red-and-blue mode.
 
 You'll have to either enable this using a command sent to hackvr's stdin that
 I don't even remember, or just enable it in config.h make clean then rebuild.

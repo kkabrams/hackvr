@@ -4,6 +4,7 @@
 #include "graphics_c3.h"
 #include "graphics_c2.h"
 #include "graphics_x11.h"
+#include "mouse.h"
 
 extern struct hvr_global global;
 extern struct gra_global gra_global;
@@ -13,8 +14,27 @@ int mouse_init() {
   return x11_global.fd;
 }
 
+#define X11_MOUSE_PRIMARY 1
+#define X11_MOUSE_SECONDARY 3
+#define X11_MOUSE_TERTIARY 2
+#define X11_MOUSE_SCROLLUP 4
+#define X11_MOUSE_SCROLLDOWN 5
+
+char x112map(char x) {
+  switch(x) {
+    case X11_MOUSE_PRIMARY: return MOUSE_PRIMARY;
+    case X11_MOUSE_TERTIARY: return MOUSE_TERTIARY;//middle-click
+    case X11_MOUSE_SECONDARY: return MOUSE_SECONDARY;
+    case X11_MOUSE_SCROLLUP: return MOUSE_SCROLLUP;
+    case X11_MOUSE_SCROLLDOWN: return MOUSE_SCROLLDOWN;
+    default: return -1;
+  }
+  return -1;
+}
+
 int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for buttonup... set the mousex and mousey in here?
   XEvent e;
+  c3_group_rel_t *gr;
   Window root,child;//just dimmies
   unsigned int mask;//just dummies
   char motion_notify=0;
@@ -26,14 +46,17 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
   while(XCheckMaskEvent(x11_global.dpy,HV_MOUSE_X11_EVENT_MASK,&e)) {//we want to collapse mouse stuff to one for each loop.
     switch(e.type) {
       case ButtonPress: //e.xbutton.button == 1 for first button. we don't need to start at 1. let's start at 0 with the -1 //scroll wheel up is 3, down is 4
-        butt=e.xbutton.button-1;
-        if(butt == 3) {//scroll wheel up
+        if((butt=x112map(e.xbutton.button)) == -1) {
+          continue;//we don't know how to handle this button. :/
+        }
+        fprintf(stderr,"# x11 button: %d is %d in hackvr\n",e.xbutton.button,butt);
+        if(butt == MOUSE_SCROLLUP) {//scroll wheel up
           selfcommand("epoch move forward\n");//need to implement this syntax in hackvr
         }
-        if(butt == 4) {//scroll wheel down
+        if(butt == MOUSE_SCROLLDOWN) {//scroll wheel down
           selfcommand("epoch move backward\n");
         }
-        if(butt == 1) {//middle-click
+        if(butt == MOUSE_TERTIARY) {//middle-click
           gra_global.input_mode ^= 1;
           printf("# gra_global.input_mode == %d\n",gra_global.input_mode);
         }
@@ -43,9 +66,13 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
         redrawplzkthx=1;
         break;
       case ButtonRelease:
-        printf("# button release %d\n",e.xbutton.button-1);
-        gra_global.mousemap[e.xbutton.button-1]=-1;//we can trigger on -1 or on 1 then set back to 0 to prevent double-trigger
-        gra_global.oldcamera=global.camera.r;
+        if((butt=x112map(e.xbutton.button)) == -1) {
+          continue;//we don't know how to handle this button. :/ 
+        }
+        printf("# button release %d\n",butt);
+        gra_global.mousemap[butt]=-1;//we can trigger on -1 or on 1 then set back to 0 to prevent double-trigger
+        gr=get_group_relative(global.user);
+        gra_global.oldcamera=gr->r;
         redrawplzkthx=1;
         break;
       case MotionNotify:
@@ -68,11 +95,22 @@ int mouse_event_handler() {//this returns HVM_ key + for buttondown and - for bu
     //snprintf(cmd,sizeof(cmd),"%s rotate +%d +%d +%d\n",global.user,3,11,1);
     //selfcommand(cmd);
     //global.camera.r.x.d=(gra_global.height - gra_global.mouse.y);//up and down camera controls backwards
-    //fprintf(stderr,"# mouse.x: %f mouse.y: %f\n# width: %u height: %u\n",gra_global.mouse.x,gra_global.mouse.y,gra_global.width,gra_global.height);
-    if(gra_global.mousemap[2] == 1) {//if "right" click is held down
-      global.camera.r.x.d=gra_global.oldcamera.x.d + (gra_global.mouse.y - gra_global.dragstart[2].y);
-      global.camera.r.y.d=gra_global.oldcamera.y.d + (gra_global.mouse.x - gra_global.dragstart[2].x);
+    //fprintf(stderr,"# mouse.x: %f mouse.y: %f\n# width: %u height: %u\n",gra_glo bal.mouse.x,gra_global.mouse.y,gra_global.width,gra_global.height);
+    //this /was/ using a 2 for the mousemap index... so 2 is "right" in hackvr.
+    if(gra_global.mousemap[MOUSE_SECONDARY] == 1) {//if "right" click is held down
+      gr=get_group_relative(global.user);
+      gr->r.x.d=gra_global.oldcamera.x.d + (gra_global.mouse.y - gra_global.dragstart[MOUSE_SECONDARY].y);
+      gr->r.y.d=gra_global.oldcamera.y.d + (gra_global.mouse.x - gra_global.dragstart[MOUSE_SECONDARY].x);
+      //global.camera.r.x.d=gra_global.oldcamera.x.d + (gra_global.mouse.y - gra_global.dragstart[2].y);
+      //global.camera.r.y.d=gra_global.oldcamera.y.d + (gra_global.mouse.x - gra_global.dragstart[2].x);
     }
+    /* dunno if I really want to do this.
+    if(gra_global.mousemap[MOUSE_TERTIARY] == 1) {//if we're holding down middle-click
+      //need to move forward or sideways based on 
+      gr->r.x = gra_global.oldcmaera.gra_global.dragstart[MOUSE_TERTIARY].x//
+      gr->r.y = //
+      gr->r.z = //
+    }*/
     //do we need to redraw on mouse movement?
     //probably.
     redrawplzkthx=1;
