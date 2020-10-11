@@ -40,8 +40,8 @@ int mouse_init() {
 //it doesn't care if you have X11 buttons swapped around ofc.
 char die2map(char d) {//edit this function if you want to change your primary and secondary mouse button.
   switch(d) {
-    case DIE_MOUSE_RIGHT: return MOUSE_PRIMARY;
-    case DIE_MOUSE_LEFT: return MOUSE_SECONDARY;
+    case DIE_MOUSE_LEFT: return MOUSE_PRIMARY;
+    case DIE_MOUSE_RIGHT: return MOUSE_SECONDARY;
     case DIE_MOUSE_CENTER: return MOUSE_TERTIARY;
     default: return -1;
   }
