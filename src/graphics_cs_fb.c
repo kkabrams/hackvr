@@ -63,8 +63,8 @@ void set_luminosity_color(int lum) {//need to come up with a good range for this
 
 void draw_cs_point(int x,int y) {//this should write to a backbuffer then I can memcopy it over.
  unsigned int i=y * fb_global.info.xres + x;
- if(x > fb_global.info.xres) return;
- if(y > fb_global.info.yres) return;
+ if(x >= fb_global.info.xres) return;
+ if(y >= fb_global.info.yres) return;
  if(i > fb_global.fblen) return;
  //hack to test it with. remove me later.
  //fb_global.current_color=-1;
@@ -89,103 +89,10 @@ void draw_cs_point(int x,int y) {//this should write to a backbuffer then I can 
  }
 }
 
-void draw_cs_arc() {//now... how to draw an arc.
-
-}
-
-void draw_cs_line(cs_t p1,cs_t p2) {//error somewhere in here. derp...
-  int x,y;
-  real m;
-  int b;
-  int xd,yd;
-  if(p1.x == p2.x) {
-    for(y=min(p1.y,p2.y);y<max(p1.y,p2.y);y++) {
-      draw_cs_point(p1.x,y);
-    }
-    return;
-  }
-  if(p1.y == p2.y) {
-    for(x=min(p1.x,p2.x);x<max(p1.x,p2.x);x++) {
-      draw_cs_point(x,p1.y);
-    }
-    return;
-  }
-  xd=p1.x<p2.x?1:-1;
-  yd=p1.y<p2.y?1:-1;
-  if(max(p1.x,p2.x)-min(p1.x,p2.x) >= max(p1.y,p2.y)-min(p1.y,p2.y)) { //loop over x. like normal math. :P y=mx+b stuff.
-   m=((real)(p1.y-p2.y))/((real)(p1.x-p2.x));
-   b=(int)((real)p1.y - (m * (real)p1.x));
-   for(x=p1.x;x!=p2.x;x+=xd) {
-    y=(int)(m * (real)x + (real)b); 
-    draw_cs_point(x,y);
-   }
-  } else { //loop over y
-   m=((real)(p1.x-p2.x))/((real)(p1.y-p2.y));
-   b=(int)((real)p1.x - (m * (real)p1.y));
-   for(y=p1.y;y!=p2.y;y+=yd) {
-     x=(int)(m * (real)y + (real)b);
-     draw_cs_point(x,y);
-   }
-  }
-  //now for the fun part.
-}
-
-void draw_cs_text(cs_t p,char *text) {
-/* char t[256];
- int direction,ascent,descent;
- XFontStruct *font=XLoadQueryFont(x11_global.dpy,"fixed");
- XCharStruct overall;
- snprintf(t,sizeof(t)-1,"%s",text);
- XTextExtents(font,text,strlen(text),&direction,&ascent,&descent,&overall);
- XDrawString(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p.x,p.y+(descent+ascent),text,strlen(text));*/
-}
-
-void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it could be moved up to graphics.c? probl no.
-  //test in here whether a mouse click is within this shape's... bounding box? sure.
-  cs_s_t bb;//bounding box
-  int minx=s.p[0].x;
-  int miny=s.p[0].y;
-  int maxx=s.p[0].x;
-  int maxy=s.p[0].y;
-  //int h;
-  int i;//all cs shapes can have 1, 2, or 3+ points. guess I gotta do that logic here too.
-  switch(s.len) {
-   case 1:
-    //circle
-    //h=max(s.p[0].x,s.p[1].x)-min(s.p[0].x,s.p[1].x);
-    //XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
-    break;
-   default:
-    for(i=0;i<s.len+(s.len==1);i++) {//this shape is closed!
-      minx=(s.p[i].x<minx)?s.p[i].x:minx;
-      miny=(s.p[i].y<miny)?s.p[i].y:miny;
-      maxx=(s.p[i].x>maxx)?s.p[i].x:maxx;
-      maxy=(s.p[i].y>maxy)?s.p[i].y:maxy;
-    //  draw_cs_line(s.p[i],s.p[(i+1)%(s.len+(s.len==1))]);
-    }
-    if(gra_global.mouse.x >= minx &&
-         gra_global.mouse.y >= miny &&
-         gra_global.mouse.x <= maxx &&
-         gra_global.mouse.y <= maxy) {
-      if(gra_global.mousemap[0] == -1) {//if we're inside the bounding box let's make SOMETHING happen.
-        gra_global.mousemap[0]=0;
-        printf("%s action %s\n",global.user,s.id);
-      }
-      bb.id=strdup("boundingbox");
-      bb.len=4;
-      bb.p[0].x=minx;
-      bb.p[0].y=miny;
-      bb.p[1].x=minx;
-      bb.p[1].y=maxy;
-      bb.p[2].x=maxx;
-      bb.p[2].y=maxy;
-      bb.p[3].x=maxx;
-      bb.p[3].y=miny;
-      draw_cs_filled_shape(bb);
-      free(bb.id);
-    }
-    break;
-  }
+void draw_cs_arc(cs_t p1, cs_t p2) {//now... how to draw an arc.
+//  real r;//radius
+//  y=sin();
+//  x=cos();
 }
 
 int x_from_y(cs_t p1,cs_t p2,int y) {//get the value of x given a y within a line.
@@ -206,6 +113,73 @@ int x_from_y(cs_t p1,cs_t p2,int y) {//get the value of x given a y within a lin
  x=(int)(((real)(y-b))/m);
  if(!x) printf("x == %d y=%d m=%f b=%d\n",x,y,m,b);
  return x;
+}
+
+//does this actually work? seems to.
+void draw_cs_line(cs_t p1,cs_t p2) {//error somewhere in here. derp...
+  int x,y;
+  real m;
+  int b;
+  int xd,yd;
+  if(p1.x == p2.x) {
+    for(y=min(p1.y,p2.y);y<max(p1.y,p2.y);y++) {
+      draw_cs_point(p1.x,y);
+    }
+    return;
+  }
+  if(p1.y == p2.y) {
+    for(x=min(p1.x,p2.x);x<max(p1.x,p2.x);x++) {
+      draw_cs_point(x,p1.y);
+    }
+    return;
+  }
+  //this isn't working for some reason.
+  xd=p1.x<p2.x?1:-1;
+  yd=p1.y<p2.y?1:-1;
+  if(max(p1.x,p2.x)-min(p1.x,p2.x) > max(p1.y,p2.y)-min(p1.y,p2.y)) { //loop over x. like normal math. :P y=mx+b stuff.
+   m=((real)(p1.y-p2.y))/((real)(p1.x-p2.x));
+   b=(int)((real)p1.y - (m * (real)p1.x));
+   for(x=p1.x;x!=p2.x;x+=xd) {
+    y=(int)(m * (real)x + (real)b);
+    draw_cs_point(x,y);
+   }
+  } else { //loop over y
+   m=((real)(p1.x-p2.x))/((real)(p1.y-p2.y));
+   b=(int)((real)p1.x - (m * (real)p1.y));
+   for(y=p1.y;y!=p2.y;y+=yd) {
+     x=(int)(m * (real)y + (real)b);
+     draw_cs_point(x,y);
+   }
+  }
+  // ???
+}
+
+void draw_cs_text(cs_t p,char *text) {
+/* char t[256];
+ int direction,ascent,descent;
+ XFontStruct *font=XLoadQueryFont(x11_global.dpy,"fixed");
+ XCharStruct overall;
+ snprintf(t,sizeof(t)-1,"%s",text);
+ XTextExtents(font,text,strlen(text),&direction,&ascent,&descent,&overall);
+ XDrawString(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,p.x,p.y+(descent+ascent),text,strlen(text));*/
+}
+
+void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it could be moved up to graphics.c? probl no.
+  int i;//all cs shapes can have 1, 2, or 3+ points. guess I gotta do that logic here too.
+  switch(s.len) {
+   case 1:
+    //circle
+    //h=max(s.p[0].x,s.p[1].x)-min(s.p[0].x,s.p[1].x);
+    //XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
+    break;
+   case 2:
+    draw_cs_line(s.p[0],s.p[1]);
+   default:
+    for(i=0;i<s.len;i++) {
+      draw_cs_line(s.p[i],s.p[(i+1)%s.len]);
+    }
+    break;
+  }
 }
 
 void draw_cs_filled_shape(cs_s_t s) {//no circle handling atm. and only convex polygons.
@@ -232,6 +206,7 @@ void draw_cs_filled_shape(cs_s_t s) {//no circle handling atm. and only convex p
   draw_cs_line(p1,p2);//the two y values are always the same here.
  }
 }
+
 /*
 void draw_cs_filled_shape(cs_s_t s) {
   int h;
