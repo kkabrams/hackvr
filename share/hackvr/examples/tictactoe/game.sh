@@ -31,7 +31,7 @@ grep --line-buffered action \
        cat "marker$turn" | offsetshape.sh $translatex "$(expr "$translatey" - 2 )" 0
        grep "$group" $BOARDFILE | sed "s/$group/_marked/g"
       else
-       xmessage "what? $group"
+       printf "# clicked outside of the game board.\n" >&2
       fi
     fi
   done

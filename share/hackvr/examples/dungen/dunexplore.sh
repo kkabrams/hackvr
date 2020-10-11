@@ -2,7 +2,13 @@
 ### run me with hackvr_coproc
 #the $USER triangle we add first is to give us some sort of avatar to see where the camera is.
 #seed=1337
-echo $USER addshape 4 3  -1 0 -1  0 0 2  1 0 -1 ; echo $USER move 0 2 0
+red=1
+green=2
+blue=4
+echo $USER addshape 6 3  -1 0 -1  0 0 2  1 0 -1 ; echo $USER move 0 2 0
+echo world-x addshape $red 2  0 0 0  1 0 0
+echo world-y addshape $green 2  0 0 0  0 1 0
+echo world-z addshape $blue 2  0 0 0  0 0 1
 ./dungen $seed | ./dun2hackvr
 while read group action target;do
   if [ "$action" = "action" ];then
