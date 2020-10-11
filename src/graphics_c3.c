@@ -457,7 +457,7 @@ void draw_screen() {
     //}
    }
    //we check here to see if the mouse button is still down
-   if(gra_global.mousemap[MOUSE_PRIMARY]==-1) {//0 in x11
+   if(gra_global.mousemap[MOUSE_PRIMARY]==-1) {
      printf("%s action %f %f\n",global.user,gra_global.mouse.x,gra_global.mouse.y);
      gra_global.mousemap[MOUSE_PRIMARY]=0;
    }

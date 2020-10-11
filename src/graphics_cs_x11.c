@@ -85,13 +85,6 @@ void draw_cs_text(cs_t p,char *text) {
 }
 
 void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it could be moved up to graphics.c? probl no.
-  //test in here whether a mouse click is within this shape's... bounding box? sure.
-  //cs_s_t bb;//bounding box
-  cs_t smouse=c2_to_cs(gra_global.mouse);
-  int minx=s.p[0].x;
-  int miny=s.p[0].y;
-  int maxx=s.p[0].x;
-  int maxy=s.p[0].y;
   int h;
   int i;//all cs shapes can have 1, 2, or 3+ points. guess I gotta do that logic here too.
   switch(s.len) {
@@ -99,46 +92,10 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
     //circle
     h=max(s.p[0].x,s.p[1].x)-min(s.p[0].x,s.p[1].x);
     XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h,s.p[0].y-h,h*2,h*2,0,360*64);
-    if(distance2((c2_t){s.p[0].x,s.p[1].y},(c2_t){smouse.x,smouse.y} ) < h) {
-     if(gra_global.mousemap[0]==-1) {
-       gra_global.mousemap[0]=0;
-       printf("%s action %s\n",global.user,s.id);
-     }
-     XDrawArc(x11_global.dpy,x11_global.backbuffer,x11_global.backgc,s.p[0].x-h-2,s.p[0].y-h-2,h*2+4,h*2+4,0,360*64);
-    }
     break;
    default:
     for(i=0;i<s.len+(s.len==1);i++) {//this shape is closed!
-      minx=(s.p[i].x<minx)?s.p[i].x:minx;
-      miny=(s.p[i].y<miny)?s.p[i].y:miny;
-      maxx=(s.p[i].x>maxx)?s.p[i].x:maxx;
-      maxy=(s.p[i].y>maxy)?s.p[i].y:maxy;
       draw_cs_line(s.p[i],s.p[(i+1)%(s.len+(s.len==1))]);
-    }
-    //fix the comparison here and also fix the hilighting shape
-    if(smouse.x >= minx && //gra_global is a c2_t and these are in cs_t
-       smouse.y >= miny &&
-       smouse.x <= maxx &&
-       smouse.y <= maxy) {
-//      if(wn_PnPoly(smouse,s.p,s.len) != 0 && s.len > 2) {
-        if(gra_global.mousemap[0] == -1) {//if we're inside the bounding box let's make SOMETHING happen.
-          gra_global.mousemap[0]=0;
-          printf("%s action %s\n",global.user,s.id);
-//        }
-/*        bb.id=strdup("boundingbox");
-        bb.len=4;
-        bb.p[0].x=minx;
-        bb.p[0].y=miny;
-        bb.p[1].x=minx;
-        bb.p[1].y=maxy;
-        bb.p[2].x=maxx;
-        bb.p[2].y=maxy;
-        bb.p[3].x=maxx;
-        bb.p[3].y=miny;
-        draw_cs_filled_shape(bb);
-        free(bb.id);
-*/
-      }
     }
     break;
   }

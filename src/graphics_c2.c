@@ -1,7 +1,11 @@
+#include "common.h"
+#include "math.h"
 #include "graphics_cs.h"
 #include "graphics_c3.h"
+#include "mouse.h"
 
 extern struct gra_global gra_global;
+extern struct hvr_global global;
 
 int c2sX(real x) { return (gra_global.width/(gra_global.split_screen / (gra_global.red_and_blue ? gra_global.split_screen: 1))) * ((x + RIGHT) / (RIGHT *2)) + gra_global.xoff; }
 int s2cX(real x) { return (x/(gra_global.width/(gra_global.split_screen / (gra_global.red_and_blue?gra_global.split_screen :1))))*(RIGHT*2)-RIGHT; }
@@ -29,6 +33,16 @@ void draw_c2_shape(c2_s_t s) {
    ss.p[i]=c2_to_cs(s.p[i]);
   }
   draw_cs_shape(ss);
+//  if(cn_PnPoly(gra_global.mouse,s.p,s.len+(s.len==1))) {//if the mouse is inside the shape, we're going to draw a different outline.
+  if(epoch_PnPoly(gra_global.mouse,s.p,s.len+(s.len==1))) {//if the mouse is inside the shape, we're going to draw a different outline.
+    set_ansi_color(7);
+    if(gra_global.mousemap[MOUSE_PRIMARY]==1) {
+      printf("%s action %s\n",global.user,s.id);
+      gra_global.mousemap[MOUSE_PRIMARY]=0;
+    }
+    //I need to debounce probably
+    draw_cs_shape(ss);//draw over. dunno.
+  }
 }
 
 void draw_c2_filled_shape(c2_s_t s) {
@@ -40,6 +54,7 @@ void draw_c2_filled_shape(c2_s_t s) {
    ss.p[i]=c2_to_cs(s.p[i]);
   }
   draw_cs_filled_shape(ss);
+  draw_cs_shape(ss);//redraw outline last
 }
 
 void draw_c2_text(c2_t p,char *text) {

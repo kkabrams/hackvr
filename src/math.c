@@ -19,7 +19,8 @@ c3_group_rel_t *get_group_relative(char *id) {
     if(gr) return gr;
   }
   //if we got here, we need to make a new one.
-  assert(gr=malloc(sizeof(c3_group_rel_t)));//just exit on malloc error? sure...
+  gr=malloc(sizeof(c3_group_rel_t));//just exit on malloc error? sure...
+  assert(gr && "failed to malloc something I don't want to figure out how to work around if it doesn't malloc.");
   memset(gr,0,sizeof(c3_group_rel_t));
   gr->s=(c3_t){1,1,1};//scale needs to be all 1s, since it is multiplied against the coordinates.
   gr->id=strdup(id);//don't forget to free this when it gets deleted.
@@ -245,7 +246,7 @@ real distance3(c3_t p1,c3_t p2) {
 //            <0 for P2  right of the line
 //    See: Algorithm 1 "Area of Triangles and Polygons"
 inline int
-isLeft( cs_t P0, cs_t P1, cs_t P2 )
+isLeft( c2_t P0, c2_t P1, c2_t P2 )
 {
     return ( (P1.x - P0.x) * (P2.y - P0.y)
             - (P2.x -  P0.x) * (P1.y - P0.y) );
@@ -256,20 +257,23 @@ isLeft( cs_t P0, cs_t P1, cs_t P2 )
 // cn_PnPoly(): crossing number test for a point in a polygon
 //      Input:   P = a point,
 //               V[] = vertex points of a polygon V[n+1] with V[n]=V[0]
+// hacked on by epoch to make the previous statement automatic. i+1 changed to i+1%n
 //      Return:  0 = outside, 1 = inside
 // This code is patterned after [Franklin, 2000]
+
+//pretending like this will work fine with a real instead of an int... probably fine.
 int
-cn_PnPoly( cs_t P, cs_t *V, int n )
+cn_PnPoly( c2_t P, c2_t *V, int n )
 {
     int    cn = 0;    // the  crossing number counter
 
     // loop through all edges of the polygon
     for (int i=0; i<n; i++) {    // edge from V[i]  to V[i+1]
-       if (((V[i].y <= P.y) && (V[i+1].y > P.y))     // an upward crossing
-        || ((V[i].y > P.y) && (V[i+1].y <=  P.y))) { // a downward crossing
+       if (((V[i].y <= P.y) && (V[i+1%n].y > P.y))     // an upward crossing
+        || ((V[i].y > P.y) && (V[i+1%n].y <=  P.y))) { // a downward crossing
             // compute  the actual edge-ray intersect x-coordinate
-            float vt = (float)(P.y  - V[i].y) / (V[i+1].y - V[i].y);
-            if (P.x <  V[i].x + vt * (V[i+1].x - V[i].x)) // P.x < intersect
+            float vt = (float)(P.y  - V[i].y) / (V[i+1%n].y - V[i].y);
+            if (P.x <  V[i].x + vt * (V[i+1%n].x - V[i].x)) // P.x < intersect
                  ++cn;   // a valid crossing of y=P.y right of P.x
         }
     }
@@ -283,8 +287,9 @@ cn_PnPoly( cs_t P, cs_t *V, int n )
 //      Input:   P = a point,
 //               V[] = vertex points of a polygon V[n+1] with V[n]=V[0]
 //      Return:  wn = the winding number (=0 only when P is outside)
+
 int
-wn_PnPoly( cs_t P, cs_t *V, int n )
+wn_PnPoly( c2_t P, c2_t *V, int n )
 {
     int    wn = 0;    // the  winding number counter
 
@@ -304,3 +309,19 @@ wn_PnPoly( cs_t P, cs_t *V, int n )
     return wn;
 }
 //===================================================================
+
+int epoch_PnPoly( c2_t P, c2_t *V, int n ) {
+  cs_t min,max;
+  int i;
+  min.x=V[0].x;
+  min.y=V[0].y;
+  max.x=V[0].x;
+  max.y=V[0].y;
+  for(i=0;i<n;i++) {
+    min.x=min(min.x,V[i].x);
+    max.x=max(max.x,V[i].x);
+    min.y=min(min.y,V[i].y);
+    max.y=max(max.y,V[i].y);
+  }
+  return (P.x <= max.x && P.x >= min.x && P.y >= min.y && P.y <= max.y);
+}
