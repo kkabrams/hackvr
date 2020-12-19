@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+if [ "$1" = "init" ];then
+  grep -A1000 '___CUT___' "$0"
+  exit
+elif [ "$1" = "set" ];then
+  hour=$(date +%H | sed 's/^0//')
+  minute=$(date +%M | sed 's/^0//')
+  second=$(date +%S | sed 's/^0//')
+  printf "_clock_face_hand_hour_ rotate 0 0 -%s\n" "$[$hour * 30 + ($minute / 2)]"
+  printf "_clock_face_hand_minute_ rotate 0 0 -%s\n" "$[$minute * 6]"
+  printf "_clock_face_hand_second_ rotate 0 0 -%s\n" "$[$second * 6]"
+  #printf "_clock_face_hand_hour_ rotate 0 0 %s\n" "$[$hour * 30 + ($minute / 2)]"
+  #printf "_clock_face_hand_minute_ rotate 0 0 %s\n" "$[$minute * 6]"
+  #printf "_clock_face_hand_second_ rotate 0 0 %s\n" "$[$second * 6]"
+else
+  nonblocktail \
+      <(echo $USER move 0 0 -30) \
+      <("$0" init) \
+      <(while true;do "$0" set;sleep 1;done) \
+      /dev/stdin 2>/dev/null \
+    | hackvr 2>/dev/null
+fi
+exit 0
+___CUT___

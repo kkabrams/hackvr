@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-nonblocktail \
-    <(echo $USER move 0 0 -30) \
-    <(./generate.py ) \
-    <(while true;do ./set_clock.sh ;sleep 1;done) \
-    /dev/stdin 2>/dev/null \
-  | hackvr 2>/dev/null
