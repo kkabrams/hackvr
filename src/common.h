@@ -120,6 +120,7 @@ struct hvr_global {
   real split;
   char localecho;
   int selfpipe[2];
+  char *version;
 };
 
 int selfcommand(char *);

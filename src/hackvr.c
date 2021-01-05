@@ -128,7 +128,7 @@ int glob_match(char *a,char *b) {
 }
 
 void hvr_version() {
-  fprintf(stderr,"# hackvr version: %s\n",HVR_VERSION);
+  fprintf(stderr,"# hackvr version: %s\n",global.version);
 }
 
 int hackvr_handler(char *line);
@@ -763,6 +763,7 @@ void alarm_handler(int sig) {
 }
 
 int main(int argc,char *argv[]) {
+  global.version=HVR_VERSION;
   int i;
   int fd=0;//stdin
   if(argc == 2) {

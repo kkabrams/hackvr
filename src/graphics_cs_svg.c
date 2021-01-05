@@ -47,7 +47,7 @@ void set_luminosity_color(int lum) {
 void draw_cs_line(cs_t p1,cs_t p2) {
   char tmp[1024];
   snprintf(tmp,sizeof(tmp)-1,"<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke=\"%s\" />\n"
-                                    ,p1.x     ,p1.y     ,p2.x     ,p2.y         ,svg_global.foreground_color);
+                                    ,p1.x     ,p1.y     ,p2.x     ,p2.y         ,svg_global.foreground_color?svg_global.foreground_color:"green");
   strcat(svg_global.backbuffer,tmp);
 }
 
@@ -79,6 +79,9 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
   }
   switch(s.len) {
    case 1:
+    break;
+   case 2:
+    draw_cs_line(s.p[0],s.p[1]);
     break;
    default:
     strcat(svg_global.backbuffer,"<polygon points=\"");
@@ -114,12 +117,18 @@ void draw_cs_filled_shape(cs_s_t s) {
   switch(s.len) {
    case 1:
     break;
+   case 2:
+    draw_cs_line(s.p[0],s.p[1]);
+    break;
    default:
     strcat(svg_global.backbuffer,"<polygon points=\"");
     for(i=0;i<s.len+(s.len==1);i++) {//this shape is closed!
       snprintf(tmp,sizeof(tmp)-1,"%d,%d",s.p[i].x,s.p[i].y);
       strcat(svg_global.backbuffer,tmp);
       if(i != s.len-1) strcat(svg_global.backbuffer," ");//only print space after points that have a point after them.
+    }
+    if(svg_global.foreground_color == 0) {
+      svg_global.foreground_color="green";
     }
     snprintf(tmp,sizeof(tmp)-1,"\" fill=\"%s\" stroke=\"%s\" />\n",svg_global.foreground_color,svg_global.foreground_color);
     strcat(svg_global.backbuffer,tmp);
@@ -186,6 +195,7 @@ void set_color_snow() {
 }
 
 void set_ansi_color(int i) {
+  if(i < 0 || i > 7) i=0;
   svg_global.foreground_color=svg_global.ansi_color[i];
 }
 
@@ -248,6 +258,7 @@ int graphics_sub_init() {//this returns an fd we need to keep an eye one? :/
  svg_global.ansi_color[6]="yellow";
  svg_global.ansi_color[7]="white";
  svg_global.ansi_color[8]=0;
+ set_ansi_color(0);
 /* x11_global.fd=ConnectionNumber(x11_global.dpy);//we need to to pass to libidc
  x11_global.color_map=DefaultColormap(x11_global.dpy, DefaultScreen(x11_global.dpy));
  fprintf(stderr,"# generating colors...\n");

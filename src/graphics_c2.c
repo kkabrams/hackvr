@@ -33,6 +33,9 @@ void draw_c2_shape(c2_s_t s) {
    ss.p[i]=c2_to_cs(s.p[i]);
   }
   draw_cs_shape(ss);
+  if(!strcmp(global.version,"svg")) {
+    return;//disable mouseover for svg
+  }
 //  if(cn_PnPoly(gra_global.mouse,s.p,s.len+(s.len==1))) {//if the mouse is inside the shape, we're going to draw a different outline.
   if(epoch_PnPoly(gra_global.mouse,s.p,s.len+(s.len==1))) {//if the mouse is inside the shape, we're going to draw a different outline.
     set_ansi_color(7);
