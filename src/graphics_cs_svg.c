@@ -66,6 +66,17 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
   char tmp[1024];
   //cs_t smouse=c2_to_cs(gra_global.mouse);
   int i;//all cs shapes can have 1, 2, or 3+ points. guess I gotta do that logic here too.
+  char *url=0;
+  strcat(svg_global.backbuffer,"<!-- shape ");
+  strcat(svg_global.backbuffer,s.id);
+  strcat(svg_global.backbuffer,"-->");
+  if(s.id[0] == '<' && s.id[strlen(s.id)-1] == '>') {
+    url=strdup(s.id);
+    url[strlen(s.id)-1]=0;//use url+1
+    strcat(svg_global.backbuffer,"<a href=\"");
+    strcat(svg_global.backbuffer,url+1);
+    strcat(svg_global.backbuffer,"\">");
+  }
   switch(s.len) {
    case 1:
     break;
@@ -80,11 +91,26 @@ void draw_cs_shape(cs_s_t s) {//this is implemented as draw_cs_line... hrm. it c
     strcat(svg_global.backbuffer,tmp);
     break;
   }
+  if(url) {
+    strcat(svg_global.backbuffer,"</a>");
+    free(url);
+  }
 }
 
 void draw_cs_filled_shape(cs_s_t s) {
   int i;
   char tmp[1024];
+  char *url=0;
+  strcat(svg_global.backbuffer,"<!-- shape ");
+  strcat(svg_global.backbuffer,s.id);
+  strcat(svg_global.backbuffer,"-->");
+  if(s.id[0] == '<' && s.id[strlen(s.id)-1] == '>') {
+    url=strdup(s.id);
+    url[strlen(s.id)-1]=0;//use url+1
+    strcat(svg_global.backbuffer,"<a href=\"");
+    strcat(svg_global.backbuffer,url+1);
+    strcat(svg_global.backbuffer,"\">");
+  }
   switch(s.len) {
    case 1:
     break;
@@ -98,6 +124,10 @@ void draw_cs_filled_shape(cs_s_t s) {
     snprintf(tmp,sizeof(tmp)-1,"\" fill=\"%s\" stroke=\"%s\" />\n",svg_global.foreground_color,svg_global.foreground_color);
     strcat(svg_global.backbuffer,tmp);
     break;
+  }
+  if(url) {
+    strcat(svg_global.backbuffer,"</a>");
+    free(url);
   }
 }
 
@@ -208,7 +238,7 @@ void set_title(char *t) {
 }
 
 int graphics_sub_init() {//this returns an fd we need to keep an eye one? :/
- svg_global.filename="/tmp/hackvr.html";
+ svg_global.filename=getenv("HACKVR_SVG_OUTPUT")?getenv("HACKVR_SVG_OUTPUT"):"/tmp/hackvr.html";
  svg_global.ansi_color[0]="black";
  svg_global.ansi_color[1]="blue";
  svg_global.ansi_color[2]="green";
