@@ -131,6 +131,7 @@ real magic(real x) {
   return MAGIC(x);
 }
 
+//I need to figure out how far from each eye the view plane is. let's go with 1 unit?
 c2_t c3_to_c2(c3_group_rel_t eye,c3_t p3) { //DO NOT DRAW STUFF IN HERE
   c2_t p2;
   c3_t tmp1;
@@ -144,10 +145,16 @@ c2_t c3_to_c2(c3_group_rel_t eye,c3_t p3) { //DO NOT DRAW STUFF IN HERE
   //final=rotate_c3_yr(p3,(c3_t){0,0,0},d2r(camera.yr));//rotate everything around the center no matter what.
   final=rotate_c3_xr(tmp1,eye.p,d2r(eye.r.x));
 //  final=rotate_c3_zr(tmp2,camera.p,d2r(camera.zr));
+
   real delta_x=(eye.p.x - final.x);//I guess X needs this flippage too.
   real delta_y=(eye.p.y - final.y);//I dunno. Y is weird.
-  real delta_z=(final.z - eye.p.z);
+  real delta_z=(final.z - eye.p.z);//what are we supposed to do if this is 0?
+
   //real d=distance3(eye.p,final);
+  real K=1;//arbitrary... tune this later.
+  real x_prime= delta_x * K / delta_z;
+  real y_prime= delta_y * K / delta_z;
+
 
   p2.x=global.zoom * (delta_x * MAGIC(delta_z) - delta_x);
   p2.y=global.zoom * (delta_y * MAGIC(delta_z) - delta_y);//this doesn't look right either.
@@ -163,14 +170,14 @@ void draw_minimap_shape(c3_s_t s) {//this should replace the draw_minimap_line a
   s2.len=s.len;
   s2.id=s.id;
   int i=0;
-  //if(gra_global.drawminimap == 1) {
+  if(gra_global.drawminimap == 1) {
     for(i=0;i<s.len+(s.len==1);i++) {
       //s2.p[i]=(c2_t){(s.p[i].z - global.camera.p.z) * global.mmz,(s.p[i].x - global.camera.p.x) * global.mmz};
       //s2.p[i]=(c2_t){(global.camera.p.z - s.p[i].z) * global.mmz,(global.camera.p.x - s.p[i].x) * global.mmz};
       s2.p[i]=(c2_t){(global.camera.p.z - s.p[i].z) * global.mmz,(s.p[i].x - global.camera.p.x) * global.mmz};
     }
     draw_c2_shape(s2);
- // }
+  }
 }
 
 /*
@@ -231,10 +238,10 @@ void draw_c3_shape(c3_group_rel_t eye,c3_s_t s) {//outlined. needs to be filled?
    s3.p[i]=c3_to_c2(eye,s2.p[i]);//we need to convert all points in the shape if we have to draw any parts of it.
   }
   draw_minimap_shape(s2);
-  if(gra_global.draw3d == 1) {
+  //if(gra_global.draw3d == 1) {//wireframe mode.
     set_ansi_color(s.attrib.col%16);
     draw_c2_shape(s3);
-  }
+  //}
   if(gra_global.draw3d == 2) {
     //set foreground to a gray based on distance
     //between 0 to 100
@@ -248,16 +255,18 @@ void draw_c3_shape(c3_group_rel_t eye,c3_s_t s) {//outlined. needs to be filled?
 //the color of this shape is set before it gets drawn.
 //which is a grey.
     if(s.attrib.col < 8) {
-     set_luminosity_color(s.attrib.lum);
-     draw_c2_filled_shape(s3);
+     //set_luminosity_color(s.attrib.lum);
+     //draw_c2_filled_shape(s3);//why are we drawing this here?
      if(s.attrib.lum > 100) {
       draw_mode_or();
      } else {
       draw_mode_and();
      }
     }
-    set_ansi_color(s.attrib.col%8);
-    draw_c2_filled_shape(s3);
+    if(s.len != 2) {//no need to draw innards for lines.
+      set_ansi_color(s.attrib.col%8);
+      draw_c2_filled_shape(s3);
+    }
     draw_mode_copy();
     draw_c2_shape(s3);
   }
@@ -418,10 +427,12 @@ void draw_screen() {
     }
     //if(gra_global.draw3d) {//wtf? why do I not compensate for camaera rotation along the x and z?
       //horizon line
+/*
       draw_c2_line((c2_t){LEFT,
                           (int)((real)(global.camera.r.x.d) * (real)(BOTTOM+BOTTOM) / (real)90.0)},
                    (c2_t){RIGHT,
                           (int)((real)(global.camera.r.x.d) * (real)(BOTTOM+BOTTOM) / (real)90.0)});
+*/
     //}
 ///// shiiiit. I should be applying group rotations to all these shapes before sorting them.
 //when I do that. I need to make sure to take the group rotation out of draw_c3_shape()'s code.
@@ -475,13 +486,15 @@ void draw_screen() {
  }*/
 
 //   XSetForeground(global.dpy, global.backgc, global.green.pixel);
+/*
   set_color();
   draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.eye[en].r.x)));
   set_color_red();
   draw_c2_line((c2_t){0,0},rotate_c2((c2_t){-40,0},(c2_t){0,0},d2r((degrees){360-global.eye[en].r.y.d})));
   set_color_blue();
   draw_c2_line((c2_t){0,0},rotate_c2((c2_t){40,0},(c2_t){0,0},d2r(global.eye[en].r.z)));
-
+*/
+/*
   c3_t mouse_v3 = (c3_t){gra_global.mouse.x,gra_global.mouse.y,0};//dunno about the 'z' for mouse.
   set_color_red();
   draw_c3_line(global.eye[en],c3_add(mouse_v3,(c3_t){ 1,0,0}),c3_add(mouse_v3,(c3_t){ 5,0,0}));
@@ -492,6 +505,7 @@ void draw_screen() {
   set_color_blue();
   draw_c3_line(global.eye[en],c3_add(mouse_v3,(c3_t){0,0, 1}),c3_add(mouse_v3,(c3_t){0,0, 5}));
   draw_c3_line(global.eye[en],c3_add(mouse_v3,(c3_t){0,0,-1}),c3_add(mouse_v3,(c3_t){0,0,-5}));
+*/
   }
 //just draw a line from center to 40 away from the center at the angle of the camera's y-rotation
 //this should be minimap shit  
@@ -500,13 +514,13 @@ void draw_screen() {
   //draw_c2_line((c2_t){0,0},gra_global.mouse);
 
   //software mouse cursor
+/*
   set_color();
   draw_c2_line(c2_add(gra_global.mouse,(c2_t){0,1}) , c2_add(gra_global.mouse,(c2_t){0,5}) );
   draw_c2_line(c2_add(gra_global.mouse,(c2_t){0,-1}) , c2_add(gra_global.mouse,(c2_t){0,-5}) );
   draw_c2_line(c2_add(gra_global.mouse,(c2_t){1,0}) , c2_add(gra_global.mouse,(c2_t){5,0}) );
   draw_c2_line(c2_add(gra_global.mouse,(c2_t){-1,0}) , c2_add(gra_global.mouse,(c2_t){-5,0}) );
-
-
+*/
   //if(points_on_same_side_of_line(gra_global.mouse,(c2_t){80,80},(c2_t){0,0},(c2_t){0,80})) {
   //draw_c2_line((c2_t){0,0},rotate_c2((c2_t){80,0},(c2_t){0,0},points_to_angle((c2_t){0,0},gra_global.mouse)));
   //}
