@@ -138,6 +138,10 @@ void hackvr_handler_idc(struct shit *me,char *line) {
   switch(hackvr_handler(line)) {
     case -1://quit
       fprintf(stderr,"# exiting due to EOF\n");
+      //we need to flush another draw before exiting probably for _svg to get one last frame in.
+    #ifdef GRAPHICAL
+      redraw();
+    #endif
       exit(0);
     case 0://don't redraw
       break;
