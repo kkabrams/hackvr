@@ -301,6 +301,7 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
  int i;
  real curdist=0;
  real maxdist=0;
+ real mindist=0;
  c3_group_rel_t *gr=get_group_relative(s->id);
  for(i=0;i< s->len+(s->len==1);i++) {
   if(gr) {
@@ -309,8 +310,10 @@ real shitdist(struct c3_shape *s,c3_t p) {//this function is a killer. :/
    curdist=shitdist2(p,s->p[i]);//if there's no gr we're basically just this point. no rotation, not offests.
   }
   if(curdist > maxdist) maxdist=curdist;
+  if(curdist < mindist) mindist=curdist;
  }
- return maxdist;
+ return mindist;
+ //return maxdist;
  //averaging it works ok, but I've decided to now use the farthest to say the distance something is.
  //why the fuck did we get group rotations each... nevermind. this code just sucks.
  /*

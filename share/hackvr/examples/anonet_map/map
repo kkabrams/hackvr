@@ -2,6 +2,7 @@
 paths="$(ncat --recv-only 21.41.41.1 64777 | sort | uniq | tee ${PREFIX}/var/cache/hackvr/anonet_data.new)"
 
 MAP=${PREFIX}/var/cache/hackvr/anonet_map.hackvr
+mkdir -p ${PREFIX}/var/cache/hackvr/
 
 #see if the data actually changed before regenerating this shit...
 if cmp ${PREFIX}/var/cache/hackvr/anonet_data.new ${PREFIX}/var/cache/hackvr/anonet_data.old ; then
@@ -17,7 +18,7 @@ nodes=$(printf "%s\n" "$paths" | tr ' ' '\n' | sort | uniq)
 nodes_count="$(printf "%s\n" "$nodes" | tr ' ' '\n' | wc -l | tr -cd '0-9')"
 #echo $nodes
 #echo $nodes_count
-echo $USER move 0 0 -17
+echo $USER move 0 0 -20
 coords="$( (for node in $nodes;do
   printf "AS%s addshape 4 2  0 8 0  0 0 0\n" "$node"
   printf "AS* rotate 0 0 +%d\n" "$[360 / ${nodes_count} ]"
@@ -56,7 +57,7 @@ for node in $nodes;do
   printf "<whois://whois.ano/AS%s> addshape 5 4  -1 8 0  -1 10 0  1 10 0  1 8 0\n" "$node"
   printf "<whois://whois.ano/AS* rotate 0 0 +%d\n" "$[360 / ${nodes_count} ]"
   printf "<whois://whois.ano/AS* flatten\n"
-  makelabel.sh AS$node $( echo | awk "{print $(xcoord_by_ASN $node) * 13}" ) $( echo | awk "{print $(ycoord_by_ASN $node) * 13}" ) -10 <<< $node
+  makelabel.sh AS$node $( echo | awk "{print $(xcoord_by_ASN $node) * 13}" ) $( echo | awk "{print $(ycoord_by_ASN $node) * 13}" ) -19 <<< $node
   printf "AS%s scale .1 .1 .1\n" "$node"
 done | tee -a $MAP
 
