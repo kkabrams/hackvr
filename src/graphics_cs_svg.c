@@ -215,7 +215,7 @@ void flipscreen() {
   fprintf(stderr,"# flipping screen!\n");
 //  strcat(svg_global.backbuffer,"</svg>\n</xml>\n");
   strcat(svg_global.backbuffer,"</svg></body></html>\n");
-  int fd=open(svg_global.filename,O_TRUNC|O_WRONLY|O_CREAT);
+  int fd=open(svg_global.filename,O_TRUNC|O_WRONLY|O_CREAT,0644);
   write(fd,svg_global.backbuffer,strlen(svg_global.backbuffer));
   close(fd);
 }
