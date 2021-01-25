@@ -143,7 +143,15 @@ void draw_cs_filled_shape(cs_s_t s) {
 //should I do clipping in each graphics lib or make graphics.c just have clipping stuff?
 void clear_backbuffer() {
 //  strcpy(svg_global.backbuffer,"<?xml version=\"1.0\" standalone=\"no\">\n");
-  strcpy(svg_global.backbuffer,"<html><head><meta http-equiv=\"refresh\" content=\"0\" /></head><body>\n");
+  if(global.state == HVR_STATE_EXIT) {//we only want to actually print a refresh if we're not doing the last frame.
+    strcpy(svg_global.backbuffer,"<html><head><title>");
+    strcat(svg_global.backbuffer,global.title);
+    strcat(svg_global.backbuffer,"</title></head><body>\n");
+  } else {
+    strcpy(svg_global.backbuffer,"<html><head><title>");
+    strcat(svg_global.backbuffer,global.title);
+    strcat(svg_global.backbuffer,"</title><meta http-equiv=\"refresh\" content=\"0\" /></head><body>\n");
+  }
   strcat(svg_global.backbuffer,"<svg width=\"1024\" height=\"768\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">\n");
 }
 
@@ -243,7 +251,9 @@ void set_demands_attention() {
 */
 }
 
-void set_title(char *t) {
+void set_title(char *t) {//this might need to be put somewhere else...
+  if(global.title) free(global.title);
+  global.title=strdup(t);
  //XStoreName(x11_global.dpy,x11_global.w,t);
 }
 

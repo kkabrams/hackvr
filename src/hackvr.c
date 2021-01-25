@@ -37,6 +37,13 @@ struct hvr_global global;
 //TODO: will have to make some pixmaps get resized when the window does.
 //for now set them to be as big as you think you'll ever resize the window to.
 
+#ifndef GRAPHICAL
+void set_title(char *t) {
+  if(global.title) free(global.title);
+  global.title=strdup(t);
+}
+#endif
+
 int lum_based_on_distance(c3_s_t *s) {
   int i;
   real sum=0;
@@ -45,36 +52,6 @@ int lum_based_on_distance(c3_s_t *s) {
   }
   //sum /= s->len;
   return sum * 5;
-}
-
-
-//might be able to make this faster by just using fgets() and not using recursion and malloc.
-/* does not return the newline. */
-
-//this isn't being used anymore afaict.
-char *read_line_hack(FILE *fp,int len) {
- short in;
- char *t;
- errno=0;
- switch(in=fgetc(fp)) {
-  case '\n':
-   t=malloc(len+1);
-   t[len]=0;
-   return t;
-  case -1:
-   if(errno == EAGAIN) return 0;
-   if(feof(fp)) {
-    fprintf(stderr,"# reached EOF. exiting.\n");
-    exit(0);
-   }
-   fprintf(stderr,"# some other error happened while reading. %d %d\n",EAGAIN,errno);
-   perror("hackvr");
-   exit(1);
-  default:
-   if((t=read_line_hack(fp,len+1))) t[len]=in;
-   break;
- }
- return t;
 }
 
 int selfcommand(char *s) {//send this line to be handled by ourselves and output to stdout
@@ -138,17 +115,18 @@ void hackvr_handler_idc(struct shit *me,char *line) {
   switch(hackvr_handler(line)) {
     case -1://quit
       fprintf(stderr,"# exiting due to EOF\n");
-      //we need to flush another draw before exiting probably for _svg to get one last frame in.
-    #ifdef GRAPHICAL
-      redraw();
-    #endif
+      global.state=HVR_STATE_EXIT;
+      #ifdef GRAPHICAL
+        draw_screen();
+      #endif
+      //close(me->fd);//this doesn't make the main loop exit. gonna have to exit(0);
       exit(0);
     case 0://don't redraw
       break;
     case 1://redraw please.
-    #ifdef GRAPHICAL
-      redraw();
-    #endif
+      #ifdef GRAPHICAL
+        redraw();
+      #endif
       break;
     default://no idea.
       break;
@@ -388,8 +366,8 @@ int hackvr_handler(char *line) {
    if(len != 3 && len != 4) return ret;
    if(len == 4) {
     if(0);
-#ifdef GRAPHICAL
     else if(!strcmp(a[2],"title")) set_title(a[3]);//who cares for spaces anyway?
+#ifdef GRAPHICAL
     else if(!strcmp(a[2],"camera.p.x")) global.camera.p.x=strtold(a[3],0);
     else if(!strcmp(a[2],"camera.p.y")) global.camera.p.y=strtold(a[3],0);
     else if(!strcmp(a[2],"camera.p.z")) global.camera.p.z=strtold(a[3],0);
@@ -767,7 +745,10 @@ void alarm_handler(int sig) {
 }
 
 int main(int argc,char *argv[]) {
+  global.state=HVR_STATE_INIT;
   global.version=HVR_VERSION;
+  global.title=0;
+  set_title("hackvr");
   int i;
   int fd=0;//stdin
   if(argc == 2) {
@@ -835,6 +816,7 @@ int main(int argc,char *argv[]) {
   //signal(SIGALRM,alarm_handler);
   //alarm(10);
   fprintf(stderr,"# entering main loop\n");
+  global.state=HVR_STATE_RUN;
   select_on_everything();
 
   return 0;

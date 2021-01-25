@@ -1,4 +1,6 @@
 #!/bin/bash
+echo $USER set title anonet_AS_map
+
 paths="$(ncat --recv-only 21.41.41.1 64777 | sort | uniq | tee ${PREFIX}/var/cache/hackvr/anonet_data.new)"
 
 MAP=${PREFIX}/var/cache/hackvr/anonet_map.hackvr
@@ -54,9 +56,9 @@ line_between_nodes() {
 }
 
 for node in $nodes;do
-  printf "<whois://whois.ano/AS%s> addshape 5 4  -1 8 0  -1 10 0  1 10 0  1 8 0\n" "$node"
-  printf "<whois://whois.ano/AS* rotate 0 0 +%d\n" "$[360 / ${nodes_count} ]"
-  printf "<whois://whois.ano/AS* flatten\n"
+  printf "<//whois.ano/AS%s> addshape 5 4  -1 8 0  -1 10 0  1 10 0  1 8 0\n" "$node"
+  printf "<//whois.ano/AS* rotate 0 0 +%d\n" "$[360 / ${nodes_count} ]"
+  printf "<//whois.ano/AS* flatten\n"
   makelabel.sh AS$node $( echo | awk "{print $(xcoord_by_ASN $node) * 13}" ) $( echo | awk "{print $(ycoord_by_ASN $node) * 13}" ) -19 <<< $node
   printf "AS%s scale .1 .1 .1\n" "$node"
 done | tee -a $MAP

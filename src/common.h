@@ -96,6 +96,12 @@ typedef struct c3_shape {//use array or linked list?
   struct attrib attrib;
 } c3_s_t;
 
+typedef enum hvr_state {
+  HVR_STATE_INIT,
+  HVR_STATE_RUN,
+  HVR_STATE_EXIT
+} hvr_state;
+
 struct hvr_global {
   int x;
   int y;
@@ -115,12 +121,14 @@ struct hvr_global {
   struct hashtable ht_group;
   c3_group_rel_t eye[MAX_SIDES];//lol. 1000 eyes! array of group_rels for each eye. how to arrange eyes?
   c3_group_rel_t camera;//should there be an array for this? camera has .s which is a shape struct. each point is the eye?
+  hvr_state state;//I dunno.
   real zoom;
   int derp;
   real split;
   char localecho;
   int selfpipe[2];
   char *version;
+  char *title;
 };
 
 int selfcommand(char *);

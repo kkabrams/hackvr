@@ -372,7 +372,11 @@ void x11_keypress_handler(XKeyEvent *xkey,int x,int y) {
 #endif
 
 void set_title(char *t) {
- XStoreName(x11_global.dpy,x11_global.w,t);
+ if(global.title) free(global.title);
+ global.title=strdup(t);
+ if(x11_global.dpy && x11_global.w) {
+   XStoreName(x11_global.dpy,x11_global.w,t);
+ }
 }
 
 int graphics_sub_init() {
@@ -415,8 +419,8 @@ int graphics_sub_init() {
   set_aspect_ratio();
   XSelectInput(x11_global.dpy, x11_global.w, HV_MOUSE_X11_EVENT_MASK|HV_X11_KB_EVENT_MASK|HV_GRAPHICS_X11_EVENT_MASK);
  }
+ XStoreName(x11_global.dpy,x11_global.w,global.title);
  XMapWindow(x11_global.dpy,x11_global.w);
- set_title("hackvr");//uses the globals to know what dpy and w
  x11_global.gc=XCreateGC(x11_global.dpy,x11_global.w, 0, 0);
  x11_global.backbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,MAXWIDTH,MAXHEIGHT,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
  x11_global.cleanbackbuffer=XCreatePixmap(x11_global.dpy,x11_global.w,MAXWIDTH,MAXHEIGHT,DefaultDepth(x11_global.dpy,DefaultScreen(x11_global.dpy)));
